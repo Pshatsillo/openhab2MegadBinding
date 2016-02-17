@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megadonetry"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 org.eclipse.smarthome.thing-description.xsd">
+
+	<bridge-type id="bridge">
+		<label>Bridge Megad incoming server adapter</label>
+		<description>This bridge represents incoming server for MegaD 
+		</description>
+
+		<config-description>
+			<parameter name="port" type="integer" required="true" min="1024"
+				max="49151">
+				<context>network-address</context>
+				<label>MegaD server port</label>
+				<description>Port of the LAN gateway</description>
+				<default>8585</default>
+			</parameter>
+		</config-description>
+
+	</bridge-type>
+</thing:thing-descriptions>
