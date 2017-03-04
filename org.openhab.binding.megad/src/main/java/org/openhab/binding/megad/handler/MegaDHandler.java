@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.OpenClosedType;
 import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -54,9 +55,8 @@ public class MegaDHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
         int state = 0;
-        HttpURLConnection con;
+
         String Result = "";
 
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
@@ -65,22 +65,26 @@ public class MegaDHandler extends BaseThingHandler {
             } else if (command.toString().equals("OFF")) {
                 state = 0;
             }
-
             Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                     + getThing().getConfiguration().get("password").toString() + "/?cmd="
                     + getThing().getConfiguration().get("port").toString() + ":" + state;
             logger.info("Switch: {}", Result);
+            sendCommand(Result);
 
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-
             int result = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
             Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                     + getThing().getConfiguration().get("password").toString() + "/?cmd="
                     + getThing().getConfiguration().get("port").toString() + ":" + result;
-            logger.info("dimmer: {}", Result);
-        } else {
-
+            logger.info("Dimmer: {}", Result);
+            sendCommand(Result);
         }
+        // updateStatus(ThingStatus.ONLINE);
+    }
+
+    public void sendCommand(String Result) {
+
+        HttpURLConnection con;
 
         URL MegaURL;
 
@@ -98,28 +102,38 @@ public class MegaDHandler extends BaseThingHandler {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.debug("1" + e);
+            logger.error("1" + e);
             e.printStackTrace();
         } catch (ProtocolException e) {
-            logger.debug("2" + e);
+            logger.error("2" + e);
             e.printStackTrace();
         } catch (IOException e) {
-            logger.debug(e.getLocalizedMessage());
-            e.printStackTrace();
+            logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
+                    + " error: " + e.getLocalizedMessage());
         }
 
     }
 
     public void updateValues(String hostAddress, String[] getCommands, OnOffType OnOff) {
-        // logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
-        logger.debug("{}", getThing().getUID().getId());
-        logger.debug("{}", getActiveChannelListAsString());
+        logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
+        logger.debug("getThing() -> {}", getThing().getUID().getId());
+        logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
 
         if ((getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_IN))
                 || (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_OUT))) {
             updateState(getActiveChannelListAsString(), OnOff);
         } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_IB)) {
             updateState(getActiveChannelListAsString(), StringType.valueOf(getCommands[4]));
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_AT)) {
+            updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ST)) {
+            updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
+            if (OnOff.name() == "ON") {
+                updateState(getActiveChannelListAsString(), OpenClosedType.CLOSED);
+            } else if (OnOff.name() == "OFF") {
+                updateState(getActiveChannelListAsString(), OpenClosedType.OPEN);
+            }
         } else {
             try {
                 updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
@@ -141,13 +155,15 @@ public class MegaDHandler extends BaseThingHandler {
         registerMegadThingListener(bridgeHandler);
 
         int pollingPeriod = Integer.parseInt(getThing().getConfiguration().get("refresh").toString());
-        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    updateData();
-                }
-            }, 0, pollingPeriod, TimeUnit.SECONDS);
+        if (pollingPeriod != 0) {
+            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateData();
+                    }
+                }, 0, pollingPeriod, TimeUnit.SECONDS);
+            }
         }
 
     }
@@ -203,22 +219,51 @@ public class MegaDHandler extends BaseThingHandler {
                 } else if (response.toString().contains("OFF")) {
                     updateState(getActiveChannelListAsString(), OnOffType.OFF);
                 }
+            } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
+                if (response.toString().contains("ON")) {
+                    updateState(getActiveChannelListAsString(), OpenClosedType.CLOSED);
+                } else if (response.toString().contains("OFF")) {
+                    updateState(getActiveChannelListAsString(), OpenClosedType.OPEN);
+                }
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                 int percent = (int) Math.round(Integer.parseInt(response.toString()) / 2.55);
                 updateState(getActiveChannelListAsString(), PercentType.valueOf(Integer.toString(percent)));
                 logger.debug(getThing().getUID().getId() + " " + percent);
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_DHTTEMP)) {
                 String[] ResponseParse = response.toString().split("[:/]");
-                updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[1]));
+                if (ResponseParse.length > 2) {
+                    if (ResponseParse[0].contains("temp")) {
+                        updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[1]));
+                    }
+                } else {
+                    updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[0]));
+                }
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_DHTHUM)) {
                 String[] ResponseParse = response.toString().split("[:/]");
-                updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[3]));
+                if (ResponseParse.length > 2) {
+                    if (ResponseParse[2].contains("hum")) {
+                        updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[3]));
+                    }
+                } else {
+                    updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[1]));
+                }
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_TGET)) {
                 updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
+            } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
+                String[] ResponseParse = response.toString().split("[:]");
+                if (ResponseParse.length > 1) {
+                    logger.debug(ResponseParse[1]);
+                    if (!(response.toString().equals("NA"))) {
+                        updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[1]));
+                    }
+                } else {
+                    if (!(response.toString().equals("NA"))) {
+                        updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
+                    }
+                }
             }
-
         } catch (IOException e) {
-            logger.debug("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
+            logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
                     + " error: " + e.getLocalizedMessage());
         }
     }
@@ -285,6 +330,10 @@ public class MegaDHandler extends BaseThingHandler {
     @Override
     public void dispose() {
         logger.debug("Thing Handler for {} stop", getThing().getUID().getId());
+        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+            refreshPollingJob.cancel(true);
+            refreshPollingJob = null;
+        }
         unregisterMegadThingListener(bridgeHandler);
     }
 

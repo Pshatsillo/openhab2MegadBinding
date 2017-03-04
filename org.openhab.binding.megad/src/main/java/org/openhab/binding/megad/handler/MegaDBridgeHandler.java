@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 /**
  * The {@link MegaDBridgeHandler} is responsible for bridge.
  *
+ * This is server for incoming connections from megad
+ *
  * @author Petr Shatsillo - Initial contribution
  */
 
@@ -151,19 +153,18 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             try {
                 ss = new ServerSocket(port);
                 logger.debug("MegaD Server open port {}", port);
+                isRunning = true;
                 updateStatus(ThingStatus.ONLINE);
             } catch (IOException e) {
-                logger.debug("ERROR -> " + e.getMessage());
+                logger.error("ERROR! Cannot open port: {}", e.getMessage());
                 updateStatus(ThingStatus.OFFLINE);
-                // e.printStackTrace();
             }
 
             while (isRunning) {
                 try {
                     s = ss != null ? ss.accept() : null;
                 } catch (IOException e) {
-                    logger.debug("ERROR Cycle --> " + e.getMessage());
-                    // e.printStackTrace();
+                    logger.error("ERROR in bridge. Incoming server has error: {}", e.getMessage());
                 }
                 if (!ss.isClosed()) {
                     new Thread(startHttpSocket());
@@ -188,7 +189,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     private void readInput() {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        while (true) {
+        while (isRunning) {
             String s;
             String[] getCommands;
             String thingID, hostAddress;
@@ -198,10 +199,15 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                     break;
                 }
                 if (s.contains("GET") && s.contains("?")) {
-                    logger.debug("incoming from Megad: " + this.s.getInetAddress().getHostAddress() + " " + s);
+                    logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
                     String[] CommandParse = s.split("[/ ]");
                     String command = CommandParse[2];
                     getCommands = command.split("[?&>=]");
+
+                    for (int i = 0; getCommands.length > i; i++) {
+                        logger.debug("{} value {}", i, getCommands[i]);
+                    }
+
                     if (s.contains("m=1")) {
                         hostAddress = this.s.getInetAddress().getHostAddress();
                         if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
@@ -209,10 +215,11 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         }
                         thingID = hostAddress + "." + getCommands[2];
                         MegaDHandler = thingHandlerMap.get(thingID);
-                        // logger.debug("{}", MegaDHandler);
                         if (MegaDHandler != null) {
                             MegaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
                         }
+                    } else if (s.contains("m=2")) {
+                        // do nothing -- long pressed
                     } else {
                         hostAddress = this.s.getInetAddress().getHostAddress();
                         if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
@@ -223,22 +230,17 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         } else {
                             thingID = hostAddress + "." + getCommands[1];
                         }
-
                         MegaDHandler = thingHandlerMap.get(thingID);
-                        logger.debug("{}", thingID);
                         if (MegaDHandler != null) {
                             MegaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
                         }
-                        // for (int i = 0; getCommands.length > i; i++) {
-                        // logger.debug(i + " value " + getCommands[i]);
-                        // }
                     }
                     break;
                 } else {
                     break;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getLocalizedMessage());
             }
         }
     }
@@ -250,17 +252,24 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             os.write(result.getBytes());
             os.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
         }
     }
 
     @Override
     public void dispose() {
-        logger.debug("Dispose Megad bridge handler{}", this.toString());
+        logger.debug("Dispose Megad bridge handler {}", this.toString());
 
         if (pollingJob != null && !pollingJob.isCancelled()) {
             pollingJob.cancel(true);
             pollingJob = null;
+        }
+        isRunning = false;
+        try {
+            ss.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
     }

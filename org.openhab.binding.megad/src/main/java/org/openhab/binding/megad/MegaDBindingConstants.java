@@ -41,6 +41,8 @@ public class MegaDBindingConstants {
     public final static String CHANNEL_ST = "st";
     public final static String CHANNEL_IB = "ib";
     public final static String CHANNEL_TGET = "tget";
+    public final static String CHANNEL_I2C = "i2c";
+    public final static String CHANNEL_CONTACT = "contact";
 
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = ImmutableSet.of(THING_TYPE_UID_BRIDGE,
             THING_TYPE_DEVICE);

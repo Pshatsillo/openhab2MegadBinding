@@ -26,6 +26,7 @@
             <channel id="st" typeId="st"></channel>
             <channel id="ib" typeId="ib"></channel>
             <channel id="tget" typeId="tget"></channel>
+            <channel id="contact" typeId="contact"></channel>
         </channels>
 
         <config-description>
@@ -119,6 +120,12 @@
         <item-type>Number</item-type>
         <label>Megad temp</label>
         <description>Temperature of MegaDevice</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"  pattern="%d"></state>
+    </channel-type>
+    <channel-type id="contact">
+        <item-type>Contact</item-type>
+        <label>Closed OR Open</label>
+        <description>Indicates input as contact/ Closed when ON Open when OFF</description>
+        <state readOnly="true"  pattern="%s"></state>
     </channel-type>
 </thing:thing-descriptions>
