@@ -20,6 +20,7 @@
             <channel id="out" typeId="out"></channel>
             <channel id="dimmer" typeId="dimmer"></channel>
             <channel id="temp" typeId="temp"></channel>
+             <channel id="i2c" typeId="i2c"></channel>
             <channel id="humidity" typeId="humidity"></channel>
             <channel id="onewire" typeId="onewire"></channel>
             <channel id="adc" typeId="adc"></channel>
@@ -50,9 +51,17 @@
                 <description>refresh interval channel</description>
                 <default>30</default>
             </parameter>
-                     <parameter name="type" type="text">
-                <label>Data type</label>
-                <description></description>
+            <parameter name="scl" type="text">
+                <label>I2C SCL</label>
+                <description>Only for i2c</description>
+            </parameter>
+            <parameter name="i2c_dev" type="text">
+                <label>I2C Device</label>
+                <description>Only for i2c</description>
+            </parameter>
+            <parameter name="i2c_par" type="text">
+                <label>I2C Parameter</label>
+                <description>Only for i2c</description>
             </parameter>
         </config-description>
 
@@ -90,6 +99,12 @@
         <item-type>Number</item-type>
         <label>Humidity DHT</label>
         <description>Humidity from DHT sensor</description>
+        <state readOnly="true" pattern="%.1f"></state>
+    </channel-type>
+    <channel-type id="i2c">
+        <item-type>Number</item-type>
+        <label>I2C</label>
+        <description>I2C</description>
         <state readOnly="true" pattern="%.1f"></state>
     </channel-type>
     <channel-type id="onewire">

@@ -174,7 +174,18 @@ public class MegaDHandler extends BaseThingHandler {
         logger.debug("Updating...");
         String Result;
 
-        if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_TGET)) {
+        if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_I2C)) {
+            Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                    + getThing().getConfiguration().get("password").toString() + "/?pt="
+                    + getThing().getConfiguration().get("port").toString() + "&scl="
+                    + getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    + getThing().getConfiguration().get("i2c_dev").toString();
+
+            if (getThing().getConfiguration().get("i2c_par") != null) {
+                Result += "&i2c_par=" + getThing().getConfiguration().get("i2c_par").toString();
+            }
+
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_TGET)) {
             Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                     + getThing().getConfiguration().get("password").toString() + "/?tget=1";
         } else {
@@ -268,6 +279,8 @@ public class MegaDHandler extends BaseThingHandler {
                         updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
                     }
                 }
+            } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_I2C)) {
+                updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
             }
         } catch (IOException e) {
             logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
