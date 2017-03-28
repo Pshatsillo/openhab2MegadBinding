@@ -128,6 +128,8 @@ public class MegaDHandler extends BaseThingHandler {
             updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
         } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ST)) {
             updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ADC)) {
+            updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
         } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
             if (OnOff.name() == "ON") {
                 updateState(getActiveChannelListAsString(), OpenClosedType.CLOSED);
@@ -213,6 +215,9 @@ public class MegaDHandler extends BaseThingHandler {
                 } else if (response.toString().contains("OFF")) {
                     updateState(getActiveChannelListAsString(), OnOffType.OFF);
                 }
+            } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
+                String[] value = response.toString().split("[/]");
+                updateState(getActiveChannelListAsString(), DecimalType.valueOf(value[1]));
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_OUT)) {
                 if (response.toString().contains("ON")) {
                     updateState(getActiveChannelListAsString(), OnOffType.ON);
@@ -248,6 +253,8 @@ public class MegaDHandler extends BaseThingHandler {
                     updateState(getActiveChannelListAsString(), DecimalType.valueOf(ResponseParse[1]));
                 }
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_TGET)) {
+                updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
+            } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ADC)) {
                 updateState(getActiveChannelListAsString(), DecimalType.valueOf(response.toString()));
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
                 String[] ResponseParse = response.toString().split("[:]");
@@ -338,6 +345,7 @@ public class MegaDHandler extends BaseThingHandler {
     }
 
     private void unregisterMegadThingListener(MegaDBridgeHandler bridgeHandler) {
+        logger.debug("unregister");
         if (bridgeHandler != null) {
             bridgeHandler.unregisterThingListener(this);
         } else {

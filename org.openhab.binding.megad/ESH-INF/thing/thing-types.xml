@@ -16,6 +16,7 @@
 
         <channels>
             <channel id="in" typeId="in" />
+            <channel id="incount" typeId="incount"></channel>
             <channel id="out" typeId="out"></channel>
             <channel id="dimmer" typeId="dimmer"></channel>
             <channel id="temp" typeId="temp"></channel>
@@ -51,7 +52,7 @@
             </parameter>
                      <parameter name="type" type="text">
                 <label>Data type</label>
-                <description>This is for DHT sensor only temp or hum</description>
+                <description></description>
             </parameter>
         </config-description>
 
@@ -63,6 +64,11 @@
         <item-type>Switch</item-type>
         <label>Input</label>
         <description>Port set as  input signal for switch using</description>
+    </channel-type>
+     <channel-type id="incount">
+        <item-type>Number</item-type>
+        <label>Input counter</label>
+        <description>Incoming press counter</description>
     </channel-type>
     <channel-type id="out">
         <item-type>Switch</item-type>
