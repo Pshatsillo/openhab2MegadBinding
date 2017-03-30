@@ -203,7 +203,7 @@ public class MegaDHandler extends BaseThingHandler {
 
             con = (HttpURLConnection) obj.openConnection();
 
-            logger.debug(Result);
+            logger.info(Result);
 
             con.setRequestMethod("GET");
             // con.setReadTimeout(500);
@@ -219,7 +219,7 @@ public class MegaDHandler extends BaseThingHandler {
                 response.append(inputLine);
             }
             in.close();
-            logger.debug("input string->" + response.toString());
+            logger.info("input string-> {}", response.toString());
             if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_IN)) {
                 if (response.toString().contains("ON")) {
                     updateState(getActiveChannelListAsString(), OnOffType.ON);
@@ -228,6 +228,11 @@ public class MegaDHandler extends BaseThingHandler {
                 }
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
                 String[] value = response.toString().split("[/]");
+                for (int i = 0; i < value.length; i++) {
+
+                    logger.debug("{} - {}", i, value[i]);
+                }
+
                 updateState(getActiveChannelListAsString(), DecimalType.valueOf(value[1]));
             } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_OUT)) {
                 if (response.toString().contains("ON")) {
