@@ -130,6 +130,8 @@ public class MegaDHandler extends BaseThingHandler {
             updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
         } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_ADC)) {
             updateState(getActiveChannelListAsString(), DecimalType.valueOf(getCommands[2]));
+        } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
+
         } else if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
             if (OnOff.name() == "ON") {
                 updateState(getActiveChannelListAsString(), OpenClosedType.CLOSED);
@@ -203,7 +205,7 @@ public class MegaDHandler extends BaseThingHandler {
 
             con = (HttpURLConnection) obj.openConnection();
 
-            logger.info(Result);
+            logger.debug(Result);
 
             con.setRequestMethod("GET");
             // con.setReadTimeout(500);
@@ -219,7 +221,7 @@ public class MegaDHandler extends BaseThingHandler {
                 response.append(inputLine);
             }
             in.close();
-            logger.info("input string-> {}", response.toString());
+            logger.debug("input string-> {}", response.toString());
             if (getActiveChannelListAsString().equals(MegaDBindingConstants.CHANNEL_IN)) {
                 if (response.toString().contains("ON")) {
                     updateState(getActiveChannelListAsString(), OnOffType.ON);
