@@ -72,12 +72,15 @@ public class MegaDHandler extends BaseThingHandler {
             sendCommand(Result);
 
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-            int result = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
-            Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                    + getThing().getConfiguration().get("password").toString() + "/?cmd="
-                    + getThing().getConfiguration().get("port").toString() + ":" + result;
-            logger.info("Dimmer: {}", Result);
-            sendCommand(Result);
+            if (!command.toString().equals("REFRESH")) {
+                int result = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
+                Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                        + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        + getThing().getConfiguration().get("port").toString() + ":" + result;
+                logger.info("Dimmer: {}", Result);
+                sendCommand(Result);
+            }
+
         }
         // updateStatus(ThingStatus.ONLINE);
     }
@@ -92,7 +95,8 @@ public class MegaDHandler extends BaseThingHandler {
             MegaURL = new URL(Result);
             con = (HttpURLConnection) MegaURL.openConnection();
             // optional default is GET
-            // con.setReadTimeout(500);
+            con.setReadTimeout(500);
+            con.setConnectTimeout(500);
             con.setRequestMethod("GET");
 
             // add request header
@@ -183,101 +187,124 @@ public class MegaDHandler extends BaseThingHandler {
                         + getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "&cmd=get",
                 "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?tget=1",
-                "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&scl="
-                        + getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
-                        + getThing().getConfiguration().get("i2c_dev").toString() };
+                        + getThing().getConfiguration().get("password").toString() + "/?tget=1" };
+
+        if ((getThing().getConfiguration().get("scl") != null)
+                && (getThing().getConfiguration().get("i2c_dev") != null)) {
+            Result[2] = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                    + getThing().getConfiguration().get("password").toString() + "/?pt="
+                    + getThing().getConfiguration().get("port").toString() + "&scl="
+                    + getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    + getThing().getConfiguration().get("i2c_dev").toString();
+        }
+        String[] updateRequest = sendRequest(Result);
 
         for (Channel channel : getThing().getChannels()) {
-            if (isLinked(channel.getUID().getId())) {
-                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TGET)) {
-                    Result[0] = "";
-                    Result[2] = "";
-                }
-            } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
-                Result[0] = "";
-                Result[1] = "";
-            } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
-                return;
-            }
-
-            String updateRequest = sendRequest(Result);
 
             if (isLinked(channel.getUID().getId())) {
                 if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
                     return;
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN)) {
-                    if (updateRequest.contains("ON")) {
+                    if (updateRequest[0].contains("ON")) {
                         updateState(channel.getUID().getId(), OnOffType.ON);
-                    } else if (updateRequest.contains("OFF")) {
+                    } else if (updateRequest[0].contains("OFF")) {
                         updateState(channel.getUID().getId(), OnOffType.OFF);
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
-                    String[] value = updateRequest.split("[/]");
+                    String[] value = updateRequest[0].split("[/]");
                     for (int i = 0; i < value.length; i++) {
 
                         logger.debug("{} - {}", i, value[i]);
                     }
-
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
+                    if (value.length > 2) {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
-                    if (updateRequest.contains("ON")) {
+                    if (updateRequest[0].contains("ON")) {
                         updateState(channel.getUID().getId(), OnOffType.ON);
-                    } else if (updateRequest.contains("OFF")) {
+                    } else if (updateRequest[0].contains("OFF")) {
                         updateState(channel.getUID().getId(), OnOffType.OFF);
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
-                    if (updateRequest.contains("ON")) {
+                    if (updateRequest[0].contains("ON")) {
                         updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
-                    } else if (updateRequest.contains("OFF")) {
+                    } else if (updateRequest[0].contains("OFF")) {
                         updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-                    int percent = (int) Math.round(Integer.parseInt(updateRequest) / 2.55);
+                    int percent = 0;
+                    try {
+                        percent = (int) Math.round(Integer.parseInt(updateRequest[0]) / 2.55);
+                    } catch (Exception ex) {
+                        logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest[0]);
+                    }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                     logger.debug(getThing().getUID().getId() + " " + percent);
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DHTTEMP)) {
-                    String[] ResponseParse = updateRequest.split("[:/]");
+                    String[] ResponseParse = updateRequest[0].split("[:/]");
                     if (ResponseParse.length > 2) {
                         if (ResponseParse[0].contains("temp")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
                         }
                     } else {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[0]));
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[0]));
+                        } catch (Exception ex) {
+                            logger.debug("Cannot update DHT temperature at channel: '{}'", channel.getUID().getId());
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DHTHUM)) {
-                    String[] ResponseParse = updateRequest.split("[:/]");
+                    String[] ResponseParse = updateRequest[0].split("[:/]");
                     if (ResponseParse.length > 2) {
                         if (ResponseParse[2].contains("hum")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[3]));
                         }
                     } else {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
+                        if (ResponseParse.length > 2) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
+                            } catch (Exception ex) {
+                                logger.debug("Cannot update DHT humidity at channel: '{}'", channel.getUID().getId());
+                            }
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TGET)) {
                     // Result[1];
 
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[1]));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
+                    } catch (Exception ex) {
+                        logger.debug("Cannot update ADC value at channel: '{}'", channel.getUID().getId());
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
-                    String[] ResponseParse = updateRequest.split("[:]");
+                    String[] ResponseParse = updateRequest[0].split("[:]");
                     if (ResponseParse.length > 1) {
                         logger.debug(ResponseParse[1]);
                         if (!(updateRequest.equals("NA"))) {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
+                            } catch (Exception ex) {
+                                logger.debug("Cannot update One wire temperature at channel: '{}'",
+                                        channel.getUID().getId());
+                            }
                         }
                     } else {
                         if (!(updateRequest.equals("NA"))) {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
+                            } catch (Exception ex) {
+                                logger.debug("Cannot update One wire temperature at channel: '{}'",
+                                        channel.getUID().getId());
+                            }
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
                     // Result =;
-
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    if (!updateRequest[2].equals("")) {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[2]));
+                    }
                 }
             }
         }
@@ -362,37 +389,44 @@ public class MegaDHandler extends BaseThingHandler {
 
     }
 
-    private String sendRequest(String[] URL) {
-        String result = "";
+    private String[] sendRequest(String[] URL) {
+        String[] result = { "", "", "" };
+        int count = 0;
         if (getThing().getConfiguration().get("i2c_par") != null) {
             URL[2] += "&i2c_par=" + getThing().getConfiguration().get("i2c_par").toString();
         }
-        try {
-            URL obj = new URL(URL[0]);
-            HttpURLConnection con;
+        for (String url : URL) {
+            try {
+                URL obj = new URL(URL[0]);
+                HttpURLConnection con;
 
-            con = (HttpURLConnection) obj.openConnection();
+                con = (HttpURLConnection) obj.openConnection();
 
-            logger.debug(URL[0]);
+                logger.debug(url);
 
-            con.setRequestMethod("GET");
-            // con.setReadTimeout(500);
+                con.setRequestMethod("GET");
+                // con.setReadTimeout(500);
+                con.setReadTimeout(1000);
+                con.setConnectTimeout(1000);
+                // add request header
+                con.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-            // add request header
-            con.setRequestProperty("User-Agent", "Mozilla/5.0");
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                logger.debug("input string-> {}", response.toString());
+                result[count] = response.toString().trim();
+                ;
+            } catch (IOException e) {
+                logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
+                        + " error: " + e.getLocalizedMessage());
             }
-            in.close();
-            logger.debug("input string-> {}", response.toString());
-        } catch (IOException e) {
-            logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
-                    + " error: " + e.getLocalizedMessage());
+            count++;
         }
         return result;
     }

@@ -43,7 +43,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
     private OutputStream os;
     private boolean isRunning = true;
     private int refreshInterval = 300;
-    MegaDHandler MegaDHandler;
+    MegaDHandler megaDHandler;
 
     public MegaDBridgeHandler(Bridge bridge) {
         super(bridge);
@@ -214,9 +214,9 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                             hostAddress = "localhost";
                         }
                         thingID = hostAddress + "." + getCommands[2];
-                        MegaDHandler = thingHandlerMap.get(thingID);
-                        if (MegaDHandler != null) {
-                            MegaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
+                        megaDHandler = thingHandlerMap.get(thingID);
+                        if (megaDHandler != null) {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
                         }
                     } else if (s.contains("m=2")) {
                         // do nothing -- long pressed
@@ -230,9 +230,9 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         } else {
                             thingID = hostAddress + "." + getCommands[1];
                         }
-                        MegaDHandler = thingHandlerMap.get(thingID);
-                        if (MegaDHandler != null) {
-                            MegaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
+                        megaDHandler = thingHandlerMap.get(thingID);
+                        if (megaDHandler != null) {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
                         }
                     }
                     break;
