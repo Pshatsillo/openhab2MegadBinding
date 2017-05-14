@@ -187,7 +187,8 @@ public class MegaDHandler extends BaseThingHandler {
                         + getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "&cmd=get",
                 "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?tget=1" };
+                        + getThing().getConfiguration().get("password").toString() + "/?tget=1",
+                "" };
 
         if ((getThing().getConfiguration().get("scl") != null)
                 && (getThing().getConfiguration().get("i2c_dev") != null)) {
@@ -397,7 +398,7 @@ public class MegaDHandler extends BaseThingHandler {
         }
         for (String url : URL) {
             try {
-                URL obj = new URL(URL[0]);
+                URL obj = new URL(url);
                 HttpURLConnection con;
 
                 con = (HttpURLConnection) obj.openConnection();
@@ -421,7 +422,7 @@ public class MegaDHandler extends BaseThingHandler {
                 in.close();
                 logger.debug("input string-> {}", response.toString());
                 result[count] = response.toString().trim();
-                ;
+                con.disconnect();
             } catch (IOException e) {
                 logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
                         + " error: " + e.getLocalizedMessage());
