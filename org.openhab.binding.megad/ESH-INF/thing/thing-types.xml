@@ -27,6 +27,7 @@
             <channel id="at" typeId="at"></channel>
             <channel id="st" typeId="st"></channel>
             <channel id="ib" typeId="ib"></channel>
+             <channel id="wiegand" typeId="wiegand"></channel>
             <channel id="tget" typeId="tget"></channel>
             <channel id="contact" typeId="contact"></channel>
         </channels>
@@ -135,6 +136,12 @@
         <item-type>Text</item-type>
         <label>Ibutton</label>
         <description></description>
+        <state readOnly="true" pattern="%s"></state>
+    </channel-type>
+    <channel-type id="wiegand">
+        <item-type>Text</item-type>
+        <label>Wiegand</label>
+        <description>Wiegand-26 protocol input </description>
         <state readOnly="true" pattern="%s"></state>
     </channel-type>
     <channel-type id="tget">

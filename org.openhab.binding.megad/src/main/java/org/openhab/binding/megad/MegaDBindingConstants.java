@@ -41,6 +41,7 @@ public class MegaDBindingConstants {
     public final static String CHANNEL_AT = "at";
     public final static String CHANNEL_ST = "st";
     public final static String CHANNEL_IB = "ib";
+    public final static String CHANNEL_WIEGAND = "wiegand";
     public final static String CHANNEL_TGET = "tget";
     public final static String CHANNEL_I2C = "i2c";
     public final static String CHANNEL_CONTACT = "contact";

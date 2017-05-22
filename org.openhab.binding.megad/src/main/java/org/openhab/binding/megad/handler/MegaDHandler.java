@@ -130,6 +130,8 @@ public class MegaDHandler extends BaseThingHandler {
                     updateState(channel.getUID().getId(), OnOff);
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
+                    updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
                     updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
