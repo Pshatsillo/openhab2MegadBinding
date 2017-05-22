@@ -217,8 +217,10 @@ public class MegaDHandler extends BaseThingHandler {
 
                         logger.debug("{} - {}", i, value[i]);
                     }
-                    if (value.length > 2) {
+                    if (value.length == 2) {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
+                    } else if (value.length == 3) {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(value[2]));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
                     if (updateRequest[0].contains("ON")) {
@@ -397,37 +399,39 @@ public class MegaDHandler extends BaseThingHandler {
             URL[2] += "&i2c_par=" + getThing().getConfiguration().get("i2c_par").toString();
         }
         for (String url : URL) {
-            try {
-                URL obj = new URL(url);
-                HttpURLConnection con;
+            if (!url.equals("")) {
+                try {
+                    URL obj = new URL(url);
+                    HttpURLConnection con;
 
-                con = (HttpURLConnection) obj.openConnection();
+                    con = (HttpURLConnection) obj.openConnection();
 
-                logger.debug(url);
+                    logger.debug(url);
 
-                con.setRequestMethod("GET");
-                // con.setReadTimeout(500);
-                con.setReadTimeout(1000);
-                con.setConnectTimeout(1000);
-                // add request header
-                con.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    con.setRequestMethod("GET");
+                    // con.setReadTimeout(500);
+                    con.setReadTimeout(1000);
+                    con.setConnectTimeout(1000);
+                    // add request header
+                    con.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
 
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+                    logger.debug("input string-> {}", response.toString());
+                    result[count] = response.toString().trim();
+                    con.disconnect();
+                } catch (IOException e) {
+                    logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
+                            + " error: " + e.getLocalizedMessage());
                 }
-                in.close();
-                logger.debug("input string-> {}", response.toString());
-                result[count] = response.toString().trim();
-                con.disconnect();
-            } catch (IOException e) {
-                logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
-                        + " error: " + e.getLocalizedMessage());
+                count++;
             }
-            count++;
         }
         return result;
     }
