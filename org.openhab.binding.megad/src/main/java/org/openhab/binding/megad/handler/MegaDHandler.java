@@ -119,7 +119,7 @@ public class MegaDHandler extends BaseThingHandler {
     }
 
     public void updateValues(String hostAddress, String[] getCommands, OnOffType OnOff) {
-        // logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
+        logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
         // logger.debug("getThing() -> {}", getThing().getUID().getId());
         // logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
         for (Channel channel : getThing().getChannels()) {
@@ -129,15 +129,35 @@ public class MegaDHandler extends BaseThingHandler {
                         || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
                     updateState(channel.getUID().getId(), OnOff);
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
-                    updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    try {
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    } catch (Exception ex) {
+                        logger.debug("Can't update");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
-                    updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    try {
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    } catch (Exception ex) {
+                        logger.debug("Can't update");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    } catch (Exception ex) {
+                        logger.debug("Can't update");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    } catch (Exception ex) {
+                        logger.debug("Can't update");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    } catch (Exception ex) {
+                        logger.debug("Can't update");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
 
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
@@ -150,9 +170,10 @@ public class MegaDHandler extends BaseThingHandler {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
-                        logger.error("Error: value is not Decimal!!");
+                        logger.debug("Can't update");
                     }
                 }
+
             }
         }
     }
