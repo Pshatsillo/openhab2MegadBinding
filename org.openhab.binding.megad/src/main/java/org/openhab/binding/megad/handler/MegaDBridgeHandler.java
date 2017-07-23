@@ -80,6 +80,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
             String thingID = thingHandler.getThing().getConfiguration().get("hostname").toString() + "."
                     + thingHandler.getThing().getConfiguration().get("port").toString();
+
             if (thingHandlerMap.get(thingID) != null) {
                 thingHandlerMap.remove(thingID);
             }
