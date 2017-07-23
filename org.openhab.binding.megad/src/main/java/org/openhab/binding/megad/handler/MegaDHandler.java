@@ -132,31 +132,31 @@ public class MegaDHandler extends BaseThingHandler {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
 
@@ -170,7 +170,7 @@ public class MegaDHandler extends BaseThingHandler {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
-                        logger.debug("Can't update");
+                        logger.trace("Can't update");
                     }
                 }
 
