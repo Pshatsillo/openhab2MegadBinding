@@ -225,7 +225,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         logger.debug("Loop incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
 
                         getCommands = s.split("[= ]");
-                        if (getCommands.length > 2) {
+                        if (getCommands.length > 4) {
                             String[] parsedStatus = getCommands[3].split("[;]");
                             for (int i = 0; parsedStatus.length > i; i++) {
                                 String[] mode = parsedStatus[i].split("[/]");
@@ -237,6 +237,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                                     thingID = hostAddress + "." + i;
                                     megaDHandler = thingHandlerMap.get(thingID);
                                     if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
                                         megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.ON);
                                     }
                                 } else if (mode[0].contains("OFF")) {
@@ -247,6 +248,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                                     thingID = hostAddress + "." + i;
                                     megaDHandler = thingHandlerMap.get(thingID);
                                     if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
                                         megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.OFF);
                                     }
                                 } else {
@@ -265,7 +267,8 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                                     thingID = hostAddress + "." + i;
                                     megaDHandler = thingHandlerMap.get(thingID);
                                     if (megaDHandler != null) {
-                                        megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.ON);
+                                        logger.debug("Updating: {} Value is: {}", thingID, parsedStatus[i]);
+                                        megaDHandler.updateValues(hostAddress, mode, OnOffType.ON);
                                     }
                                 } else if (mode[0].contains("OFF")) {
                                     hostAddress = this.s.getInetAddress().getHostAddress();
@@ -275,8 +278,11 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                                     thingID = hostAddress + "." + i;
                                     megaDHandler = thingHandlerMap.get(thingID);
                                     if (megaDHandler != null) {
-                                        megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.OFF);
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
+                                        megaDHandler.updateValues(hostAddress, mode, OnOffType.OFF);
                                     }
+                                } else {
+                                    logger.debug("Not a switch");
                                 }
                             }
                         }

@@ -44,7 +44,7 @@
 			</parameter>
 			<parameter name="port" type="text" required="true">
 				<label>port</label>
-				<description>Port number to access the device channel. Leave blank for internal temperature</description>
+				<description>Port number to access the device channel.</description>
 				<default>0</default>
 			</parameter>
 			<parameter name="refresh" type="integer" required="true">
