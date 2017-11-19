@@ -190,125 +190,125 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     private void readInput() {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        // while (isRunning) {
-        String s;
-        String[] getCommands;
-        String thingID, hostAddress;
-        try {
-            s = br.readLine();
-            if (s == null || s.trim().length() == 0) {
-                // break;
-            }
-            if (s.contains("GET") && s.contains("?")) {
-                logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
-                String[] CommandParse = s.split("[/ ]");
-                String command = CommandParse[2];
-                getCommands = command.split("[?&>=]");
-
-                for (int i = 0; getCommands.length > i; i++) {
-                    logger.debug("{} value {}", i, getCommands[i]);
+        while (isRunning) {
+            String s;
+            String[] getCommands;
+            String thingID, hostAddress;
+            try {
+                s = br.readLine();
+                if (s == null || s.trim().length() == 0) {
+                    break;
                 }
+                if (s.contains("GET") && s.contains("?")) {
+                    logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
+                    String[] CommandParse = s.split("[/ ]");
+                    String command = CommandParse[2];
+                    getCommands = command.split("[?&>=]");
 
-                if (s.contains("m=1")) {
-                    hostAddress = this.s.getInetAddress().getHostAddress();
-                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                        hostAddress = "localhost";
+                    for (int i = 0; getCommands.length > i; i++) {
+                        logger.debug("{} value {}", i, getCommands[i]);
                     }
-                    thingID = hostAddress + "." + getCommands[2];
-                    megaDHandler = thingHandlerMap.get(thingID);
-                    if (megaDHandler != null) {
-                        megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
-                    }
-                } else if (s.contains("m=2")) {
-                    // do nothing -- long pressed
-                } else if (s.contains("all=")) {
-                    logger.debug("Loop incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
 
-                    getCommands = s.split("[= ]");
-                    if (getCommands.length > 4) {
-                        String[] parsedStatus = getCommands[3].split("[;]");
-                        for (int i = 0; parsedStatus.length > i; i++) {
-                            String[] mode = parsedStatus[i].split("[/]");
-                            if (mode[0].contains("ON")) {
-                                hostAddress = this.s.getInetAddress().getHostAddress();
-                                if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                                    hostAddress = "localhost";
-                                }
-                                thingID = hostAddress + "." + i;
-                                megaDHandler = thingHandlerMap.get(thingID);
-                                if (megaDHandler != null) {
-                                    logger.debug("Updating: {} Value is: {}", thingID, mode);
-                                    megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.ON);
-                                }
-                            } else if (mode[0].contains("OFF")) {
-                                hostAddress = this.s.getInetAddress().getHostAddress();
-                                if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                                    hostAddress = "localhost";
-                                }
-                                thingID = hostAddress + "." + i;
-                                megaDHandler = thingHandlerMap.get(thingID);
-                                if (megaDHandler != null) {
-                                    logger.debug("Updating: {} Value is: {}", thingID, mode);
-                                    megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.OFF);
-                                }
-                            } else {
-                                logger.debug("Not a switch");
-                            }
+                    if (s.contains("m=1")) {
+                        hostAddress = this.s.getInetAddress().getHostAddress();
+                        if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                            hostAddress = "localhost";
                         }
-                    } else {
-                        String[] parsedStatus = getCommands[2].split("[;]");
-                        for (int i = 0; parsedStatus.length > i; i++) {
-                            String[] mode = parsedStatus[i].split("[/]");
-                            if (mode[0].contains("ON")) {
-                                hostAddress = this.s.getInetAddress().getHostAddress();
-                                if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                                    hostAddress = "localhost";
-                                }
-                                thingID = hostAddress + "." + i;
-                                megaDHandler = thingHandlerMap.get(thingID);
-                                if (megaDHandler != null) {
-                                    logger.debug("Updating: {} Value is: {}", thingID, parsedStatus[i]);
-                                    megaDHandler.updateValues(hostAddress, mode, OnOffType.ON);
-                                }
-                            } else if (mode[0].contains("OFF")) {
-                                hostAddress = this.s.getInetAddress().getHostAddress();
-                                if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                                    hostAddress = "localhost";
-                                }
-                                thingID = hostAddress + "." + i;
-                                megaDHandler = thingHandlerMap.get(thingID);
-                                if (megaDHandler != null) {
-                                    logger.debug("Updating: {} Value is: {}", thingID, mode);
-                                    megaDHandler.updateValues(hostAddress, mode, OnOffType.OFF);
-                                }
-                            } else {
-                                logger.debug("Not a switch");
-                            }
-                        }
-                    }
-                } else {
-                    hostAddress = this.s.getInetAddress().getHostAddress();
-                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
-                        hostAddress = "localhost";
-                    }
-                    if (getCommands[1].equals("pt")) {
                         thingID = hostAddress + "." + getCommands[2];
+                        megaDHandler = thingHandlerMap.get(thingID);
+                        if (megaDHandler != null) {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
+                        }
+                    } else if (s.contains("m=2")) {
+                        // do nothing -- long pressed
+                    } else if (s.contains("all=")) {
+                        logger.debug("Loop incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
+
+                        getCommands = s.split("[= ]");
+                        if (getCommands.length > 4) {
+                            String[] parsedStatus = getCommands[3].split("[;]");
+                            for (int i = 0; parsedStatus.length > i; i++) {
+                                String[] mode = parsedStatus[i].split("[/]");
+                                if (mode[0].contains("ON")) {
+                                    hostAddress = this.s.getInetAddress().getHostAddress();
+                                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                                        hostAddress = "localhost";
+                                    }
+                                    thingID = hostAddress + "." + i;
+                                    megaDHandler = thingHandlerMap.get(thingID);
+                                    if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
+                                        megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.ON);
+                                    }
+                                } else if (mode[0].contains("OFF")) {
+                                    hostAddress = this.s.getInetAddress().getHostAddress();
+                                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                                        hostAddress = "localhost";
+                                    }
+                                    thingID = hostAddress + "." + i;
+                                    megaDHandler = thingHandlerMap.get(thingID);
+                                    if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
+                                        megaDHandler.updateValues(hostAddress, parsedStatus, OnOffType.OFF);
+                                    }
+                                } else {
+                                    logger.debug("Not a switch");
+                                }
+                            }
+                        } else {
+                            String[] parsedStatus = getCommands[2].split("[;]");
+                            for (int i = 0; parsedStatus.length > i; i++) {
+                                String[] mode = parsedStatus[i].split("[/]");
+                                if (mode[0].contains("ON")) {
+                                    hostAddress = this.s.getInetAddress().getHostAddress();
+                                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                                        hostAddress = "localhost";
+                                    }
+                                    thingID = hostAddress + "." + i;
+                                    megaDHandler = thingHandlerMap.get(thingID);
+                                    if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, parsedStatus[i]);
+                                        megaDHandler.updateValues(hostAddress, mode, OnOffType.ON);
+                                    }
+                                } else if (mode[0].contains("OFF")) {
+                                    hostAddress = this.s.getInetAddress().getHostAddress();
+                                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                                        hostAddress = "localhost";
+                                    }
+                                    thingID = hostAddress + "." + i;
+                                    megaDHandler = thingHandlerMap.get(thingID);
+                                    if (megaDHandler != null) {
+                                        logger.debug("Updating: {} Value is: {}", thingID, mode);
+                                        megaDHandler.updateValues(hostAddress, mode, OnOffType.OFF);
+                                    }
+                                } else {
+                                    logger.debug("Not a switch");
+                                }
+                            }
+                        }
                     } else {
-                        thingID = hostAddress + "." + getCommands[1];
+                        hostAddress = this.s.getInetAddress().getHostAddress();
+                        if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                            hostAddress = "localhost";
+                        }
+                        if (getCommands[1].equals("pt")) {
+                            thingID = hostAddress + "." + getCommands[2];
+                        } else {
+                            thingID = hostAddress + "." + getCommands[1];
+                        }
+                        megaDHandler = thingHandlerMap.get(thingID);
+                        if (megaDHandler != null) {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
+                        }
                     }
-                    megaDHandler = thingHandlerMap.get(thingID);
-                    if (megaDHandler != null) {
-                        megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
-                    }
+                    break;
+                } else {
+                    break;
                 }
-                // break;
-            } else {
-                // break;
+            } catch (IOException e) {
+                logger.error(e.getLocalizedMessage());
             }
-        } catch (IOException e) {
-            logger.error(e.getLocalizedMessage());
         }
-        // }
     }
 
     private void writeResponse() {
@@ -316,7 +316,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                 + "Connection: close\r\n\r\n";
         try {
             os.write(result.getBytes());
-            os.flush();
             is.close();
             os.close();
         } catch (IOException e) {
