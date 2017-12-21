@@ -32,6 +32,7 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.i2c.I2C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +82,16 @@ public class MegaDHandler extends BaseThingHandler {
                 sendCommand(Result);
             }
 
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_I2C_DISPLAY)) {
+            logger.debug("display changed");
+            I2C disp = new I2C(getThing().getConfiguration().get("hostname").toString(),
+                    getThing().getConfiguration().get("password").toString(),
+                    getThing().getConfiguration().get("port").toString(),
+                    getThing().getConfiguration().get("scl").toString());
+            disp.prepare_display();
+
+            // updateStatus(ThingStatus.ONLINE);
         }
-        // updateStatus(ThingStatus.ONLINE);
     }
 
     public void sendCommand(String Result) {
