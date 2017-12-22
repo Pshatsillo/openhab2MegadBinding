@@ -49,6 +49,7 @@ public class MegaDHandler extends BaseThingHandler {
     private ScheduledFuture<?> refreshPollingJob;
 
     MegaDBridgeHandler bridgeHandler;
+    boolean isI2cInit = false;
 
     public MegaDHandler(Thing thing) {
         super(thing);
@@ -88,7 +89,12 @@ public class MegaDHandler extends BaseThingHandler {
                     getThing().getConfiguration().get("password").toString(),
                     getThing().getConfiguration().get("port").toString(),
                     getThing().getConfiguration().get("scl").toString());
-            disp.prepare_display();
+            if (!isI2cInit) {
+                disp.prepare_display();
+                isI2cInit = true;
+            }
+
+            disp.write_text("Тест", "default", 0, 0);
 
             // updateStatus(ThingStatus.ONLINE);
         }
