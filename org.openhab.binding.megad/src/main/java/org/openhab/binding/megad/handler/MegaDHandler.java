@@ -90,11 +90,13 @@ public class MegaDHandler extends BaseThingHandler {
                     getThing().getConfiguration().get("port").toString(),
                     getThing().getConfiguration().get("scl").toString());
             if (!isI2cInit) {
+                logger.debug("preparingDisplay");
                 disp.prepare_display();
                 isI2cInit = true;
             }
-
-            disp.write_text("Тест", "default", 0, 0);
+            if (!command.toString().equals("REFRESH")) {
+                disp.write_text(command.toString(), "default", 0, 0);
+            }
 
             // updateStatus(ThingStatus.ONLINE);
         }
