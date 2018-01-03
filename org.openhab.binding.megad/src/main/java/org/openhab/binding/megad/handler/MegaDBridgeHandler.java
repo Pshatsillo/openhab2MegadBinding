@@ -153,7 +153,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             logger.debug("Polling job called");
             try {
                 ss = new ServerSocket(port);
-                logger.debug("MegaD Server open port {}", port);
+                logger.info("MegaD bridge opened port {}", ss.getLocalPort());
                 isRunning = true;
                 updateStatus(ThingStatus.ONLINE);
             } catch (IOException e) {
