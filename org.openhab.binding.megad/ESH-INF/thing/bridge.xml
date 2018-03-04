@@ -15,7 +15,7 @@
 				<context>network-address</context>
 				<label>MegaD server port</label>
 				<description>Port of the LAN gateway</description>
-				<default>8585</default>
+				<default>0</default>
 			</parameter>
 		</config-description>
 
