@@ -183,6 +183,22 @@ public class MegaDHandler extends BaseThingHandler {
                     } else if (OnOff.name() == "OFF") {
                         updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                     }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
+
+                    String commands = "";
+
+                    if (getCommands.length % 2 != 0) {
+                        for (int i = 3; getCommands.length > i;) {
+                            commands += getCommands[i] + "=" + getCommands[i + 1] + "&";
+                            i = i + 2;
+                        }
+                    }
+                    commands = commands.substring(0, commands.length() - 1);
+
+                    updateState(channel.getUID().getId(), StringType.valueOf(commands));
+
+                    logger.debug("i2c command receive is: " + commands);
+
                 } else {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
@@ -230,7 +246,7 @@ public class MegaDHandler extends BaseThingHandler {
                         + getThing().getConfiguration().get("port").toString() + "&cmd=get",
                 "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                         + getThing().getConfiguration().get("password").toString() + "/?tget=1",
-                "" };
+                "", "" };
 
         if ((getThing().getConfiguration().get("scl") != null)
                 && (getThing().getConfiguration().get("i2c_dev") != null)) {
@@ -239,6 +255,9 @@ public class MegaDHandler extends BaseThingHandler {
                     + getThing().getConfiguration().get("port").toString() + "&scl="
                     + getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                     + getThing().getConfiguration().get("i2c_dev").toString();
+            Result[3] = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                    + getThing().getConfiguration().get("password").toString() + "/?pt="
+                    + getThing().getConfiguration().get("port").toString() + "&cmd=list";
         }
         String[] updateRequest = sendRequest(Result);
 

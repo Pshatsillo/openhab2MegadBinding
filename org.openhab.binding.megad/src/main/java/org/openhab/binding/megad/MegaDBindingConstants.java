@@ -31,6 +31,7 @@ public class MegaDBindingConstants {
 
     // List of all Channel ids
     public final static String CHANNEL_IN = "in";
+    public final static String CHANNEL_RAWIN = "rawin";
     public final static String CHANNEL_INCOUNT = "incount";
     public final static String CHANNEL_OUT = "out";
     public final static String CHANNEL_DIMMER = "dimmer";

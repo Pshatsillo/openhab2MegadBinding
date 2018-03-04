@@ -104,10 +104,10 @@
 		<state readOnly="true" pattern="%.1f"></state>
 	</channel-type>
 	<channel-type id="i2c">
-		<item-type>Number</item-type>
+		<item-type>String</item-type>
 		<label>I2C</label>
 		<description>I2C</description>
-		<state readOnly="true" pattern="%.1f"></state>
+		<state readOnly="true"></state>
 	</channel-type>
 	<channel-type id="onewire">
 		<item-type>Number</item-type>
