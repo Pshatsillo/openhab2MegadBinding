@@ -367,7 +367,9 @@ public class MegaDHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
                     // Result =;
                     if (!updateRequest[2].equals("")) {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[2]));
+                        updateState(channel.getUID().getId(), StringType.valueOf(updateRequest[2]));
+                    } else {
+                        updateState(channel.getUID().getId(), StringType.valueOf(updateRequest[3]));
                     }
                 }
             }
