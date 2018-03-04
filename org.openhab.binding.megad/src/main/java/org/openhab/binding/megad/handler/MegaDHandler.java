@@ -193,8 +193,11 @@ public class MegaDHandler extends BaseThingHandler {
                             i = i + 2;
                         }
                     }
-                    commands = commands.substring(0, commands.length() - 1);
-
+                    try {
+                        commands = commands.substring(0, commands.length() - 1);
+                    } catch (Exception ex) {
+                        // logger.error("cannot parse. wrong incoming: " + commands + " Error: " + ex);
+                    }
                     updateState(channel.getUID().getId(), StringType.valueOf(commands));
 
                     logger.debug("i2c command receive is: " + commands);
