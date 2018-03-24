@@ -112,8 +112,8 @@ public class MegaDHandler extends BaseThingHandler {
             MegaURL = new URL(Result);
             con = (HttpURLConnection) MegaURL.openConnection();
             // optional default is GET
-            con.setReadTimeout(500);
-            con.setConnectTimeout(500);
+            con.setReadTimeout(1500);
+            con.setConnectTimeout(1500);
             con.setRequestMethod("GET");
 
             // add request header
@@ -186,6 +186,7 @@ public class MegaDHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
 
                     String commands = "";
+                    logger.debug(commands);
 
                     if (getCommands.length % 2 != 0) {
                         for (int i = 3; getCommands.length > i;) {
@@ -372,7 +373,14 @@ public class MegaDHandler extends BaseThingHandler {
                     if (!updateRequest[2].equals("")) {
                         updateState(channel.getUID().getId(), StringType.valueOf(updateRequest[2]));
                     } else {
-                        updateState(channel.getUID().getId(), StringType.valueOf(updateRequest[3]));
+                        try {
+                            updateState(channel.getUID().getId(), StringType.valueOf(updateRequest[0]));
+                        } catch (Exception ex) {
+                            logger.error("cannot update channel i2c state. input string does not match standarts");
+                            for (String string : updateRequest) {
+                                logger.error("parsed strings: " + string);
+                            }
+                        }
                     }
                 }
             }
@@ -459,7 +467,7 @@ public class MegaDHandler extends BaseThingHandler {
     }
 
     private String[] sendRequest(String[] URL) {
-        String[] result = { "", "", "" };
+        String[] result = { "", "", "", "" };
         int count = 0;
         if (getThing().getConfiguration().get("i2c_par") != null) {
             URL[2] += "&i2c_par=" + getThing().getConfiguration().get("i2c_par").toString();
@@ -476,8 +484,8 @@ public class MegaDHandler extends BaseThingHandler {
 
                     con.setRequestMethod("GET");
                     // con.setReadTimeout(500);
-                    con.setReadTimeout(1000);
-                    con.setConnectTimeout(1000);
+                    con.setReadTimeout(1500);
+                    con.setConnectTimeout(1500);
                     // add request header
                     con.setRequestProperty("User-Agent", "Mozilla/5.0");
 
