@@ -301,7 +301,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                     }
                     if (getCommands[1].equals("pt")) {
                         thingID = hostAddress + "." + getCommands[2];
-                    } else if (getCommands[1].equals("st")) {
+                    } else if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
 
                         thingID = hostAddress;
                         logger.debug("" + thingHandlerMap.size());

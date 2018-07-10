@@ -177,6 +177,18 @@ public class MegaDHandler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
 
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
+                    try {
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[2]));
+                    } catch (Exception ex) {
+
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_TEXT)) {
+                    try {
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    } catch (Exception ex) {
+
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
                     if (OnOff.name() == "ON") {
                         updateState(channel.getUID().getId(), OpenClosedType.CLOSED);

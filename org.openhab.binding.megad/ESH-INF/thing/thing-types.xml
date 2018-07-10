@@ -30,6 +30,8 @@
 			<channel id="tget" typeId="tget"></channel>
 			<channel id="contact" typeId="contact"></channel>
 			<channel id="i2cdisplay" typeId="i2cdisplay"></channel>
+			<channel id="sms_phone" typeId="sms_phone"></channel>
+			<channel id="sms_text" typeId="sms_text"></channel>
 		</channels>
 
 		<config-description>
@@ -162,5 +164,17 @@
         <label>i2cdisplay</label>
         <description>i2cdisplay </description>
         <state readOnly="true" pattern="%s"></state>
+    </channel-type>
+        <channel-type id="sms_phone">
+        <item-type>String</item-type>
+        <label>sms_phone</label>
+        <description>sms_phone</description>
+        <state readOnly="true"></state>
+    </channel-type>
+        <channel-type id="sms_text">
+        <item-type>String</item-type>
+        <label>sms_text</label>
+        <description>sms_text</description>
+        <state readOnly="true"></state>
     </channel-type>
 </thing:thing-descriptions>
