@@ -138,7 +138,7 @@ public class MegaDHandler extends BaseThingHandler {
     public void updateValues(String hostAddress, String[] getCommands, OnOffType OnOff) {
         // logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
         // logger.debug("getThing() -> {}", getThing().getUID().getId());
-        // logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
+        logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
         for (Channel channel : getThing().getChannels()) {
 
             if (isLinked(channel.getUID().getId())) {

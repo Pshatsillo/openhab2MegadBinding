@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: MegaD Binding
 Bundle-SymbolicName: org.openhab.binding.megad;singleton:=true
 Bundle-Vendor: openHAB
-Bundle-Version: 2.0.4.0
+Bundle-Version: 2.0.4.1
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ClassPath: .
 Import-Package: com.google.common.collect,
