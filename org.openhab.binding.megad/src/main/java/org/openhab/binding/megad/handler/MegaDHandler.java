@@ -85,19 +85,23 @@ public class MegaDHandler extends BaseThingHandler {
 
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_I2C_DISPLAY)) {
             logger.debug("display changed");
-            I2C disp = new I2C(getThing().getConfiguration().get("hostname").toString(),
-                    getThing().getConfiguration().get("password").toString(),
-                    getThing().getConfiguration().get("port").toString(),
-                    getThing().getConfiguration().get("scl").toString());
-            if (!isI2cInit) {
-                logger.debug("preparingDisplay");
-                disp.prepare_display();
-                isI2cInit = true;
-            }
-            if (!command.toString().equals("REFRESH")) {
-                disp.write_text(command.toString(), "default", 0, 0);
-            }
+            try {
+                I2C disp = new I2C(getThing().getConfiguration().get("hostname").toString(),
+                        getThing().getConfiguration().get("password").toString(),
+                        getThing().getConfiguration().get("port").toString(),
+                        getThing().getConfiguration().get("scl").toString());
 
+                if (!isI2cInit) {
+                    logger.debug("preparingDisplay");
+                    disp.prepare_display();
+                    isI2cInit = true;
+                }
+                if (!command.toString().equals("REFRESH")) {
+                    disp.write_text(command.toString(), "default", 0, 0);
+                }
+            } catch (Exception ex) {
+                logger.error("I2C config error. Scl parameter not found");
+            }
             // updateStatus(ThingStatus.ONLINE);
         }
     }
@@ -294,11 +298,16 @@ public class MegaDHandler extends BaseThingHandler {
 
                         logger.debug("{} - {}", i, value[i]);
                     }
-                    if (value.length == 2) {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
-                    } else if (value.length == 3) {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value[2]));
+                    try {
+                        if (value.length == 2) {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
+                        } else if (value.length == 3) {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value[2]));
+                        }
+                    } catch (Exception ex) {
+                        logger.debug("this is not inputs count!");
                     }
+
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
                     if (updateRequest[0].contains("ON")) {
                         updateState(channel.getUID().getId(), OnOffType.ON);
@@ -350,8 +359,11 @@ public class MegaDHandler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TGET)) {
                     // Result[1];
-
-                    updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[1]));
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[1]));
+                    } catch (Exception ex) {
+                        logger.debug("Cannot update TGET value at channel: '{}'", channel.getUID().getId());
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
