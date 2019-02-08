@@ -62,17 +62,18 @@ public class MegaDHandler extends BaseThingHandler {
         String Result = "";
 
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
-            if (command.toString().equals("ON")) {
-                state = 1;
-            } else if (command.toString().equals("OFF")) {
-                state = 0;
+            if (!command.toString().equals("REFRESH")) {
+                if (command.toString().equals("ON")) {
+                    state = 1;
+                } else if (command.toString().equals("OFF")) {
+                    state = 0;
+                }
+                Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                        + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        + getThing().getConfiguration().get("port").toString() + ":" + state;
+                logger.info("Switch: {}", Result);
+                sendCommand(Result);
             }
-            Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                    + getThing().getConfiguration().get("password").toString() + "/?cmd="
-                    + getThing().getConfiguration().get("port").toString() + ":" + state;
-            logger.info("Switch: {}", Result);
-            sendCommand(Result);
-
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
                 int result = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
