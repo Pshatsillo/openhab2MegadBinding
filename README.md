@@ -1,8 +1,9 @@
+# OpenHAB 2 MegaD binding
 режимы работы: "in", "out", "dimmer", "temp", "humidity", "onewire", "adc", "at", "st", "ib", "tget", "contact", в процессе "i2c".
 
-как запустить? 
+## как запустить? 
 
-# 1) через PaperUI
+### 1) через PaperUI
 
 Configuration > System > Item Linking
 
@@ -35,7 +36,7 @@ Channels
 
 link
 
-# 2) через файлы
+### 2) через файлы
 
 .things:
 
@@ -58,7 +59,7 @@ Contact MegaDContact  "[%s]" (Temperature, GF_Corridor) { channel = "megad:devic
 
 
 Принцип такой: 
-### 1) Создаем бридж в файле .things.
+#### 1) Создаем бридж в файле .things.
 
 ```
 Bridge megad:bridge:megadeviceincoming {}
@@ -66,7 +67,7 @@ Bridge megad:bridge:megadeviceincoming {}
 
 megad:bridge: - обязятельное поле, после двоеточия - произвольное название.
 
-### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок
+#### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок
 ```
 Bridge megad:bridge:megadeviceincoming
 {
@@ -77,7 +78,7 @@ Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
 ```
 device - обязательное поле, далее произвольное название
 
-### 3) открываем .items и создаем наши переменные.
+#### 3) открываем .items и создаем наши переменные.
 ```
 Number Temperature_GF_Corridor "Temperature [%.1f °C]" <temperature> (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
 Switch MegaDBindingThing_Input "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" } 
@@ -86,8 +87,19 @@ Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device
 Последний параметр - режимы работы(каналы). до этого - путь, который мы создали в .things (megad:device:megadeviceincoming: - это название бриджа, bedroomcontact: - название Thing )
 
 
-### 4) Далее аналогично 1 версии опенхаба
+#### 4) Далее аналогично 1 версии опенхаба
 
+## Как собрать?
+
+1. Настроить IDE по [официальной инструкции](https://www.openhab.org/docs/developer/development/ide.html) и проверить что проект собирается.
+2. Скопировать директорию [org.openhab.binding.megad](org.openhab.binding.megad) в папку `<openhab2 root directory>/git/openhab2-addons/addons/binding`.
+3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
+```bash
+org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
+-rw-r--r--   1 xxxxxxx  staff  29482 10 мар 21:35 org.openhab.binding.megad-2.5.0-SNAPSHOT.jar
+```
+
+## Еще
 
 По многочисленным просьбам - Donate:
 

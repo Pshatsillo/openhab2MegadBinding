@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2018 by the respective copyright holders.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.megad.i2c;
 
 import java.io.IOException;
@@ -13,6 +21,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author Petr Shatsillo - Initial contribution
+ */
 public class I2C {
 
     private Logger logger = LoggerFactory.getLogger(I2C.class);
@@ -88,11 +99,9 @@ public class I2C {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error("1" + e);
-            e.printStackTrace();
+            logger.error("1" + e, e);
         } catch (ProtocolException e) {
-            logger.error("2" + e);
-            e.printStackTrace();
+            logger.error("2" + e, e);
         } catch (IOException e) {
             logger.error("Connect to megadevice " + host + " error: " + e.getLocalizedMessage());
         }
