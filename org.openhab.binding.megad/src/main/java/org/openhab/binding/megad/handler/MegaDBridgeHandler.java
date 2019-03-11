@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2018 by the respective copyright holders.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.megad.handler;
 
 import java.io.BufferedReader;
@@ -180,7 +188,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             this.is = s.getInputStream();
             this.os = s.getOutputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Couldn't start http socket.", e);
         }
 
         String input = readInput();
@@ -354,7 +362,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             ss.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error("Couldn't dispose.", e);
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
     }
