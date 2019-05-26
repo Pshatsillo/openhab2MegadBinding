@@ -95,8 +95,8 @@ Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device
 	[Maven](https://maven.apache.org/download.cgi)
 
 2. Загрузить архив со всеми плагинами [отсюда](https://github.com/openhab/openhab2-addons/archive/master.zip) и распаковать
-3. Загрузить архив Мегад [отсюда] (https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
-2. Скопировать директорию [org.openhab.binding.megad](org.openhab.binding.megad) в папку `/openhab2-addons/bundles`.
+3. Загрузить архив Мегад [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
+2. Скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
 3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
 ```bash
 org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
