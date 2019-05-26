@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.megad.i2c;
 
@@ -18,12 +22,15 @@ import java.util.HashMap;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Petr Shatsillo - Initial contribution
  */
+@NonNullByDefault
 public class I2C {
 
     private Logger logger = LoggerFactory.getLogger(I2C.class);
@@ -208,11 +215,13 @@ public class I2C {
             int flag = 1;
 
             int[] words = printString(splitByWordsData[j]);
-            int wordsLenghthArray = words.length;
-            for (int i = 0; i < wordsLenghthArray; i++) {
-                logger.debug("extract..." + words[i + flag]);
-                i2c_send(Integer.toHexString(words[i + flag]));
-                flag = flag * -1;
+            if (words != null) {
+                int wordsLenghthArray = words.length;
+                for (int i = 0; i < wordsLenghthArray; i++) {
+                    logger.debug("extract..." + words[i + flag]);
+                    i2c_send(Integer.toHexString(words[i + flag]));
+                    flag = flag * -1;
+                }
             }
 
             i2c_send("00");
@@ -223,7 +232,7 @@ public class I2C {
 
     }
 
-    private int[] printString(String string) {
+    private int @Nullable [] printString(String string) {
 
         int result[] = null;
 

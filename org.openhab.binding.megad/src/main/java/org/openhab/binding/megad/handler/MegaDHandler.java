@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.megad.handler;
 
@@ -18,6 +22,8 @@ import java.net.URL;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -43,12 +49,14 @@ import org.slf4j.LoggerFactory;
  *
  * @author Petr Shatsillo - Initial contribution
  */
+@NonNullByDefault
 public class MegaDHandler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaDHandler.class);
 
-    private ScheduledFuture<?> refreshPollingJob;
+    private @Nullable ScheduledFuture<?> refreshPollingJob;
 
+    @Nullable
     MegaDBridgeHandler bridgeHandler;
     boolean isI2cInit = false;
 
@@ -63,18 +71,17 @@ public class MegaDHandler extends BaseThingHandler {
         String Result = "";
 
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
-            if (!command.toString().equals("REFRESH")) {
-                if (command.toString().equals("ON")) {
-                    state = 1;
-                } else if (command.toString().equals("OFF")) {
-                    state = 0;
-                }
-                Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?cmd="
-                        + getThing().getConfiguration().get("port").toString() + ":" + state;
-                logger.info("Switch: {}", Result);
-                sendCommand(Result);
+            if (command.toString().equals("ON")) {
+                state = 1;
+            } else if (command.toString().equals("OFF")) {
+                state = 0;
             }
+            Result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                    + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                    + getThing().getConfiguration().get("port").toString() + ":" + state;
+            logger.info("Switch: {}", Result);
+            sendCommand(Result);
+
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
                 int result = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
@@ -129,9 +136,9 @@ public class MegaDHandler extends BaseThingHandler {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error("1" + e, e);
+            logger.error(e.getLocalizedMessage());
         } catch (ProtocolException e) {
-            logger.error("2" + e, e);
+            logger.error(e.getLocalizedMessage());
         } catch (IOException e) {
             logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
                     + " error: " + e.getLocalizedMessage());
@@ -149,6 +156,14 @@ public class MegaDHandler extends BaseThingHandler {
                 if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
                         || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
                     updateState(channel.getUID().getId(), OnOff);
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
+                    int percent = 0;
+                    try {
+                        percent = (int) Math.round(Integer.parseInt(getCommands[4]) / 2.55);
+                    } catch (Exception ex) {
+
+                    }
+                    updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
@@ -221,7 +236,7 @@ public class MegaDHandler extends BaseThingHandler {
 
                 } else {
                     try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
                     } catch (Exception ex) {
 
                     }
@@ -236,11 +251,16 @@ public class MegaDHandler extends BaseThingHandler {
         super.updateStatus(status);
     }
 
+    @SuppressWarnings("null")
     @Override
     public void initialize() {
         bridgeHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
-        registerMegadThingListener(bridgeHandler);
+        if (bridgeHandler != null) {
+            registerMegadThingListener(bridgeHandler);
+        } else {
+            logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
+        }
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
         logger.debug("refresh: {}", rr[0]);
@@ -258,6 +278,7 @@ public class MegaDHandler extends BaseThingHandler {
 
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     protected void updateData() {
         logger.debug("Updating Megadevice things...");
         String[] Result = {
@@ -411,19 +432,18 @@ public class MegaDHandler extends BaseThingHandler {
         }
     }
 
-    private void registerMegadThingListener(MegaDBridgeHandler bridgeHandler) {
+    private void registerMegadThingListener(@Nullable MegaDBridgeHandler bridgeHandler) {
         if (bridgeHandler != null) {
             bridgeHandler.registerMegadThingListener(this);
-        } else {
-            logger.debug("Can't register {} at bridge bridgeHandler is null.", this.getThing().getUID());
         }
     }
 
-    private synchronized MegaDBridgeHandler getBridgeHandler() {
+    private synchronized @Nullable MegaDBridgeHandler getBridgeHandler() {
 
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.debug("Required bridge not defined for device {}.");
+            logger.error("Required bridge not defined for device {}.");
+            // throw new NullPointerException("Required bridge not defined for device");
             return null;
         } else {
             return getBridgeHandler(bridge);
@@ -431,18 +451,15 @@ public class MegaDHandler extends BaseThingHandler {
 
     }
 
-    private synchronized MegaDBridgeHandler getBridgeHandler(Bridge bridge) {
-
-        MegaDBridgeHandler bridgeHandler = null;
+    private synchronized @Nullable MegaDBridgeHandler getBridgeHandler(Bridge bridge) {
 
         ThingHandler handler = bridge.getHandler();
         if (handler instanceof MegaDBridgeHandler) {
-            bridgeHandler = (MegaDBridgeHandler) handler;
+            return (MegaDBridgeHandler) handler;
         } else {
             logger.debug("No available bridge handler found yet. Bridge: {} .", bridge.getUID());
-            bridgeHandler = null;
+            return null;
         }
-        return bridgeHandler;
     }
 
     public String getActiveChannelListAsString() {
@@ -460,6 +477,7 @@ public class MegaDHandler extends BaseThingHandler {
         return channelList;
     }
 
+    @SuppressWarnings("null")
     @Override
     protected Configuration editConfiguration() {
         logger.debug("config changed");
@@ -470,6 +488,7 @@ public class MegaDHandler extends BaseThingHandler {
         return super.editConfiguration();
     }
 
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
         logger.debug("Thing Handler for {} stop", getThing().getUID().getId());
@@ -477,10 +496,12 @@ public class MegaDHandler extends BaseThingHandler {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        unregisterMegadThingListener(bridgeHandler);
+        if (bridgeHandler != null) {
+            unregisterMegadThingListener(bridgeHandler);
+        }
     }
 
-    private void unregisterMegadThingListener(MegaDBridgeHandler bridgeHandler) {
+    private void unregisterMegadThingListener(@Nullable MegaDBridgeHandler bridgeHandler) {
         logger.debug("unregister");
         if (bridgeHandler != null) {
             bridgeHandler.unregisterThingListener(this);

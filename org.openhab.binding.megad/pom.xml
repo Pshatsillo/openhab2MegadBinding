@@ -4,21 +4,23 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.openhab.binding</groupId>
-    <artifactId>pom</artifactId>
+    <groupId>org.openhab.addons.bundles</groupId>
+    <artifactId>org.openhab.addons.reactor.bundles</artifactId>
     <version>2.5.0-SNAPSHOT</version>
   </parent>
 
-  <properties>
-    <bundle.symbolicName>org.openhab.binding.megad</bundle.symbolicName>
-    <bundle.namespace>org.openhab.binding.megad</bundle.namespace>
-  </properties>
-
-  <groupId>org.openhab.binding</groupId>
   <artifactId>org.openhab.binding.megad</artifactId>
-  <version>2.5.0-SNAPSHOT</version>
-  
-  <name>MegaD Binding</name>
-  <packaging>eclipse-plugin</packaging>
+
+  <name>openHAB Add-ons :: Bundles :: MegaD Binding</name>
+
+<dependencies>
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.6</version>
+</dependency>
+
+</dependencies>
+
 
 </project>

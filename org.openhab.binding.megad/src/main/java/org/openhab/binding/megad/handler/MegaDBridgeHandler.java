@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2010-2018 by the respective copyright holders.
+ * Copyright (c) 2010-2019 Contributors to the openHAB project
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.megad.handler;
 
@@ -20,13 +24,15 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.megad.MegaDBindingConfiguration;
+import org.openhab.binding.megad.MegaDConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,20 +43,26 @@ import org.slf4j.LoggerFactory;
  *
  * @author Petr Shatsillo - Initial contribution
  */
-
+@NonNullByDefault
 public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeHandler.class);
 
     private boolean isConnect = false;
     private int port;
+    @Nullable
     private ScheduledFuture<?> pollingJob;
+    @Nullable
     Socket s = null;
+    @Nullable
     private ServerSocket ss;
+    @Nullable
     private InputStream is;
+    @Nullable
     private OutputStream os;
     private boolean isRunning = true;
     private int refreshInterval = 300;
+    @Nullable
     MegaDHandler megaDHandler;
 
     public MegaDBridgeHandler(Bridge bridge) {
@@ -79,37 +91,35 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     }
 
-    private Map<String, MegaDHandler> thingHandlerMap = new HashMap<String, MegaDHandler>();
+    private @Nullable Map<String, MegaDHandler> thingHandlerMap = new HashMap<String, MegaDHandler>();
 
+    @SuppressWarnings({ "null", "unused" })
     public void registerMegadThingListener(MegaDHandler thingHandler) {
-        if (thingHandler == null) {
-            throw new IllegalArgumentException("It's not allowed to pass a null ThingHandler.");
-        } else {
 
-            String thingID = thingHandler.getThing().getConfiguration().get("hostname").toString() + "."
-                    + thingHandler.getThing().getConfiguration().get("port").toString();
+        String thingID = thingHandler.getThing().getConfiguration().get("hostname").toString() + "."
+                + thingHandler.getThing().getConfiguration().get("port").toString();
 
-            if (thingHandlerMap.get(thingID) != null) {
-                thingHandlerMap.remove(thingID);
-            }
-            logger.debug("thingHandler for thing: '{}'", thingID);
-            if (thingHandlerMap.get(thingID) == null) {
-                thingHandlerMap.put(thingID, thingHandler);
-                logger.debug("register thingHandler for thing: {}", thingHandler);
-                updateThingHandlerStatus(thingHandler, this.getStatus());
-                if (thingID.equals("localhost.")) {
-                    updateThingHandlerStatus(thingHandler, ThingStatus.OFFLINE);
-                }
-                // sendSocketData("get " + thingID);
-            } else {
-                logger.debug("thingHandler for thing: '{}' already registerd", thingID);
-                updateThingHandlerStatus(thingHandler, this.getStatus());
-            }
-
+        if (thingHandlerMap.get(thingID) != null) {
+            thingHandlerMap.remove(thingID);
         }
+        logger.debug("thingHandler for thing: '{}'", thingID);
+        if (thingHandlerMap.get(thingID) == null) {
+            thingHandlerMap.put(thingID, thingHandler);
+            logger.debug("register thingHandler for thing: {}", thingHandler);
+            updateThingHandlerStatus(thingHandler, this.getStatus());
+            if (thingID.equals("localhost.")) {
+                updateThingHandlerStatus(thingHandler, ThingStatus.OFFLINE);
+            }
+            // sendSocketData("get " + thingID);
+        } else {
+            logger.debug("thingHandler for thing: '{}' already registerd", thingID);
+            updateThingHandlerStatus(thingHandler, this.getStatus());
+        }
+
     }
 
-    public void unregisterThingListener(MegaDHandler thingHandler) {
+    @SuppressWarnings({ "null", "unused" })
+    public void unregisterThingListener(@Nullable MegaDHandler thingHandler) {
         if (thingHandler != null) {
             String thingID = thingHandler.getThing().getConfiguration().get("hostname").toString() + "."
                     + thingHandler.getThing().getConfiguration().get("port").toString();
@@ -126,7 +136,9 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         thingHandler.updateStatus(status);
     }
 
+    @SuppressWarnings("null")
     private void updateThingHandlersStatus(ThingStatus status) {
+
         for (Map.Entry<String, MegaDHandler> entry : thingHandlerMap.entrySet()) {
             updateThingHandlerStatus(entry.getValue(), status);
         }
@@ -140,7 +152,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
     public void initialize() {
         logger.debug("Initializing Megad bridge handler {}", this.toString());
 
-        MegaDBindingConfiguration configuration = getConfigAs(MegaDBindingConfiguration.class);
+        MegaDConfiguration configuration = getConfigAs(MegaDConfiguration.class);
         port = configuration.port;
 
         // updateStatus(ThingStatus.ONLINE);
@@ -148,19 +160,25 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         startBackgroundService();
     }
 
+    @SuppressWarnings("null")
     private void startBackgroundService() {
         logger.debug("Starting background service...");
         if (pollingJob == null || pollingJob.isCancelled()) {
-            pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 0, refreshInterval, TimeUnit.SECONDS);
+            pollingJob = scheduler.scheduleWithFixedDelay(pollingRunnable, 0, refreshInterval, TimeUnit.SECONDS);
         }
     }
 
     private Runnable pollingRunnable = new Runnable() {
+        @SuppressWarnings("null")
         @Override
         public void run() {
             logger.debug("Polling job called");
             try {
                 ss = new ServerSocket(port);
+
+                ss.setPerformancePreferences(3, 2, 1);
+                ss.setReuseAddress(true);
+
                 logger.info("MegaD bridge opened port {}", ss.getLocalPort());
                 isRunning = true;
                 updateStatus(ThingStatus.ONLINE);
@@ -183,12 +201,16 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     };
 
-    protected Runnable startHttpSocket() {
+    @SuppressWarnings("null")
+    protected @Nullable Runnable startHttpSocket() {
         try {
+            s.setKeepAlive(false);
+            s.setReuseAddress(true);
+            s.setTcpNoDelay(true);
             this.is = s.getInputStream();
             this.os = s.getOutputStream();
         } catch (IOException e) {
-            logger.error("Couldn't start http socket.", e);
+            logger.error(e.getLocalizedMessage());
         }
 
         String input = readInput();
@@ -209,7 +231,8 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         return string;
     }
 
-    private void ParseInput(String s) {
+    @SuppressWarnings("null")
+    private void ParseInput(@Nullable String s) {
         String[] getCommands;
         String thingID, hostAddress;
 
@@ -302,6 +325,21 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                             }
                         }
                     }
+                } else if (s.contains("v=")) {
+                    hostAddress = this.s.getInetAddress().getHostAddress();
+                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                        hostAddress = "localhost";
+                    }
+                    thingID = hostAddress + "." + getCommands[2];
+
+                    megaDHandler = thingHandlerMap.get(thingID);
+                    if (megaDHandler != null) {
+                        if (s.contains("v=1")) {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
+                        } else {
+                            megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
+                        }
+                    }
                 } else {
                     hostAddress = this.s.getInetAddress().getHostAddress();
                     if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
@@ -337,18 +375,30 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         }
     }
 
+    @SuppressWarnings("null")
     private void writeResponse() {
         String result = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + 0 + "\r\n"
                 + "Connection: close\r\n\r\n";
         try {
             os.write(result.getBytes());
+            s.setSoLinger(true, 0);
             is.close();
             os.close();
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
         }
+
+        finally {
+            try {
+                s.close();
+            } catch (IOException e) {
+                logger.error(e.getLocalizedMessage());
+            }
+        }
+
     }
 
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
         logger.debug("Dispose Megad bridge handler {}", this.toString());
@@ -362,7 +412,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             ss.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            logger.error("Couldn't dispose.", e);
+            logger.error(e.getLocalizedMessage());
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
     }
