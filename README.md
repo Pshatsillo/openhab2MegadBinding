@@ -104,6 +104,28 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 ```
 ## Или скачать готовый jar файл [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/releases)
 
+## Как что-нибудь исправить?
+1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
+2. После пункта 7 в Eclipse IDE Setup скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
+3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
+```bash
+<dependency>
+    <groupId>org.openhab.addons.bundles</groupId>
+    <artifactId>org.openhab.binding.megad</artifactId>
+    <version>${project.version}</version>
+</dependency> 
+```
+добавить эти строки в конец похожих записей
+
+4. Вернуться в папку `openhab2-addons` и запустить команду `mvn -DskipChecks -DskipTests clean install`
+
+5. Вернуться к 8 пункту Eclipse IDE Setup
+
+6. Отредактировать файл Eclipse `\launch\app\runtime\logback.xml`. Добавить в него эту строку: 
+```bash
+  <logger name="org.openhab.binding" level="DEBUG"/>
+```
+
 ## Еще
 
 По многочисленным просьбам - Donate:
