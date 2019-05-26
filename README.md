@@ -1,56 +1,115 @@
-# MegaD Binding
+# OpenHAB 2 MegaD binding
+режимы работы: "in", "out", "dimmer", "temp", "humidity", "onewire", "adc", "at", "st", "ib", "tget", "contact", в процессе "i2c".
 
-_Give some details about what this binding is meant for - a protocol, system, specific device._
+## как запустить? 
 
-_If possible, provide some resources like pictures, a YouTube video, etc. to give an impression of what can be done with this binding. You can place such resources into a `doc` folder next to this README.md._
+### 1) через PaperUI
 
-## Supported Things
+Configuration > System > Item Linking
 
-_Please describe the different supported things / devices within this section._
-_Which different types are supported, which models were tested etc.?_
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
+simple mode is turned off
 
-## Discovery
+Save
 
-_Describe the available auto-discovery features here. Mention for what it works and what needs to be kept in mind when using it._
 
-## Binding Configuration
+Inbox -> MegaD Binding -> Choose Thing
 
-_If your binding requires or supports general configuration settings, please create a folder ```cfg``` and place the configuration file ```<bindingId>.cfg``` inside it. In this section, you should link to this file and provide some information about the options. The file could e.g. look like:_
+Bridge Megad incoming server adapter
+
+OK
+
+Inbox -> MegaD Binding -> Choose Thing
+
+MegaD Binding Thing
+
+Bridge Selection - > Bridge Megad incoming server adapter - megad:bridge:megadeviceincoming
+
+Configuration Parameters
+
+OK
+
+Configuration > Things
+
+MegaD Binding Thing
+
+Channels
+
+link
+
+### 2) через файлы
+
+.things:
 
 ```
-# Configuration for the Philips Hue Binding
-#
-# Default secret key for the pairing of the Philips Hue Bridge.
-# It has to be between 10-40 (alphanumeric) characters
-# This may be changed by the user for security reasons.
-secret=openHABSecret
+Bridge megad:bridge:megadeviceincoming
+{
+ Thing device onewire [hostname="localhost", port="3", password="sec", refresh="10"]
+ Thing device kitchenout [hostname="localhost", port="1", refresh="0"]
+ Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
+}
 ```
 
-_Note that it is planned to generate some part of this based on the information that is available within ```src/main/resources/ESH-INF/binding``` of your binding._
 
-_If your binding does not offer any generic configurations, you can remove this section completely._
+.items:
+```
+Number Temperature_GF_Corridor  "Temperature [%.1f °C]" <temperature>   (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
+Switch MegaDBindingThing_Input  "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" }  
+Contact MegaDContact  "[%s]" (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:bedroomcontact:contact" }
+```
 
-## Thing Configuration
 
-_Describe what is needed to manually configure a thing, either through the (Paper) UI or via a thing-file. This should be mainly about its mandatory and optional configuration parameters. A short example entry for a thing file can help!_
+Принцип такой: 
+#### 1) Создаем бридж в файле .things.
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
+```
+Bridge megad:bridge:megadeviceincoming {}
+```
 
-## Channels
+megad:bridge: - обязятельное поле, после двоеточия - произвольное название.
 
-_Here you should provide information about available channel types, what their meaning is and how they can be used._
+#### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок
+```
+Bridge megad:bridge:megadeviceincoming
+{
+Thing device onewire [hostname="localhost", port="3", password="sec", refresh="10"]
+Thing device kitchenout [hostname="localhost", port="1", refresh="0"]
+Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
+}
+```
+device - обязательное поле, далее произвольное название
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
+#### 3) открываем .items и создаем наши переменные.
+```
+Number Temperature_GF_Corridor "Temperature [%.1f °C]" <temperature> (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
+Switch MegaDBindingThing_Input "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" } 
+Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:bedroomcontact:contact" }
+```
+Последний параметр - режимы работы(каналы). до этого - путь, который мы создали в .things (megad:device:megadeviceincoming: - это название бриджа, bedroomcontact: - название Thing )
 
-| channel  | type   | description                  |
-|----------|--------|------------------------------|
-| control  | Switch | This is the control channel  |
 
-## Full Example
+#### 4) Далее аналогично 1 версии опенхаба
 
-_Provide a full usage example based on textual configuration files (*.things, *.items, *.sitemap)._
+## Как собрать?
+1. Скачать: 
+	[Java](https://jdk.java.net/12/)
+	[Maven](https://maven.apache.org/download.cgi)
 
-## Any custom content here!
+2. Загрузить архив со всеми плагинами [отсюда](https://github.com/openhab/openhab2-addons/archive/master.zip) и распаковать
+3. Загрузить архив Мегад [отсюда] (https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
+2. Скопировать директорию [org.openhab.binding.megad](org.openhab.binding.megad) в папку `/openhab2-addons/bundles`.
+3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
+```bash
+org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
+-rw-r--r--   1 xxxxxxx  staff  29482 10 мар 21:35 org.openhab.binding.megad-2.5.0-SNAPSHOT.jar
+```
+## Или скачать готовый jar файл [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/releases)
 
-_Feel free to add additional sections for whatever you think should also be mentioned about your binding!_
+## Еще
+
+По многочисленным просьбам - Donate:
+
+[Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=P38VCVDQMSMYQ) 
+
+[Yandex.Money](https://money.yandex.ru/to/410011024847033)
+
+Спасибо!
