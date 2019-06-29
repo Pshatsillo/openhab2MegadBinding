@@ -151,97 +151,100 @@ public class MegaDHandler extends BaseThingHandler {
         // logger.debug("getThing() -> {}", getThing().getUID().getId());
         logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
         for (Channel channel : getThing().getChannels()) {
-
             if (isLinked(channel.getUID().getId())) {
-                if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
-                        || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
-                    updateState(channel.getUID().getId(), OnOff);
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-                    int percent = 0;
-                    try {
-                        percent = (int) Math.round(Integer.parseInt(getCommands[4]) / 2.55);
-                    } catch (Exception ex) {
+                if (getCommands[1].equals("pt")) {
+                    if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
+                            || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
+                        updateState(channel.getUID().getId(), OnOff);
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
+                        int percent = 0;
+                        try {
+                            percent = (int) Math.round(Integer.parseInt(getCommands[4]) / 2.55);
+                        } catch (Exception ex) {
 
-                    }
-                    updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
-                    try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
-                    } catch (Exception ex) {
+                        }
+                        updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
+                        try {
+                            updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                        } catch (Exception ex) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
-                    try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
+                        try {
+                            updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                        } catch (Exception ex) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
-                    try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                        } catch (Exception ex) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
-                    try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                        } catch (Exception ex) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
-                    try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
+                        try {
+                            updateState(channel.getUID().getId(), StringType.valueOf(getCommands[2]));
+                        } catch (Exception ex) {
 
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
-                    try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[2]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_TEXT)) {
+                        try {
+                            updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                        } catch (Exception ex) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_TEXT)) {
-                    try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
-                    } catch (Exception ex) {
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
+                        if (OnOff.name() == "ON") {
+                            updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                        } else if (OnOff.name() == "OFF") {
+                            updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                        }
+                    } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
 
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
-                    if (OnOff.name() == "ON") {
-                        updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
-                    } else if (OnOff.name() == "OFF") {
-                        updateState(channel.getUID().getId(), OpenClosedType.OPEN);
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
+                        String commands = "";
+                        logger.debug(commands);
 
-                    String commands = "";
-                    logger.debug(commands);
+                        if (getCommands.length % 2 != 0) {
+                            for (int i = 3; getCommands.length > i;) {
+                                commands += getCommands[i] + "=" + getCommands[i + 1] + "&";
+                                i = i + 2;
+                            }
+                        }
+                        try {
+                            commands = commands.substring(0, commands.length() - 1);
+                        } catch (Exception ex) {
+                            // logger.error("cannot parse. wrong incoming: " + commands + " Error: " + ex);
+                        }
+                        updateState(channel.getUID().getId(), StringType.valueOf(commands));
 
-                    if (getCommands.length % 2 != 0) {
-                        for (int i = 3; getCommands.length > i;) {
-                            commands += getCommands[i] + "=" + getCommands[i + 1] + "&";
-                            i = i + 2;
+                        logger.debug("i2c command receive is: " + commands);
+
+                    } else {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
+                        } catch (Exception ex) {
+
                         }
                     }
-                    try {
-                        commands = commands.substring(0, commands.length() - 1);
-                    } catch (Exception ex) {
-                        // logger.error("cannot parse. wrong incoming: " + commands + " Error: " + ex);
-                    }
-                    updateState(channel.getUID().getId(), StringType.valueOf(commands));
-
-                    logger.debug("i2c command receive is: " + commands);
 
                 } else {
-                    try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
-                    } catch (Exception ex) {
+                    if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ST)) {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                        } catch (Exception ex) {
 
+                        }
                     }
                 }
-
             }
         }
     }

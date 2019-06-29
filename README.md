@@ -1,4 +1,5 @@
 # OpenHAB 2 MegaD binding
+
 режимы работы: "in", "out", "dimmer", "temp", "humidity", "onewire", "adc", "at", "st", "ib", "tget", "contact", в процессе "i2c".
 
 ## как запустить? 
@@ -51,6 +52,7 @@ Bridge megad:bridge:megadeviceincoming
 
 
 .items:
+
 ```
 Number Temperature_GF_Corridor  "Temperature [%.1f °C]" <temperature>   (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
 Switch MegaDBindingThing_Input  "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" }  
@@ -68,6 +70,7 @@ Bridge megad:bridge:megadeviceincoming {}
 megad:bridge: - обязятельное поле, после двоеточия - произвольное название.
 
 #### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок
+
 ```
 Bridge megad:bridge:megadeviceincoming
 {
@@ -75,21 +78,26 @@ Thing device onewire [hostname="localhost", port="3", password="sec", refresh="1
 Thing device kitchenout [hostname="localhost", port="1", refresh="0"]
 Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
 }
+
 ```
+
 device - обязательное поле, далее произвольное название
 
 #### 3) открываем .items и создаем наши переменные.
+
 ```
 Number Temperature_GF_Corridor "Temperature [%.1f °C]" <temperature> (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
 Switch MegaDBindingThing_Input "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" } 
 Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:bedroomcontact:contact" }
 ```
+
 Последний параметр - режимы работы(каналы). до этого - путь, который мы создали в .things (megad:device:megadeviceincoming: - это название бриджа, bedroomcontact: - название Thing )
 
 
 #### 4) Далее аналогично 1 версии опенхаба
 
 ## Как собрать?
+
 1. Скачать: 
 	[Java](https://jdk.java.net/12/)
 	[Maven](https://maven.apache.org/download.cgi)
@@ -98,16 +106,20 @@ Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device
 3. Загрузить архив Мегад [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
 2. Скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
 3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
+
 ```bash
 org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 -rw-r--r--   1 xxxxxxx  staff  29482 10 мар 21:35 org.openhab.binding.megad-2.5.0-SNAPSHOT.jar
 ```
+
 ## Или скачать готовый jar файл [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/releases)
 
 ## Как что-нибудь исправить?
+
 1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
 2. После пункта 7 в Eclipse IDE Setup скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
 3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
+
 ```bash
 <dependency>
     <groupId>org.openhab.addons.bundles</groupId>
@@ -115,6 +127,7 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
     <version>${project.version}</version>
 </dependency> 
 ```
+
 добавить эти строки в конец похожих записей
 
 4. Вернуться в папку `openhab2-addons` и запустить команду `mvn -DskipChecks -DskipTests clean install`
@@ -122,6 +135,7 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 5. Вернуться к 8 пункту Eclipse IDE Setup
 
 6. Отредактировать файл Eclipse `\launch\app\runtime\logback.xml`. Добавить в него эту строку: 
+
 ```bash
   <logger name="org.openhab.binding" level="DEBUG"/>
 ```
