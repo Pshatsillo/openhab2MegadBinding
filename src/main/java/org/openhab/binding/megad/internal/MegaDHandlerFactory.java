@@ -69,7 +69,6 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             logger.trace("Create Thing for Type {}", thingUID.toString());
         }
         if (MegaDBindingConstants.THING_TYPE_UID_BRIDGE.equals(thingTypeUID)) {
-
             logger.trace("Create Bride: {}", thingTypeUID);
             return super.createThing(thingTypeUID, configuration, thingUID, null);
         } else {

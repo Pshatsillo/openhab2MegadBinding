@@ -29,27 +29,27 @@ public class MegaDBindingConstants {
     public static final String BRIDGE_MEGAD = "bridge";
 
     // List of all Thing Type UIDs
-    public final static ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
-    public final static ThingTypeUID THING_TYPE_UID_BRIDGE = new ThingTypeUID(BINDING_ID, BRIDGE_MEGAD);
+    public static final ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
+    public static final ThingTypeUID THING_TYPE_UID_BRIDGE = new ThingTypeUID(BINDING_ID, BRIDGE_MEGAD);
 
     // List of all Channel ids
-    public final static String CHANNEL_IN = "in";
-    public final static String CHANNEL_RAWIN = "rawin";
-    public final static String CHANNEL_INCOUNT = "incount";
-    public final static String CHANNEL_OUT = "out";
-    public final static String CHANNEL_DIMMER = "dimmer";
-    public final static String CHANNEL_DHTTEMP = "temp";
-    public final static String CHANNEL_DHTHUM = "humidity";
-    public final static String CHANNEL_ONEWIRE = "onewire";
-    public final static String CHANNEL_ADC = "adc";
-    public final static String CHANNEL_AT = "at";
-    public final static String CHANNEL_ST = "st";
-    public final static String CHANNEL_IB = "ib";
-    public final static String CHANNEL_WIEGAND = "wiegand";
-    public final static String CHANNEL_TGET = "tget";
-    public final static String CHANNEL_I2C = "i2c";
-    public final static String CHANNEL_I2C_DISPLAY = "i2cdisplay";
-    public final static String CHANNEL_CONTACT = "contact";
-    public final static String CHANNEL_SMS_PHONE = "smsphone";
-    public final static String CHANNEL_SMS_TEXT = "smstext";
+    public static final String CHANNEL_IN = "in";
+    public static final String CHANNEL_RAWIN = "rawin";
+    public static final String CHANNEL_INCOUNT = "incount";
+    public static final String CHANNEL_OUT = "out";
+    public static final String CHANNEL_DIMMER = "dimmer";
+    public static final String CHANNEL_DHTTEMP = "temp";
+    public static final String CHANNEL_DHTHUM = "humidity";
+    public static final String CHANNEL_ONEWIRE = "onewire";
+    public static final String CHANNEL_ADC = "adc";
+    public static final String CHANNEL_AT = "at";
+    public static final String CHANNEL_ST = "st";
+    public static final String CHANNEL_IB = "ib";
+    public static final String CHANNEL_WIEGAND = "wiegand";
+    public static final String CHANNEL_TGET = "tget";
+    public static final String CHANNEL_I2C = "i2c";
+    public static final String CHANNEL_I2C_DISPLAY = "i2cdisplay";
+    public static final String CHANNEL_CONTACT = "contact";
+    public static final String CHANNEL_SMS_PHONE = "smsphone";
+    public static final String CHANNEL_SMS_TEXT = "smstext";
 }

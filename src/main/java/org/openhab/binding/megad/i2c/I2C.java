@@ -35,63 +35,59 @@ public class I2C {
 
     private Logger logger = LoggerFactory.getLogger(I2C.class);
     String host;
-    String SDA;
-    String SCL;
+    String sda;
+    String scl;
     String password;
-    int LOW = 0;
-    int HIGH = 1;
+    int low = 0;
+    int high = 1;
 
     HashMap<String, int[]> symbol = new HashMap<String, int[]>();
 
     public I2C(String host, String password, String port, String scl) {
         this.host = host;
-        this.SDA = port;
-        this.SCL = scl;
+        this.sda = port;
+        this.scl = scl;
         this.password = password;
-
     }
 
-    private void i2c_stop() {
+    private void i2cStop() {
         logger.debug("stopping...");
-        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.SDA + ":" + LOW + ";"
-                + this.SCL + ":" + HIGH + ";" + this.SDA + ":" + HIGH;
-        sendCommand(request);
-
-    }
-
-    private void i2c_init() {
-        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.SCL + ":" + HIGH + ";"
-                + this.SDA + ":" + HIGH;
+        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.sda + ":" + low + ";"
+                + this.scl + ":" + high + ";" + this.sda + ":" + high;
         sendCommand(request);
     }
 
-    private void i2c_send(String data) {
+    private void i2cInit() {
+        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.scl + ":" + high + ";"
+                + this.sda + ":" + high;
+        sendCommand(request);
+    }
+
+    private void i2cSend(String data) {
         logger.debug("sending...");
-        String request = "http://" + this.host + "/" + this.password + "/?" + "pt=" + this.SDA + "&i2c="
-                + Integer.parseInt(data, 16) + "&scl=" + this.SCL + ":1;" + this.SCL + ":0;";
+        String request = "http://" + this.host + "/" + this.password + "/?" + "pt=" + this.sda + "&i2c="
+                + Integer.parseInt(data, 16) + "&scl=" + this.scl + ":1;" + this.scl + ":0;";
         sendCommand(request);
 
         // file_get_contents(MD."pt=".SDA."&i2c=".hexdec($data)."&scl=".SCL.":1;".SCL.":0;");
-
     }
 
-    private void i2c_start() {
+    private void i2cStart() {
         logger.debug("start...");
-        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.SDA + ":" + LOW + ";"
-                + this.SCL + ":" + LOW;
+        String request = "http://" + this.host + "/" + this.password + "/?" + "cmd=" + this.sda + ":" + low + ";"
+                + this.scl + ":" + low;
         sendCommand(request);
     }
 
     private void sendCommand(String Result) {
-
         // logger.debug(Result);
         HttpURLConnection con;
 
-        URL MegaURL;
+        URL megaURL;
 
         try {
-            MegaURL = new URL(Result);
-            con = (HttpURLConnection) MegaURL.openConnection();
+            megaURL = new URL(Result);
+            con = (HttpURLConnection) megaURL.openConnection();
             // optional default is GET
             // con.setReadTimeout(500);
             // con.setConnectTimeout(500);
@@ -112,103 +108,99 @@ public class I2C {
         } catch (IOException e) {
             logger.error("Connect to megadevice {} error: {}", host, e.getLocalizedMessage());
         }
-
     }
 
-    private void display_init() {
+    private void displayInit() {
         logger.debug("init...");
-        i2c_stop();
-        i2c_init();
-        i2c_start();
+        i2cStop();
+        i2cInit();
+        i2cStart();
 
-        i2c_send("78");
-        i2c_send("00");
+        i2cSend("78");
+        i2cSend("00");
 
-        i2c_send("AF"); // Display ON
+        i2cSend("AF"); // Display ON
 
-        i2c_send("D5"); // Display Clock ?
-        i2c_send("80"); // Default 80
+        i2cSend("D5"); // Display Clock ?
+        i2cSend("80"); // Default 80
 
-        i2c_send("81"); // Contrast
-        i2c_send("EE");
+        i2cSend("81"); // Contrast
+        i2cSend("EE");
 
-        i2c_send("8D"); // Charge Pump (иначе не включится!)
-        i2c_send("14");
-        i2c_send("AF"); // Display ON
+        i2cSend("8D"); // Charge Pump (иначе не включится!)
+        i2cSend("14");
+        i2cSend("AF"); // Display ON
 
-        i2c_send("A1"); // Set Segment Re-map // Default A0 слева направо или справа на лево
-        i2c_send("C8"); // Set COM Output // Default C0 сверху вниз или снизу вверх
+        i2cSend("A1"); // Set Segment Re-map // Default A0 слева направо или справа на лево
+        i2cSend("C8"); // Set COM Output // Default C0 сверху вниз или снизу вверх
 
-        i2c_send("A6");
+        i2cSend("A6");
 
-        i2c_stop();
-
+        i2cStop();
     }
 
-    private void clear_display() {
+    private void clearDisplay() {
         logger.debug("clear...");
-        i2c_start();
-        i2c_send("78");
-        i2c_send("00");
-        i2c_send("20");
-        i2c_send("00");
-        i2c_send("21");
-        i2c_send("00");
-        i2c_send("7F");
-        i2c_send("22");
-        i2c_send("00");
-        i2c_send("07");
+        i2cStart();
+        i2cSend("78");
+        i2cSend("00");
+        i2cSend("20");
+        i2cSend("00");
+        i2cSend("21");
+        i2cSend("00");
+        i2cSend("7F");
+        i2cSend("22");
+        i2cSend("00");
+        i2cSend("07");
 
-        i2c_stop();
-        i2c_start();
+        i2cStop();
+        i2cStart();
 
-        i2c_send("78");
-        i2c_send("40");
+        i2cSend("78");
+        i2cSend("40");
 
         logger.debug("Clearing screen");
 
         for (int i = 0; i < 1024; i++) {
-            i2c_send("00");
+            i2cSend("00");
         }
 
         logger.debug("Stopping...");
-        i2c_stop();
+        i2cStop();
         logger.debug("Stopped...");
-
     }
 
-    public void prepare_display() {
+    public void prepareDisplay() {
         logger.debug("preparing...");
-        display_init();
-        clear_display();
-        write_text("test", "default", 0, 0);
-
+        displayInit();
+        clearDisplay();
+        writeText("test", "default", 0, 0);
     }
 
-    public void write_text(String string, String font, int column, int page) {
+    public void writeText(String string, String font, int column, int page) {
         logger.debug("writing...");
         generateFonts(font);
         String splitByWordsData[] = string.split(" ");
 
-        i2c_start();
-        i2c_send("78");
-        i2c_send("00");
-        i2c_send("20");
-        i2c_send("41");
-        i2c_send("21");
+        i2cStart();
+        i2cSend("78");
+        i2cSend("00");
+        i2cSend("20");
+        i2cSend("41");
+        i2cSend("21");
         logger.debug("column...");
-        i2c_send(Integer.toHexString(column));
-        i2c_send("7F");
-        i2c_send("22");
+        i2cSend(Integer.toHexString(column));
+        i2cSend("7F");
+        i2cSend("22");
         logger.debug("page...");
-        i2c_send(Integer.toHexString(page));
-        i2c_send(Integer.toHexString(page + 1));
+        i2cSend(Integer.toHexString(page));
+        i2cSend(Integer.toHexString(page + 1));
 
-        i2c_stop();
-        i2c_start();
+        i2cStop();
+        i2cStart();
         logger.debug("continue writing...");
-        i2c_send("78");
-        i2c_send("40");
+        i2cSend("78");
+        i2cSend("40");
         logger.debug("Sending text...");
 
         for (int j = 0; j < splitByWordsData.length; j++) {
@@ -219,21 +211,19 @@ public class I2C {
                 int wordsLenghthArray = words.length;
                 for (int i = 0; i < wordsLenghthArray; i++) {
                     logger.debug("extract...{}", words[i + flag]);
-                    i2c_send(Integer.toHexString(words[i + flag]));
+                    i2cSend(Integer.toHexString(words[i + flag]));
                     flag = flag * -1;
                 }
             }
 
-            i2c_send("00");
-            i2c_send("00");
+            i2cSend("00");
+            i2cSend("00");
         }
 
         logger.debug("Sendet text...");
-
     }
 
     private int @Nullable [] printString(String string) {
-
         int result[] = null;
 
         logger.debug("printing {}", string);
@@ -254,10 +244,8 @@ public class I2C {
     }
 
     private void generateFonts(String font) {
-
         switch (font) {
             case "verdana_8":
-
                 break;
 
             default:
@@ -460,7 +448,6 @@ public class I2C {
 
                 break;
         }
-
     }
 
 }

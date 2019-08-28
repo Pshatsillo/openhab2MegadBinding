@@ -71,15 +71,12 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void updateStatus(ThingStatus status) {
         super.updateStatus(status);
         updateThingHandlersStatus(status);
-
     }
 
     public void updateStatus() {
@@ -88,14 +85,12 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         } else {
             updateStatus(ThingStatus.OFFLINE);
         }
-
     }
 
     private @Nullable Map<String, MegaDHandler> thingHandlerMap = new HashMap<String, MegaDHandler>();
 
     @SuppressWarnings({ "null", "unused" })
     public void registerMegadThingListener(MegaDHandler thingHandler) {
-
         String thingID = thingHandler.getThing().getConfiguration().get("hostname").toString() + "."
                 + thingHandler.getThing().getConfiguration().get("port").toString();
 
@@ -115,7 +110,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             logger.debug("thingHandler for thing: '{}' already registerd", thingID);
             updateThingHandlerStatus(thingHandler, this.getStatus());
         }
-
     }
 
     @SuppressWarnings({ "null", "unused" })
@@ -129,7 +123,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                 updateThingHandlerStatus(thingHandler, ThingStatus.OFFLINE);
             }
         }
-
     }
 
     private void updateThingHandlerStatus(MegaDHandler thingHandler, ThingStatus status) {
@@ -138,7 +131,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     private void updateThingHandlersStatus(ThingStatus status) {
-
         for (Map.Entry<String, MegaDHandler> entry : thingHandlerMap.entrySet()) {
             updateThingHandlerStatus(entry.getValue(), status);
         }
@@ -215,7 +207,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
 
         String input = readInput();
         writeResponse();
-        ParseInput(input);
+        parseInput(input);
         return null;
     }
 
@@ -232,16 +224,15 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
     }
 
     @SuppressWarnings("null")
-    private void ParseInput(@Nullable String s) {
+    private void parseInput(@Nullable String s) {
         String[] getCommands;
         String thingID, hostAddress;
 
         if (!(s == null || s.trim().length() == 0)) {
-
             if (s.contains("GET") && s.contains("?")) {
                 logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
-                String[] CommandParse = s.split("[/ ]");
-                String command = CommandParse[2];
+                String[] commandParse = s.split("[/ ]");
+                String command = commandParse[2];
                 getCommands = command.split("[?&>=]");
 
                 for (int i = 0; getCommands.length > i; i++) {
@@ -348,7 +339,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                     if (getCommands[1].equals("pt")) {
                         thingID = hostAddress + "." + getCommands[2];
                     } else if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
-
                         thingID = hostAddress;
                         logger.debug("{}", thingHandlerMap.size());
 
@@ -361,7 +351,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                                 }
                             }
                         }
-
                     } else {
                         thingID = hostAddress + "." + getCommands[1];
                     }
@@ -370,7 +359,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
                     }
                 }
-
             }
         }
     }
@@ -395,7 +383,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                 logger.error("{}", e.getLocalizedMessage());
             }
         }
-
     }
 
     @SuppressWarnings("null")
@@ -411,7 +398,6 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         try {
             ss.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             logger.error("{}", e.getLocalizedMessage());
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
