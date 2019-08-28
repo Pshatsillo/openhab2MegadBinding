@@ -136,12 +136,12 @@ public class MegaDHandler extends BaseThingHandler {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         } catch (ProtocolException e) {
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
-                    + " error: " + e.getLocalizedMessage());
+            logger.error("Connect to megadevice {} {} error: ",
+                    getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
         }
 
     }
@@ -189,6 +189,7 @@ public class MegaDHandler extends BaseThingHandler {
 
                         }
                     } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
+                        logger.debug("Not need to update");
 
                     } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
                         try {
@@ -226,7 +227,7 @@ public class MegaDHandler extends BaseThingHandler {
                         }
                         updateState(channel.getUID().getId(), StringType.valueOf(commands));
 
-                        logger.debug("i2c command receive is: " + commands);
+                        logger.debug("i2c command receive is: {}", commands);
 
                     } else {
                         try {
@@ -352,7 +353,7 @@ public class MegaDHandler extends BaseThingHandler {
                         logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest[0]);
                     }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
-                    logger.debug(getThing().getUID().getId() + " " + percent);
+                    logger.debug("{} {}", getThing().getUID().getId(), percent);
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DHTTEMP)) {
                     String[] ResponseParse = updateRequest[0].split("[:/]");
                     if (ResponseParse.length > 2) {
@@ -373,7 +374,7 @@ public class MegaDHandler extends BaseThingHandler {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[3]));
                         }
                     } else {
-                        if (ResponseParse.length > 2) {
+                        if (ResponseParse.length >= 2) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
                             } catch (Exception ex) {
@@ -397,8 +398,8 @@ public class MegaDHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
                     String[] ResponseParse = updateRequest[0].split("[:]");
                     if (ResponseParse.length > 1) {
-                        logger.debug(ResponseParse[1]);
-                        if (!(updateRequest.equals("NA"))) {
+                        logger.debug("{}", ResponseParse[1]);
+                        if (!(updateRequest[0].equals("NA"))) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(ResponseParse[1]));
                             } catch (Exception ex) {
@@ -407,7 +408,7 @@ public class MegaDHandler extends BaseThingHandler {
                             }
                         }
                     } else {
-                        if (!(updateRequest.equals("NA"))) {
+                        if (!(updateRequest[0].equals("NA"))) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
                             } catch (Exception ex) {
@@ -426,7 +427,7 @@ public class MegaDHandler extends BaseThingHandler {
                         } catch (Exception ex) {
                             logger.error("cannot update channel i2c state. input string does not match standarts");
                             for (String string : updateRequest) {
-                                logger.error("parsed strings: " + string);
+                                logger.error("parsed strings: {}", string);
                             }
                         }
                     }
@@ -549,8 +550,8 @@ public class MegaDHandler extends BaseThingHandler {
                     result[count] = response.toString().trim();
                     con.disconnect();
                 } catch (IOException e) {
-                    logger.error("Connect to megadevice " + getThing().getConfiguration().get("hostname").toString()
-                            + " error: " + e.getLocalizedMessage());
+                    logger.error("Connect to megadevice {} error: {}",
+                            getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
                 }
                 count++;
             }

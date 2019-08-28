@@ -102,15 +102,15 @@ public class I2C {
             if (con.getResponseCode() == 200) {
                 logger.debug("OK");
             } else {
-                logger.debug(con.getResponseMessage());
+                logger.debug("{}", con.getResponseMessage());
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error("1" + e, e);
+            logger.error("1 - {}", e);
         } catch (ProtocolException e) {
-            logger.error("2" + e, e);
+            logger.error("2 - {}", e);
         } catch (IOException e) {
-            logger.error("Connect to megadevice " + host + " error: " + e.getLocalizedMessage());
+            logger.error("Connect to megadevice {} error: {}", host, e.getLocalizedMessage());
         }
 
     }
@@ -218,7 +218,7 @@ public class I2C {
             if (words != null) {
                 int wordsLenghthArray = words.length;
                 for (int i = 0; i < wordsLenghthArray; i++) {
-                    logger.debug("extract..." + words[i + flag]);
+                    logger.debug("extract...{}", words[i + flag]);
                     i2c_send(Integer.toHexString(words[i + flag]));
                     flag = flag * -1;
                 }
@@ -236,17 +236,17 @@ public class I2C {
 
         int result[] = null;
 
-        logger.debug("printing " + string);
+        logger.debug("printing {}", string);
 
         String[] caracter = string.split("");
 
         for (int i = 0; i < string.length(); i++) {
 
-            logger.debug("printing chars..." + Hex.encodeHexString(StringUtils.getBytesUtf8(caracter[i])).toString());
+            logger.debug("printing chars...{}", Hex.encodeHexString(StringUtils.getBytesUtf8(caracter[i])).toString());
 
             result = ArrayUtils.addAll(result,
                     symbol.get(Hex.encodeHexString(StringUtils.getBytesUtf8(caracter[i])).toString()));
-            logger.debug("found chars..." + result.length);
+            logger.debug("found chars...{}", result.length);
 
         }
 

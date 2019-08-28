@@ -210,7 +210,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             this.is = s.getInputStream();
             this.os = s.getOutputStream();
         } catch (IOException e) {
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         }
 
         String input = readInput();
@@ -225,7 +225,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         try {
             string = br.readLine();
         } catch (IOException e) {
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         }
 
         return string;
@@ -259,7 +259,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
                     }
                 } else if (s.contains("m=2")) {
-                    // do nothing -- long pressed
+                    logger.debug("m2 is not supported");
                 } else if (s.contains("all=")) {
                     logger.debug("Loop incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
 
@@ -350,7 +350,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                     } else if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
 
                         thingID = hostAddress;
-                        logger.debug("" + thingHandlerMap.size());
+                        logger.debug("{}", thingHandlerMap.size());
 
                         for (int i = 0; thingHandlerMap.size() > i; i++) {
 
@@ -385,14 +385,14 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             is.close();
             os.close();
         } catch (IOException e) {
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         }
 
         finally {
             try {
                 s.close();
             } catch (IOException e) {
-                logger.error(e.getLocalizedMessage());
+                logger.error("{}", e.getLocalizedMessage());
             }
         }
 
@@ -412,7 +412,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             ss.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            logger.error(e.getLocalizedMessage());
+            logger.error("{}", e.getLocalizedMessage());
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
     }
