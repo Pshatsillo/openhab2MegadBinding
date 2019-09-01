@@ -117,7 +117,7 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 ## Как что-нибудь исправить?
 
 1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
-2. После пункта 7 в Eclipse IDE Setup скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
+2. После пункта 5 в Eclipse IDE Setup перейти в папку `/openhab2-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
 3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
 
 ```bash
@@ -130,9 +130,9 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 
 добавить эти строки в конец похожих записей
 
-4. Вернуться в папку `openhab2-addons` и запустить команду `mvn -DskipChecks -DskipTests clean install`
+4. Перейти в папку `openhab2-addons\bom\openhab-addons` и запустить команду `mvn -DskipChecks -DskipTests clean install`
 
-5. Вернуться к 8 пункту Eclipse IDE Setup
+5. Импортировать проект org.openhab.binding.megad в Eclipse IDE
 
 6. Отредактировать файл Eclipse `\launch\app\runtime\logback.xml`. Добавить в него эту строку: 
 
