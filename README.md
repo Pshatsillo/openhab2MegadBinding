@@ -117,7 +117,7 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 ## Как что-нибудь исправить?
 
 1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
-2. После пункта 7 в Eclipse IDE Setup перейти в папку `/openhab2-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
+2. После пункта 5 в Eclipse IDE Setup перейти в папку `/openhab2-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
 3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
 
 ```bash
