@@ -4,10 +4,10 @@
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
 
-	<thing-type id="device">
+	<thing-type id="megaports">
 
 		<supported-bridge-type-refs>
-			<bridge-type-ref id="bridge" />
+			<bridge-type-ref id="device" />
 		</supported-bridge-type-refs>
 
 		<label>MegaD Binding Thing</label>
@@ -35,16 +35,6 @@
 		</channels>
 
 		<config-description>
-			<parameter name="hostname" type="text" required="true">
-				<label>Hostname or IP</label>
-				<description>Hostname or IP of the device</description>
-				<default>localhost</default>
-			</parameter>
-			<parameter name="password" type="text" required="true">
-				<label>Password</label>
-				<description>Password to access the device</description>
-				<default>sec</default>
-			</parameter>
 			<parameter name="port" type="text" required="true">
 				<label>port</label>
 				<description>Port number to access the device channel.</description>

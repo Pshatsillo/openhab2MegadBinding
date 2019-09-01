@@ -26,11 +26,10 @@ public class MegaDBindingConstants {
 
     public static final String BINDING_ID = "megad";
 
-    public static final String BRIDGE_MEGAD = "bridge";
-
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
-    public static final ThingTypeUID THING_TYPE_UID_BRIDGE = new ThingTypeUID(BINDING_ID, BRIDGE_MEGAD);
+    public static final ThingTypeUID THING_TYPE_MEGAPORTS = new ThingTypeUID(BINDING_ID, "megaports");
+    public static final ThingTypeUID THING_TYPE_DEVICE_BRIDGE = new ThingTypeUID(BINDING_ID, "device");
+    public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";

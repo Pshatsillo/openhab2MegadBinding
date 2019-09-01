@@ -12,19 +12,22 @@
  */
 package org.openhab.binding.megad.internal;
 
-import static org.openhab.binding.megad.MegaDBindingConstants.BINDING_ID;
+import static org.openhab.binding.megad.MegaDBindingConstants.*;
 
-import org.eclipse.smarthome.config.core.Configuration;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.openhab.binding.megad.MegaDBindingConstants;
-import org.openhab.binding.megad.handler.MegaDBridgeHandler;
-import org.openhab.binding.megad.handler.MegaDHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
+import org.openhab.binding.megad.handler.MegaDMegaportsHandler;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,47 +40,38 @@ import org.slf4j.LoggerFactory;
  */
 
 @Component(configurationPid = "binding.megad", service = ThingHandlerFactory.class)
+@NonNullByDefault
 public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
 
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
+    static {
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_MEGAPORTS);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE_BRIDGE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_INCOMING_BRIDGE);
+    }
+
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
-        return BINDING_ID.equals(thingTypeUID.getBindingId());
+        return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
-
-        if (thingTypeUID.equals(MegaDBindingConstants.THING_TYPE_UID_BRIDGE)) {
-            MegaDBridgeHandler handler = new MegaDBridgeHandler((Bridge) thing);
-            return handler;
+        if (thingTypeUID.equals(THING_TYPE_INCOMING_BRIDGE)) {
+            logger.debug("createHandler Incoming connections");
+            return new MegaDBridgeIncomingHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_DEVICE_BRIDGE)) {
+            logger.debug("createHandler Mega Device hardware");
+            return new MegaDBridgeDeviceHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
+            logger.debug("createHandler Port items");
+            return new MegaDMegaportsHandler(thing);
         }
-
-        if (supportsThingType(thingTypeUID)) {
-            return new MegaDHandler(thing);
-        }
-
+        logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
+                thing.getLabel());
         return null;
-    }
-
-    @Override
-    public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration, ThingUID thingUID,
-            ThingUID bridgeUID) {
-        if (thingUID != null) {
-            logger.trace("Create Thing for Type {}", thingUID.toString());
-        }
-        if (MegaDBindingConstants.THING_TYPE_UID_BRIDGE.equals(thingTypeUID)) {
-            logger.trace("Create Bride: {}", thingTypeUID);
-            return super.createThing(thingTypeUID, configuration, thingUID, null);
-        } else {
-            if (supportsThingType(thingTypeUID)) {
-                logger.trace("Create Thing: {}", thingTypeUID);
-                return super.createThing(thingTypeUID, configuration, thingUID, bridgeUID);
-            }
-        }
-
-        throw new IllegalArgumentException("The thing type " + thingTypeUID + " is not supported by the binding.");
     }
 }
