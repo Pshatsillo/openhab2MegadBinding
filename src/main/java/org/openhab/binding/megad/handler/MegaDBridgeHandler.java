@@ -168,7 +168,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             try {
                 ss = new ServerSocket(port);
 
-                ss.setPerformancePreferences(3, 2, 1);
+                ss.setPerformancePreferences(1, 0, 0);
                 ss.setReuseAddress(true);
 
                 logger.info("MegaD bridge opened port {}", ss.getLocalPort());

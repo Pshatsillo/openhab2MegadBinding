@@ -267,13 +267,16 @@ public class MegaDHandler extends BaseThingHandler {
     @SuppressWarnings("unlikely-arg-type")
     protected void updateData() {
         logger.debug("Updating Megadevice things...");
-        String[] result = {
-                "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&cmd=get",
-                "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?tget=1",
-                "", "" };
+        String[] result = { "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                + getThing().getConfiguration().get("password").toString() + "/?pt="
+                + getThing().getConfiguration().get("port").toString() + "&cmd=get", "", "", "" };
+        Channel tget = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
+        if (tget != null) {
+            if ((isLinked(tget.getUID()))) {
+                result[1] = "   http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                        + getThing().getConfiguration().get("password").toString() + "/?tget=1 ";
+            }
+        }
 
         if ((getThing().getConfiguration().get("scl") != null)
                 && (getThing().getConfiguration().get("i2c_dev") != null)) {
