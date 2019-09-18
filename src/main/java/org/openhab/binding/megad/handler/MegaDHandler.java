@@ -69,6 +69,7 @@ public class MegaDHandler extends BaseThingHandler {
         int state = 0;
 
         String result = "";
+        int resultInt = 0;
 
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
             if (command.toString().equals("ON")) {
@@ -83,7 +84,13 @@ public class MegaDHandler extends BaseThingHandler {
             sendCommand(result);
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
-                int resultInt = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
+                if (command.toString().equals("ON")) {
+                    resultInt = 255;
+                } else if (command.toString().equals("OFF")) {
+                    resultInt = 0;
+                } else {
+                    resultInt = (int) Math.round(Float.parseFloat(command.toString()) * 2.55);
+                } 
                 result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                         + getThing().getConfiguration().get("password").toString() + "/?cmd="
                         + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
