@@ -148,7 +148,6 @@ public class MegaDHandler extends BaseThingHandler {
         logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
-                if (getCommands[1].equals("pt")) {
                     if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
                             || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
                         updateState(channel.getUID().getId(), OnOff);
@@ -229,7 +228,6 @@ public class MegaDHandler extends BaseThingHandler {
                         }
                     }
                 }
-            }
         }
     }
 
