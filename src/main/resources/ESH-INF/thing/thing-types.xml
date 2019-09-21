@@ -84,13 +84,13 @@
 		<description>Dimmer used as output</description>
 	</channel-type>
 	<channel-type id="temp">
-		<item-type>Number</item-type>
+		<item-type>Number:Temperature</item-type>
 		<label>Temperature DHT</label>
 		<description>Temperature from DHT sensor</description>
 		<state readOnly="true" pattern="%.1f °C"></state>
 	</channel-type>
 	<channel-type id="humidity">
-		<item-type>Number</item-type>
+		<item-type>Number:Dimensionless</item-type>
 		<label>Humidity DHT</label>
 		<description>Humidity from DHT sensor</description>
 		<state readOnly="true" pattern="%.1f"></state>
@@ -102,7 +102,7 @@
 		<state readOnly="true"></state>
 	</channel-type>
 	<channel-type id="onewire">
-		<item-type>Number</item-type>
+		<item-type>Number:Temperature</item-type>
 		<label>Temperature Onewire</label>
 		<description>Temperature from Onewire sensor</description>
 		<state readOnly="true" pattern="%.1f °C"></state>
@@ -114,7 +114,7 @@
 		<state readOnly="true" pattern="%d"></state>
 	</channel-type>
 	<channel-type id="at">
-		<item-type>Number</item-type>
+		<item-type>Number:Temperature</item-type>
 		<label>Alarm temp</label>
 		<description>Alarm if temperature too high</description>
 		<state readOnly="true" pattern="%.1f °C"></state>
@@ -138,7 +138,7 @@
 		<state readOnly="true" pattern="%s"></state>
 	</channel-type>
 	<channel-type id="tget">
-		<item-type>Number</item-type>
+		<item-type>Number:Temperature</item-type>
 		<label>Megad temp</label>
 		<description>Temperature of MegaDevice</description>
 		<state readOnly="true" pattern="%d"></state>

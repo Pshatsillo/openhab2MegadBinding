@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
     private @Nullable Map<String, MegaDMegaportsHandler> portsHandlerMap = new HashMap<String, MegaDMegaportsHandler>();
+    private Map<String, String> portsvalues = new HashMap<String, String>();
 
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
@@ -65,6 +66,9 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
+
+        logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
+        getAllPortsStatus();
     }
 
     private synchronized @Nullable MegaDBridgeIncomingHandler getBridgeHandler() {
@@ -118,10 +122,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         String updateRequest = sendRequest(request);
         String[] getValues = updateRequest.split("[;]");
         for (int i = 0; getValues.length > i; i++) {
-            if (portsHandlerMap.get(String.valueOf(i)) != null) {
-                portsHandlerMap.get(String.valueOf(i)).updateValues(getValues[i]);
-            }
-
+            setPortsvalues(String.valueOf(i), getValues[i]);
         }
 
         logger.debug("{}", updateRequest);
@@ -176,6 +177,9 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             portsHandlerMap.put(ip, megaDMegaportsHandler);
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.ONLINE);
         }
+
+        megaDMegaportsHandler.updateValues(
+                getPortsvalues(megaDMegaportsHandler.getThing().getConfiguration().get("port").toString()));
     }
 
     @SuppressWarnings("null")
@@ -203,6 +207,15 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             bridgeIncomingHandler.unregisterMegaDeviceListener(this);
         }
         super.dispose();
+    }
+
+    public String getPortsvalues(String port) {
+        String portvalue = portsvalues.get(port);
+        return portvalue;
+    }
+
+    public void setPortsvalues(String key, String value) {
+        portsvalues.put(key, value);
     }
 
 }

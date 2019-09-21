@@ -16,6 +16,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +39,7 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.i2c.I2C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,10 +66,58 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        int state = 0;
+
+        String result = "";
+
+        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
+            if (!command.toString().equals("REFRESH")) {
+                if (command.toString().equals("ON")) {
+                    state = 1;
+                } else if (command.toString().equals("OFF")) {
+                    state = 0;
+                }
+                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        + getThing().getConfiguration().get("port").toString() + ":" + state;
+                logger.debug("Switch: {}", result);
+                sendCommand(result);
+            }
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
+            if (!command.toString().equals("REFRESH")) {
+                int resultInt = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
+                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
+                logger.info("Dimmer: {}", result);
+                sendCommand(result);
+            }
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_I2C_DISPLAY)) {
+            logger.debug("display changed");
+            try {
+                I2C disp = new I2C(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        bridgeDeviceHandler.getThing().getConfiguration().get("password").toString(),
+                        getThing().getConfiguration().get("port").toString(),
+                        getThing().getConfiguration().get("scl").toString());
+
+                if (!isI2cInit) {
+                    logger.debug("preparingDisplay");
+                    disp.prepareDisplay();
+                    isI2cInit = true;
+                }
+                if (!command.toString().equals("REFRESH")) {
+                    disp.writeText(command.toString(), "default", 0, 0);
+                }
+            } catch (Exception ex) {
+                logger.error("I2C config error. Scl parameter not found");
+            }
+            // updateStatus(ThingStatus.ONLINE);
+        }
     }
 
     @Override
     public void initialize() {
+        logger.debug("Ports init");
         bridgeDeviceHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
         if (bridgeDeviceHandler != null) {
@@ -88,7 +139,11 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
 
                 }, 0, pollingPeriod, TimeUnit.SECONDS);
             }
+        } else {
+            updateValues(bridgeDeviceHandler.getPortsvalues(getThing().getConfiguration().get("port").toString()));
         }
+
+        // updateValues(bridgeDeviceHandler.getPortsvalues(getThing().getConfiguration().get("port").toString()));
     }
 
     private void registerMegadPortsListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
@@ -192,7 +247,7 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                         logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest[0]);
                     }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
-                    logger.debug("{} {}", getThing().getUID().getId(), percent);
+                    // logger.debug("{} {}", getThing().getUID().getId(), percent);
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DHTTEMP)) {
                     String[] responseParse = updateRequest[0].split("[:/]");
                     if (responseParse.length > 2) {
@@ -311,7 +366,8 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                     con.disconnect();
                 } catch (IOException e) {
                     logger.error("Connect to megadevice {} error: {}",
-                            getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
+                            bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                            e.getLocalizedMessage());
                 }
                 count++;
             }
@@ -450,5 +506,34 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
             bridgeDeviceHandler.unregisterMegaDeviceListener(this);
         }
         super.dispose();
+    }
+
+    public void sendCommand(String Result) {
+        HttpURLConnection con;
+
+        URL megaURL;
+
+        try {
+            megaURL = new URL(Result);
+            con = (HttpURLConnection) megaURL.openConnection();
+            con.setReadTimeout(1000);
+            con.setConnectTimeout(1000);
+            con.setRequestMethod("GET");
+
+            // add request header
+            con.setRequestProperty("User-Agent", "Mozilla/5.0");
+            if (con.getResponseCode() == 200) {
+                logger.debug("OK");
+            }
+            con.disconnect();
+        } catch (MalformedURLException e) {
+            logger.error("{}", e.getLocalizedMessage());
+        } catch (ProtocolException e) {
+            logger.error("{}", e.getLocalizedMessage());
+        } catch (IOException e) {
+            logger.error("Connect to megadevice {} {} error: ",
+                    bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                    e.getLocalizedMessage());
+        }
     }
 }
