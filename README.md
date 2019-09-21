@@ -140,6 +140,8 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
   <logger name="org.openhab.binding" level="DEBUG"/>
 ```
 
+PS Опять всё поменялось. Ставил по этой ссылке https://github.com/openhab/openhab2-addons/issues/5005
+
 ## Еще
 
 По многочисленным просьбам - Donate:
