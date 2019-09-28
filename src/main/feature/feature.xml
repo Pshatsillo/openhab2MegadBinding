@@ -4,6 +4,7 @@
 
     <feature name="openhab-binding-megad" description="MegaD Binding" version="${project.version}">
         <feature>openhab-runtime-base</feature>
+       <feature>openhab-transport-http</feature>
         <bundle start-level="80">mvn:org.openhab.addons.bundles/org.openhab.binding.megad/${project.version}</bundle>
     </feature>
 </features>

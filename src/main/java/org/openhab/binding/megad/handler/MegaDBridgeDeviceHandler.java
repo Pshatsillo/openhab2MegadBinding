@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -46,6 +47,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
+    @Nullable
+    MegaDMegaportsHandler megaportsHandler;
 
     public MegaDBridgeDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -108,10 +111,85 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         super.updateStatus(status, statusDetail, description);
     }
 
+    @SuppressWarnings("null")
     public void updateValues(String command) {
-        // TODO updateValues
         logger.debug("command: {}", command);
         logger.debug("host: {}", getThing().getConfiguration().get("hostname").toString());
+        String[] getCommands = command.split("[?&>=]");
+        if (portsHandlerMap != null) {
+            megaportsHandler = portsHandlerMap.get(getCommands[2]);
+            if (command.contains("m=1")) { // press button
+                if (megaportsHandler != null) {
+                    megaportsHandler.updateValues(getCommands, OnOffType.OFF);
+                }
+            } else if (command.contains("m=2")) { // long press button (not supported by binding)
+                logger.debug("m2 is not supported");
+            } else if (command.contains("all=")) { // loop incoming
+                logger.debug("Loop incoming from Megad: {} {}",
+                        getThing().getConfiguration().get("hostname").toString(), command);
+                getCommands = command.split("[= ]");
+                if (getCommands.length > 4) {
+                    String[] parsedStatus = getCommands[3].split("[;]");
+                    for (int i = 0; parsedStatus.length > i; i++) {
+                        String[] mode = parsedStatus[i].split("[/]");
+                        if (mode[0].contains("ON")) {
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode);
+                            if (megaportsHandler != null) {
+                                megaportsHandler.updateValues(parsedStatus, OnOffType.ON);
+                            }
+                        } else if (mode[0].contains("OFF")) {
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode);
+                            if (megaportsHandler != null) {
+                                megaportsHandler.updateValues(parsedStatus, OnOffType.OFF);
+                            }
+                        } else {
+                            logger.debug("Not a switch");
+                        }
+                    }
+                } else {
+                    String[] parsedStatus = getCommands[2].split("[;]");
+                    for (int i = 0; parsedStatus.length > i; i++) {
+                        String[] mode = parsedStatus[i].split("[/]");
+                        if (mode[0].contains("ON")) {
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], parsedStatus[i]);
+                            if (megaportsHandler != null) {
+                                megaportsHandler.updateValues(mode, OnOffType.ON);
+                            }
+                        } else if (mode[0].contains("OFF")) {
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], parsedStatus[i]);
+                            if (megaportsHandler != null) {
+                                megaportsHandler.updateValues(mode, OnOffType.OFF);
+                            }
+                        } else {
+                            logger.debug("Not a switch");
+                        }
+                    }
+                }
+            } else if (command.contains("v=")) { // slave mode
+                if (megaportsHandler != null) {
+                    if (command.contains("v=1")) {
+                        megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                    } else {
+                        megaportsHandler.updateValues(getCommands, OnOffType.OFF);
+                    }
+                }
+            } else {
+                if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
+                    logger.debug("{}", portsHandlerMap.size());
+
+                    for (int i = 0; portsHandlerMap.size() > i; i++) {
+                        megaportsHandler = portsHandlerMap.get(portsHandlerMap.keySet().toArray()[i].toString());
+                        if (megaportsHandler != null) {
+                            megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                        }
+                    }
+                } else {
+                    if (megaportsHandler != null) {
+                        megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                    }
+                }
+            }
+        }
     }
 
     @SuppressWarnings("null")
@@ -137,7 +215,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
                 con = (HttpURLConnection) obj.openConnection();
 
-                logger.debug(URL);
+                logger.debug("URL: {}", URL);
 
                 con.setRequestMethod("GET");
                 // con.setReadTimeout(500);
@@ -165,7 +243,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         return result;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     public void registerMegadPortsListener(MegaDMegaportsHandler megaDMegaportsHandler) {
         String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
         logger.debug("Register Device with ip {} and port {}", getThing().getConfiguration().get("hostname").toString(),
@@ -177,9 +255,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             portsHandlerMap.put(ip, megaDMegaportsHandler);
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.ONLINE);
         }
-
-        megaDMegaportsHandler.updateValues(
-                getPortsvalues(megaDMegaportsHandler.getThing().getConfiguration().get("port").toString()));
     }
 
     @SuppressWarnings("null")
@@ -209,8 +284,16 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         super.dispose();
     }
 
-    public String getPortsvalues(String port) {
-        String portvalue = portsvalues.get(port);
+    @SuppressWarnings("unused")
+    public String[] getPortsvalues(String port) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+        String[] portvalue = { "", "", "" };
+        portvalue[0] = "";
+        portvalue[1] = "pt";
+        portvalue[2] = portsvalues.get(port).toString();
         return portvalue;
     }
 
