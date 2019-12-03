@@ -257,7 +257,6 @@ public class MegaDHandler extends BaseThingHandler {
                 refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                     @Override
                     public void run() {
-
                         refresh(pollingPeriod);
                     }
                 }, 0, 1000, TimeUnit.MILLISECONDS);
