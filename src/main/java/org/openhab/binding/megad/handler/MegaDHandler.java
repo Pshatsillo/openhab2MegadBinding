@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
 public class MegaDHandler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaDHandler.class);
-
+    protected long lastRefresh = 0;
     private @Nullable ScheduledFuture<?> refreshPollingJob;
 
     @Nullable
@@ -251,16 +251,25 @@ public class MegaDHandler extends BaseThingHandler {
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
         logger.debug("refresh: {}", rr[0]);
-        int pollingPeriod = Integer.parseInt(rr[0]);
+        int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
         if (pollingPeriod != 0) {
             if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
                 refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                     @Override
                     public void run() {
-                        updateData();
+
+                        refresh(pollingPeriod);
                     }
-                }, 0, pollingPeriod, TimeUnit.SECONDS);
+                }, 0, 1000, TimeUnit.MILLISECONDS);
             }
+        }
+    }
+
+    public void refresh(int interval) {
+        long now = System.currentTimeMillis();
+        if (now >= (lastRefresh + interval)) {
+            updateData();
+            lastRefresh = now;
         }
     }
 
