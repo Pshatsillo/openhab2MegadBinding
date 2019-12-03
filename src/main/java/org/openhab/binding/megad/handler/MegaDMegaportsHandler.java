@@ -116,7 +116,7 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings({ "null", "unused" })
+    // @SuppressWarnings({ "null", "unused" })
     @Override
     public void initialize() {
         logger.debug("Ports init");

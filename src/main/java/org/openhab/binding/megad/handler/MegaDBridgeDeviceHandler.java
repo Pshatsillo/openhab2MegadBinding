@@ -192,7 +192,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("null")
+    // @SuppressWarnings("null")
     public void getAllPortsStatus() {
 
         String request = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
@@ -284,7 +284,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         super.dispose();
     }
 
-    @SuppressWarnings("unused")
+    // @SuppressWarnings("unused")
     public String[] getPortsvalues(String port) {
         try {
             Thread.sleep(1000);

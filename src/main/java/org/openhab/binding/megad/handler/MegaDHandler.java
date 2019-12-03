@@ -264,7 +264,6 @@ public class MegaDHandler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings("unlikely-arg-type")
     protected void updateData() {
         logger.debug("Updating Megadevice things...");
         String[] result = { "http://" + getThing().getConfiguration().get("hostname").toString() + "/"

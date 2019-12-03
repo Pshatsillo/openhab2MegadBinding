@@ -127,16 +127,18 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     };
 
     protected @Nullable Runnable startHttpSocket() {
-        try {
-            s.setKeepAlive(false);
-            s.setReuseAddress(true);
-            s.setTcpNoDelay(true);
-            this.is = s.getInputStream();
-            this.os = s.getOutputStream();
-        } catch (IOException e) {
-            logger.error("{}", e.getLocalizedMessage());
-        }
+        if (s != null) {
+            try {
+                s.setKeepAlive(false);
+                s.setReuseAddress(true);
+                s.setTcpNoDelay(true);
+                this.is = s.getInputStream();
+                this.os = s.getOutputStream();
 
+            } catch (IOException e) {
+                logger.error("{}", e.getLocalizedMessage());
+            }
+        }
         String input = readInput();
         writeResponse();
         parseInput(input);
@@ -159,20 +161,22 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     private void writeResponse() {
         String result = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + 0 + "\r\n"
                 + "Connection: close\r\n\r\n";
-        try {
-            os.write(result.getBytes());
-            s.setSoLinger(true, 0);
-            is.close();
-            os.close();
-        } catch (IOException e) {
-            logger.error("{}", e.getLocalizedMessage());
-        }
-
-        finally {
+        if (os != null) {
             try {
-                s.close();
+                os.write(result.getBytes());
+                s.setSoLinger(true, 0);
+                is.close();
+                os.close();
             } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
+            }
+
+            finally {
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    logger.error("{}", e.getLocalizedMessage());
+                }
             }
         }
     }
@@ -180,7 +184,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     @SuppressWarnings("null")
     private void parseInput(@Nullable String s) {
         String[] getCommands;
-        String thingID, hostAddress;
         if (!(s == null || s.trim().length() == 0)) {
             if (s.contains("GET") && s.contains("?")) {
                 logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
@@ -204,7 +207,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     public void registerMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
 
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
