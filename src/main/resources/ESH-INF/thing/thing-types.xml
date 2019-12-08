@@ -74,7 +74,7 @@
 
 
 	<channel-type id="in">
-		<item-type>Switch</item-type>
+	 	<item-type>Switch</item-type>
 		<label>Input</label>
 		<description>Port set as  input signal for switch using</description>
 	</channel-type>

@@ -53,9 +53,9 @@ import org.slf4j.LoggerFactory;
 public class MegaDHandler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaDHandler.class);
-
+    protected long lastRefresh = 0;
     private @Nullable ScheduledFuture<?> refreshPollingJob;
-
+    protected int dimmervalue;
     @Nullable
     MegaDBridgeHandler bridgeHandler;
     boolean isI2cInit = false;
@@ -83,12 +83,38 @@ public class MegaDHandler extends BaseThingHandler {
             sendCommand(result);
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
-                int resultInt = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
-                result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                        + getThing().getConfiguration().get("password").toString() + "/?cmd="
-                        + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
-                logger.info("Dimmer: {}", result);
-                sendCommand(result);
+                try {
+                    int resultInt = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
+                    dimmervalue = resultInt;
+                    result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                            + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                            + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                    logger.info("Dimmer: {}", result);
+                    sendCommand(result);
+                } catch (Exception e) {
+                    if (command.toString().equals("OFF")) {
+                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                                + getThing().getConfiguration().get("port").toString() + ":0";
+                        logger.info("Dimmer set to OFF");
+                        sendCommand(result);
+                    } else if (command.toString().equals("ON")) {
+                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                                + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                        logger.info("Dimmer restored to previous value: {}", result);
+                        sendCommand(result);
+                        int percent = 0;
+                        try {
+                            percent = (int) Math.round(dimmervalue / 2.55);
+                        } catch (Exception ex) {
+                        }
+                        updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
+                    } else {
+                        logger.debug("Illegal dimmer value: {}", result);
+                    }
+                }
+
             }
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_I2C_DISPLAY)) {
             logger.debug("display changed");
@@ -249,16 +275,24 @@ public class MegaDHandler extends BaseThingHandler {
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
         logger.debug("refresh: {}", rr[0]);
-        int pollingPeriod = Integer.parseInt(rr[0]);
+        int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
         if (pollingPeriod != 0) {
             if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
                 refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                     @Override
                     public void run() {
-                        updateData();
+                        refresh(pollingPeriod);
                     }
-                }, 0, pollingPeriod, TimeUnit.SECONDS);
+                }, 0, 1000, TimeUnit.MILLISECONDS);
             }
+        }
+    }
+
+    public void refresh(int interval) {
+        long now = System.currentTimeMillis();
+        if (now >= (lastRefresh + interval)) {
+            updateData();
+            lastRefresh = now;
         }
     }
 
