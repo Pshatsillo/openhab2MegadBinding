@@ -226,7 +226,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
     @SuppressWarnings("null")
     private void parseInput(@Nullable String s) {
         String[] getCommands;
-        String thingID, hostAddress;
+        String thingID = " ", hostAddress;
 
         if (!(s == null || s.trim().length() == 0)) {
             if (s.contains("GET") && s.contains("?")) {
@@ -337,24 +337,28 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                         hostAddress = "localhost";
                     }
                     if (getCommands[1].equals("pt")) {
-                        thingID = hostAddress + "." + getCommands[2];
+                        try {
+                            thingID = hostAddress + "." + getCommands[2];
+                        } catch (Exception e) {
+                            logger.warn("ERROR: {}", e.getLocalizedMessage());
+                        }
                     } else if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
                         thingID = hostAddress;
-                        logger.debug("{}", thingHandlerMap.size());
-
                         for (int i = 0; thingHandlerMap.size() > i; i++) {
 
                             if (thingHandlerMap.keySet().toArray()[i].toString().contains(hostAddress)) {
                                 megaDHandler = thingHandlerMap.get(thingHandlerMap.keySet().toArray()[i].toString());
                                 if (megaDHandler != null) {
-                                    megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
+                                    megaDHandler.updateValues(hostAddress, getCommands, null);
                                 }
                             }
                         }
                     } else {
                         thingID = hostAddress + "." + getCommands[1];
                     }
-                    megaDHandler = thingHandlerMap.get(thingID);
+                    if (!thingID.equals(" ")) {
+                        megaDHandler = thingHandlerMap.get(thingID);
+                    }
                     if (megaDHandler != null) {
                         megaDHandler.updateValues(hostAddress, getCommands, OnOffType.ON);
                     }

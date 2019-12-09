@@ -168,15 +168,14 @@ public class MegaDHandler extends BaseThingHandler {
         }
     }
 
-    public void updateValues(String hostAddress, String[] getCommands, OnOffType OnOff) {
-        // logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
-        // logger.debug("getThing() -> {}", getThing().getUID().getId());
-        logger.debug("getActiveChannelListAsString -> {}", getActiveChannelListAsString());
+    public void updateValues(String hostAddress, String[] getCommands, @Nullable OnOffType OnOff) {
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
                 if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
                         || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
-                    updateState(channel.getUID().getId(), OnOff);
+                    if (OnOff != null) {
+                        updateState(channel.getUID().getId(), OnOff);
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
@@ -219,10 +218,12 @@ public class MegaDHandler extends BaseThingHandler {
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
-                    if (OnOff.name() == "ON") {
-                        updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
-                    } else if (OnOff.name() == "OFF") {
-                        updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                    if (OnOff != null) {
+                        if (OnOff.name() == "ON") {
+                            updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                        } else if (OnOff.name() == "OFF") {
+                            updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C)) {
                     String commands = "";
