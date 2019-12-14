@@ -7,7 +7,7 @@
 	<thing-type id="megaports">
 
 		<supported-bridge-type-refs>
-			<bridge-type-ref id="device" />
+			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
 		<label>MegaD Binding Thing</label>

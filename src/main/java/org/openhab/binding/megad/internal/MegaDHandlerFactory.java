@@ -61,13 +61,13 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_INCOMING_BRIDGE)) {
-            logger.debug("createHandler Incoming connections");
+            // logger.debug("createHandler Incoming connections");
             return new MegaDBridgeIncomingHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_DEVICE_BRIDGE)) {
-            logger.debug("createHandler Mega Device hardware");
+            // logger.debug("createHandler Mega Device hardware");
             return new MegaDBridgeDeviceHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
-            logger.debug("createHandler Port items");
+            // logger.debug("createHandler Port items");
             return new MegaDMegaportsHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),

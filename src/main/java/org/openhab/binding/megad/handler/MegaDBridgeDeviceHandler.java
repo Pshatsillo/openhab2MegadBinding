@@ -77,8 +77,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private synchronized @Nullable MegaDBridgeIncomingHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.error("Required bridge not defined for device {}.");
-            // throw new NullPointerException("Required bridge not defined for device");
+            logger.warn("Required bridge not defined for device {}.");
             return null;
         } else {
             return getBridgeHandler(bridge);
@@ -286,10 +285,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     // @SuppressWarnings("unused")
     public String[] getPortsvalues(String port) {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-        }
+
         String[] portvalue = { "", "", "" };
         portvalue[0] = "";
         portvalue[1] = "pt";

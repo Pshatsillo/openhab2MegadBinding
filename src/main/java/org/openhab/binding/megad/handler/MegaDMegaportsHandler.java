@@ -59,6 +59,8 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     boolean isI2cInit = false;
+    protected long lastRefresh = 0;
+    boolean startup = true;
 
     public MegaDMegaportsHandler(Thing thing) {
         super(thing);
@@ -119,9 +121,9 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
     // @SuppressWarnings({ "null", "unused" })
     @Override
     public void initialize() {
-        logger.debug("Ports init");
+        // logger.debug("Ports init");
         bridgeDeviceHandler = getBridgeHandler();
-        logger.debug("Thing Handler for {} started", getThing().getUID().getId());
+        // logger.debug("Thing Handler for {} started", getThing().getUID().getId());
         if (bridgeDeviceHandler != null) {
             registerMegadPortsListener(bridgeDeviceHandler);
         } else {
@@ -130,25 +132,38 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
         logger.debug("refresh: {}", rr[0]);
-        int pollingPeriod = Integer.parseInt(rr[0]);
-        if (pollingPeriod != 0) {
-            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateData();
-                    }
+        int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
+        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    refresh(pollingPeriod);
+                }
+            }, 0, 1000, TimeUnit.MILLISECONDS);
+        }
+    }
 
-                }, 0, pollingPeriod, TimeUnit.SECONDS);
+    public void refresh(int interval) {
+        long now = System.currentTimeMillis();
+        if (startup) {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                logger.warn("{}", e.getLocalizedMessage());
             }
-        } else {
             String[] portStatus = bridgeDeviceHandler
                     .getPortsvalues(getThing().getConfiguration().get("port").toString());
-
             if (portStatus[2].contains("ON")) {
                 updateValues(portStatus, OnOffType.ON);
             } else {
                 updateValues(portStatus, OnOffType.OFF);
+            }
+            startup = false;
+        }
+        if (interval != 0) {
+            if (now >= (lastRefresh + interval)) {
+                updateData();
+                lastRefresh = now;
             }
         }
     }
@@ -394,9 +409,12 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
     }
 
     public void updateValues(String[] getCommands, OnOffType OnOff) {
-        // logger.debug("{},{},{}", hostAddress, getCommands, OnOff);
+        // logger.debug("{},{}", getCommands, OnOff);
         // logger.debug("getThing() -> {}", getThing().getUID().getId());
+        // logger.debug("getActiveChannelListAsString() -> {}", getActiveChannelListAsString());
+
         for (Channel channel : getThing().getChannels()) {
+            // logger.debug("Channel is {}", channel.getLabel());
             if (isLinked(channel.getUID().getId())) {
                 if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IN))
                         || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
@@ -459,7 +477,7 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
                     String[] responseParse = getCommands[2].split("[:]");
                     if (responseParse.length > 1) {
-                        logger.debug("{}", responseParse[1]);
+                        logger.debug("onewire value: {}", responseParse[1]);
                         if (!(getCommands[2].equals("NA"))) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(responseParse[1]));
@@ -478,10 +496,16 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                             }
                         }
                     }
-                }
-
-                else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
-                    logger.debug("Not need to update");
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
+                    String[] value = getCommands[2].split("[/]");
+                    for (int i = 0; i < value.length; i++) {
+                        logger.debug("{} - {}", i, value[i]);
+                    }
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(value[1]));
+                    } catch (Exception ex) {
+                        logger.debug("this is not inputs count!");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[2]));
@@ -528,6 +552,8 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
                     } catch (Exception ex) {
                     }
+                } else {
+                    // logger.warn("Channel not linked");
                 }
             }
         }
@@ -574,5 +600,20 @@ public class MegaDMegaportsHandler extends BaseThingHandler {
                     bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                     e.getLocalizedMessage());
         }
+    }
+
+    public String getActiveChannelListAsString() {
+        String channelList = "";
+        for (Channel channel : getThing().getChannels()) {
+            // logger.debug("Channel ID {}", channel.getUID().getId());
+            if (isLinked(channel.getUID().getId())) {
+                if (channelList.length() > 0) {
+                    channelList = channelList + "," + channel.getUID().getId();
+                } else {
+                    channelList = channel.getUID().getId();
+                }
+            }
+        }
+        return channelList;
     }
 }

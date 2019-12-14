@@ -165,18 +165,8 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
             try {
                 os.write(result.getBytes());
                 s.setSoLinger(true, 0);
-                is.close();
-                os.close();
             } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
-            }
-
-            finally {
-                try {
-                    s.close();
-                } catch (IOException e) {
-                    logger.error("{}", e.getLocalizedMessage());
-                }
             }
         }
     }
