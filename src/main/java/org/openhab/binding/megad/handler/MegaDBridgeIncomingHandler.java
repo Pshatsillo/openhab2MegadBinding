@@ -173,24 +173,28 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     private void parseInput(@Nullable String s) {
-        String[] getCommands;
+        // String[] getCommands;
         if (!(s == null || s.trim().length() == 0)) {
             if (s.contains("GET") && s.contains("?")) {
                 logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
-                String[] commandParse = s.split("[/ ]");
-                String command = commandParse[2];
-                getCommands = command.split("[?&>=]");
+                // String[] commandParse = s.split("[/ ]");
+                String[] command = s.split("[? ]");
+                // String[] getCommands1 = commandParse1[3].split("[=]");
+                // String[] getListPortsCommands1 = getCommands1[1].split("[;]");
+                // logger.debug(commandParse1.toString());
+                // String command = commandParse[2];
+                // getCommands = command.split("[?&>=]");
 
-                for (int i = 0; getCommands.length > i; i++) {
-                    logger.debug("{} value {}", i, getCommands[i]);
-                }
+                // for (int i = 0; getCommands.length > i; i++) {
+                // logger.debug("{} value {}", i, getCommands[i]);
+                // }
                 if (this.s.getInetAddress().getHostAddress().equals("0:0:0:0:0:0:0:1")) {
                     deviceHandler = devicesHandlerMap.get("localhost");
                 } else {
                     deviceHandler = devicesHandlerMap.get(this.s.getInetAddress().getHostAddress());
                 }
                 if (deviceHandler != null) {
-                    deviceHandler.updateValues(command);
+                    deviceHandler.updateValues(command[2]);
                 }
 
             }

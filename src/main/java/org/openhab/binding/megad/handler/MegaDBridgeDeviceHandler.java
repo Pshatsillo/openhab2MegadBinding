@@ -116,36 +116,28 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         logger.debug("host: {}", getThing().getConfiguration().get("hostname").toString());
         String[] getCommands = command.split("[?&>=]");
         if (portsHandlerMap != null) {
-            megaportsHandler = portsHandlerMap.get(getCommands[2]);
-            if (command.contains("m=1")) { // press button
-                if (megaportsHandler != null) {
-                    megaportsHandler.updateValues(getCommands, OnOffType.OFF);
-                }
-            } else if (command.contains("m=2")) { // long press button (not supported by binding)
-                logger.debug("m2 is not supported");
-            } else if (command.contains("all=")) { // loop incoming
+            if (command.contains("all=")) { // loop incoming
                 logger.debug("Loop incoming from Megad: {} {}",
                         getThing().getConfiguration().get("hostname").toString(), command);
-                getCommands = command.split("[= ]");
-                if (getCommands.length > 4) {
+
+                if (getCommands.length == 4) {
                     String[] parsedStatus = getCommands[3].split("[;]");
                     for (int i = 0; parsedStatus.length > i; i++) {
-                        String[] mode = parsedStatus[i].split("[/]");
-                        if (mode[0].contains("ON")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode);
-                            if (megaportsHandler != null) {
-                                megaportsHandler.updateValues(parsedStatus, OnOffType.ON);
+                        megaportsHandler = portsHandlerMap.get(String.valueOf(i));
+                        if (megaportsHandler != null) {
+                            String[] mode = parsedStatus[i].split("[/]");
+                            String[] commandsAdapt = { "", "", parsedStatus[i] };
+                            if (mode[0].contains("ON")) {
+                                megaportsHandler.updateValues(commandsAdapt, OnOffType.ON);
+                            } else if (mode[0].contains("OFF")) {
+                                megaportsHandler.updateValues(commandsAdapt, OnOffType.OFF);
+                            } else {
+                                megaportsHandler.updateValues(commandsAdapt, null);
                             }
-                        } else if (mode[0].contains("OFF")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode);
-                            if (megaportsHandler != null) {
-                                megaportsHandler.updateValues(parsedStatus, OnOffType.OFF);
-                            }
-                        } else {
-                            logger.debug("Not a switch");
                         }
                     }
                 } else {
+
                     String[] parsedStatus = getCommands[2].split("[;]");
                     for (int i = 0; parsedStatus.length > i; i++) {
                         String[] mode = parsedStatus[i].split("[/]");
@@ -164,30 +156,41 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         }
                     }
                 }
-            } else if (command.contains("v=")) { // slave mode
-                if (megaportsHandler != null) {
-                    if (command.contains("v=1")) {
-                        megaportsHandler.updateValues(getCommands, OnOffType.ON);
-                    } else {
+
+            } else {
+                megaportsHandler = portsHandlerMap.get(getCommands[1]);
+                if (command.contains("m=1")) { // press button
+                    if (megaportsHandler != null) {
                         megaportsHandler.updateValues(getCommands, OnOffType.OFF);
                     }
-                }
-            } else {
-                if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
-                    logger.debug("{}", portsHandlerMap.size());
+                } else if (command.contains("m=2")) { // long press button (not supported by binding)
+                    logger.debug("m2 is not supported");
+                } else if (command.contains("v=")) { // slave mode
+                    if (megaportsHandler != null) {
+                        if (command.contains("v=1")) {
+                            megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                        } else {
+                            megaportsHandler.updateValues(getCommands, OnOffType.OFF);
+                        }
+                    }
+                } else {
+                    if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
+                        logger.debug("{}", portsHandlerMap.size());
 
-                    for (int i = 0; portsHandlerMap.size() > i; i++) {
-                        megaportsHandler = portsHandlerMap.get(portsHandlerMap.keySet().toArray()[i].toString());
+                        for (int i = 0; portsHandlerMap.size() > i; i++) {
+                            megaportsHandler = portsHandlerMap.get(portsHandlerMap.keySet().toArray()[i].toString());
+                            if (megaportsHandler != null) {
+                                megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                            }
+                        }
+                    } else {
                         if (megaportsHandler != null) {
                             megaportsHandler.updateValues(getCommands, OnOffType.ON);
                         }
                     }
-                } else {
-                    if (megaportsHandler != null) {
-                        megaportsHandler.updateValues(getCommands, OnOffType.ON);
-                    }
                 }
             }
+
         }
     }
 
