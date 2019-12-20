@@ -204,7 +204,10 @@ public class MegaDHandler extends BaseThingHandler {
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
-                    logger.debug("Not need to update");
+                    try {
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                    } catch (Exception ex) {
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {
                     logger.debug("Does not accept incoming values");
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
