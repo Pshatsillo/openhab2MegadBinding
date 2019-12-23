@@ -163,8 +163,8 @@ public class MegaDHandler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ",
-                    getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
+            logger.warn("Connect to megadevice {} {} error: ", getThing().getConfiguration().get("hostname").toString(),
+                    e.getLocalizedMessage());
         }
     }
 
@@ -176,6 +176,27 @@ public class MegaDHandler extends BaseThingHandler {
                     if (OnOff != null) {
                         updateState(channel.getUID().getId(), OnOff);
                     }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_M2)) {
+                    try {
+                        if (getCommands[4].equals("2") && getCommands[3].equals("m")) {
+                            updateState(channel.getUID().getId(), OnOffType.ON);
+                        } else if (OnOff == OnOffType.OFF) {
+                            updateState(channel.getUID().getId(), OnOffType.OFF);
+                        }
+                    } catch (Exception e) {
+                        logger.debug(" Not m2 signal ", e.getLocalizedMessage());
+                    }
+
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CLICK)) {
+
+                    if (getCommands[3].equals("click")) {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
+                        } catch (Exception ex) {
+                            logger.debug(" Cannot update click ", ex.getLocalizedMessage());
+                        }
+                    }
+
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
@@ -205,7 +226,12 @@ public class MegaDHandler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {
                     try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[4]));
+                        if (getCommands[5].equals("cnt")) {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[6]));
+
+                        } else if (getCommands[3].equals("cnt")) {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
+                        }
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ONEWIRE)) {

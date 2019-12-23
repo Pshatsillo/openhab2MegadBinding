@@ -17,6 +17,8 @@
 			<channel id="in" typeId="in" />
 			<channel id="incount" typeId="incount"></channel>
 			<channel id="out" typeId="out"></channel>
+			<channel id="m2signal" typeId="m2signal"></channel>
+			<channel id="click" typeId="click"></channel>
 			<channel id="dimmer" typeId="dimmer"></channel>
 			<channel id="temp" typeId="temp"></channel>
 			<channel id="i2c" typeId="i2c"></channel>
@@ -88,6 +90,16 @@
 		<label>Output</label>
 		<description>Port set as output for switch using</description>
 	</channel-type>
+	<channel-type id="m2signal">
+        <item-type>Switch</item-type>
+        <label>Long press switch</label>
+        <description>React if long press from mega detected</description>
+    </channel-type>
+    <channel-type id="click">
+        <item-type>Number</item-type>
+        <label>Click</label>
+        <description>Counter, reacts if click mode enabled in megad</description>
+    </channel-type>
 	<channel-type id="dimmer">
 		<item-type>Dimmer</item-type>
 		<label>Dimmer</label>

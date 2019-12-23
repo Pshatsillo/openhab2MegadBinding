@@ -249,8 +249,26 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
                     if (megaDHandler != null) {
                         megaDHandler.updateValues(hostAddress, getCommands, OnOffType.OFF);
                     }
+                } else if (s.contains("click")) {
+                    hostAddress = this.s.getInetAddress().getHostAddress();
+                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                        hostAddress = "localhost";
+                    }
+                    thingID = hostAddress + "." + getCommands[2];
+                    megaDHandler = thingHandlerMap.get(thingID);
+                    if (megaDHandler != null) {
+                        megaDHandler.updateValues(hostAddress, getCommands, null);
+                    }
                 } else if (s.contains("m=2")) {
-                    logger.debug("m2 is not supported");
+                    hostAddress = this.s.getInetAddress().getHostAddress();
+                    if (hostAddress.equals("0:0:0:0:0:0:0:1")) {
+                        hostAddress = "localhost";
+                    }
+                    thingID = hostAddress + "." + getCommands[2];
+                    megaDHandler = thingHandlerMap.get(thingID);
+                    if (megaDHandler != null) {
+                        megaDHandler.updateValues(hostAddress, getCommands, null);
+                    }
                 } else if (s.contains("all=")) {
                     logger.debug("Loop incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
 
