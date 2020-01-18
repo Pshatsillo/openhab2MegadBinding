@@ -1,0 +1,23 @@
+MegaD Send to server:
+
+http://192.168.0.1/megad.php?pt=0  Button pressed
+http://192.168.0.1/megad.php?pt=0&cnt=100 Button pressed with counter 
+http://192.168.0.1/megad.php?pt=0&m=1 Button released
+http://192.168.0.1/megad.php?pt=0&click=1 Click Mode 1 click
+http://192.168.0.1/megad.php?pt=0&click=2 Click Mode 2 click
+http://192.168.0.1/megad.php?pt=0&m=2 Long press
+http://192.168.0.1/megad.php?pt=7&v=1 Passive output port state
+http://192.168.0.1/megad.php?pt=36&v=299&dir=1 ADC 
+http://192.168.0.1/megad.php?pt=30&wg=ec532f Wiegand 
+http://192.168.0.1/megad.php?pt=22&ext0=1 I2C Port Extener ext0 port of extender =1 type of message  pt=22 = INT line connection
+http://192.168.0.1/megad.php?pt=22&ext0=1&ext1=1 I2C multiple Port Extener
+http://192.168.0.1/megad.php?sms_phone=+79000001234&sms_text=hello SMS
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
+http://192.168.0.1/megad.php
