@@ -4,23 +4,22 @@
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
 
-	<thing-type id="megaports">
+<thing-type id="standart">
 
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
-		<label>MegaD Binding Thing</label>
-		<description>Binding for thing called Megadevice</description>
+		<label>MegaD Standart Thing</label>
+		<description>Binding for standart Megad features</description>
 
 		<channels>
 			<channel id="in" typeId="in" />
 			<channel id="incount" typeId="incount"></channel>
 			<channel id="out" typeId="out"></channel>
 			<channel id="dimmer" typeId="dimmer"></channel>
-			<channel id="temp" typeId="temp"></channel>
-			<channel id="i2c" typeId="i2c"></channel>
-			<channel id="humidity" typeId="humidity"></channel>
+			<channel id="m2signal" typeId="m2signal"></channel>
+            <channel id="click" typeId="click"></channel>
 			<channel id="onewire" typeId="onewire"></channel>
 			<channel id="adc" typeId="adc"></channel>
 			<channel id="at" typeId="at"></channel>
@@ -45,23 +44,44 @@
 				<description>refresh interval channel</description>
 				<default>30</default>
 			</parameter>
-			<parameter name="scl" type="text">
-				<label>I2C SCL</label>
-				<description>Only for i2c</description>
-			</parameter>
-			<parameter name="i2c_dev" type="text">
-				<label>I2C Device</label>
-				<description>Only for i2c</description>
-			</parameter>
-			<parameter name="i2c_par" type="text">
-				<label>I2C Parameter</label>
-				<description>Only for i2c</description>
-			</parameter>
 		</config-description>
 
-	</thing-type>
+</thing-type>
 
+<thing-type id="i2c">
+    <supported-bridge-type-refs>
+            <bridge-type-ref id="device"/>
+    </supported-bridge-type-refs>
 
+        <label>MegaD I2C Sensors</label>
+        <description>Binding for I2C sensors features of Megadevice</description>
+        
+        <channels>
+            <channel id="temp" typeId="temp"></channel>
+            <channel id="humidity" typeId="humidity"></channel>
+            <channel id="pressure" typeId="pressure"></channel>
+        </channels>
+        
+        <config-description>
+            <parameter name="port" type="text" required="true">
+                <label>port</label>
+                <description>Port number to access the device channel.</description>
+                <default>0</default>
+            </parameter>
+            <parameter name="refresh" type="integer" required="true">
+                <label>refresh</label>
+                <description>refresh interval channel</description>
+                <default>30</default>
+            </parameter>
+            <parameter name="scl" type="text">
+                <label>I2C SCL</label>
+            </parameter>
+            <parameter name="i2c_dev" type="text">
+                <label>I2C Device</label>
+                <description>Please copy from megad settings</description>
+            </parameter>
+        </config-description>
+</thing-type>
 
 	<channel-type id="in">
 		<item-type>Switch</item-type>
@@ -83,18 +103,34 @@
 		<label>Dimmer</label>
 		<description>Dimmer used as output</description>
 	</channel-type>
+	<channel-type id="m2signal">
+        <item-type>Switch</item-type>
+        <label>Long press switch</label>
+        <description>React if long press from mega detected</description>
+    </channel-type>
+    <channel-type id="click">
+        <item-type>Number</item-type>
+        <label>Click</label>
+        <description>Counter, reacts if click mode enabled in megad</description>
+    </channel-type>
 	<channel-type id="temp">
 		<item-type>Number:Temperature</item-type>
-		<label>Temperature DHT</label>
-		<description>Temperature from DHT sensor</description>
+		<label>Temperature</label>
+		<description>Temperature from sensor</description>
 		<state readOnly="true" pattern="%.1f °C"></state>
 	</channel-type>
 	<channel-type id="humidity">
 		<item-type>Number:Dimensionless</item-type>
-		<label>Humidity DHT</label>
-		<description>Humidity from DHT sensor</description>
+		<label>Humidity</label>
+		<description>Humidity from sensor</description>
 		<state readOnly="true" pattern="%.1f"></state>
 	</channel-type>
+	<channel-type id="pressure">
+        <item-type>Number:Dimensionless</item-type>
+        <label>Pressure</label>
+        <description>Pressure</description>
+        <state readOnly="true" pattern="%.1f"></state>
+    </channel-type>
 	<channel-type id="i2c">
 		<item-type>String</item-type>
 		<label>I2C</label>

@@ -403,7 +403,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
     }
 
-    public void registerMegadPortsListener(MegaDMegaportsHandler megaDMegaportsHandler) {
+    public void registerMegadPortsListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
         // TODO Auto-generated method stub
 
     }

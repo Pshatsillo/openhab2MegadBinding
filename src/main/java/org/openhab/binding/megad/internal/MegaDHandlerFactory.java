@@ -27,7 +27,8 @@ import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
 import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
-import org.openhab.binding.megad.handler.MegaDMegaportsHandler;
+import org.openhab.binding.megad.handler.MegaDMegaItoCHandler;
+import org.openhab.binding.megad.handler.MegaDMegaPortsHandler;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_I2C);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_MEGAPORTS);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_INCOMING_BRIDGE);
@@ -68,7 +70,10 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDBridgeDeviceHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
             // logger.debug("createHandler Port items");
-            return new MegaDMegaportsHandler(thing);
+            return new MegaDMegaPortsHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_I2C)) {
+            // logger.debug("createHandler Port items");
+            return new MegaDMegaItoCHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

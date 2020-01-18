@@ -42,13 +42,14 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
-    private @Nullable Map<String, MegaDMegaportsHandler> portsHandlerMap = new HashMap<String, MegaDMegaportsHandler>();
+    private @Nullable Map<String, MegaDMegaPortsHandler> portsHandlerMap = new HashMap<String, MegaDMegaPortsHandler>();
+    private @Nullable Map<String, MegaDMegaItoCHandler> ItoCHandlerMap = new HashMap<String, MegaDMegaItoCHandler>();
     private Map<String, String> portsvalues = new HashMap<String, String>();
 
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
     @Nullable
-    MegaDMegaportsHandler megaportsHandler;
+    MegaDMegaPortsHandler megaportsHandler;
 
     public MegaDBridgeDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -163,9 +164,17 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     if (megaportsHandler != null) {
                         megaportsHandler.updateValues(getCommands, OnOffType.OFF);
                     }
-                } else if (command.contains("m=2")) { // long press button (not supported by binding)
-                    logger.debug("m2 is not supported");
-                } else if (command.contains("v=")) { // slave mode
+                } else if (command.contains("click")) {
+                    if (megaportsHandler != null) {
+                        megaportsHandler.updateValues(getCommands, null);
+                    }
+                } else if (command.contains("m=2")) {
+                    if (megaportsHandler != null) {
+                        megaportsHandler.updateValues(getCommands, null);
+                    }
+                }
+
+                else if (command.contains("v=")) { // slave mode
                     if (megaportsHandler != null) {
                         if (command.contains("v=1")) {
                             megaportsHandler.updateValues(getCommands, OnOffType.ON);
@@ -174,7 +183,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         }
                     }
                 } else {
-                    if ((getCommands[1].equals("st")) || (getCommands[1].equals("sms_phone"))) {
+                    if ((getCommands[0].equals("st")) || (getCommands[2].equals("sms_phone"))) {
                         logger.debug("{}", portsHandlerMap.size());
 
                         for (int i = 0; portsHandlerMap.size() > i; i++) {
@@ -246,7 +255,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     }
 
     @SuppressWarnings({ "unused", "null" })
-    public void registerMegadPortsListener(MegaDMegaportsHandler megaDMegaportsHandler) {
+    public void registerMegadPortsListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
         String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
         logger.debug("Register Device with ip {} and port {}", getThing().getConfiguration().get("hostname").toString(),
                 megaDMegaportsHandler.getThing().getConfiguration().get("port").toString());
@@ -259,8 +268,22 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
+    @SuppressWarnings({ "unused", "null" })
+    public void registerMegadItoCListener(MegaDMegaItoCHandler megaDMegaItoCHandler) {
+        String ip = megaDMegaItoCHandler.getThing().getConfiguration().get("port").toString();
+        logger.debug("Register Device with ip {} and port {}", getThing().getConfiguration().get("hostname").toString(),
+                megaDMegaItoCHandler.getThing().getConfiguration().get("port").toString());
+        if (ItoCHandlerMap.get(ip) != null) {
+            updateThingHandlerStatus(megaDMegaItoCHandler, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                    "port already exists");
+        } else {
+            ItoCHandlerMap.put(ip, megaDMegaItoCHandler);
+            updateThingHandlerStatus(megaDMegaItoCHandler, ThingStatus.ONLINE);
+        }
+    }
+
     @SuppressWarnings("null")
-    public void unregisterMegaDeviceListener(MegaDMegaportsHandler megaDMegaportsHandler) {
+    public void unregisterMegaDeviceListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
         String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
         if (portsHandlerMap.get(ip) != null) {
             portsHandlerMap.remove(ip);
@@ -268,13 +291,23 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
-    private void updateThingHandlerStatus(MegaDMegaportsHandler megaDMegaportsHandler, ThingStatus status,
+    private void updateThingHandlerStatus(MegaDMegaItoCHandler megaDMegaItoCHandler, ThingStatus status,
+            ThingStatusDetail statusDetail, String decript) {
+        megaDMegaItoCHandler.updateStatus(status, statusDetail, decript);
+
+    }
+
+    private void updateThingHandlerStatus(MegaDMegaItoCHandler thingHandler, ThingStatus status) {
+        thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDMegaPortsHandler megaDMegaportsHandler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
         megaDMegaportsHandler.updateStatus(status, statusDetail, decript);
 
     }
 
-    private void updateThingHandlerStatus(MegaDMegaportsHandler thingHandler, ThingStatus status) {
+    private void updateThingHandlerStatus(MegaDMegaPortsHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
@@ -286,13 +319,20 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         super.dispose();
     }
 
-    // @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     public String[] getPortsvalues(String port) {
 
-        String[] portvalue = { "", "", "" };
+        String[] portvalue = { "", "", "", "", "" };
         portvalue[0] = "";
         portvalue[1] = "pt";
-        portvalue[2] = portsvalues.get(port).toString();
+        if (portsvalues.get(port) != null) {
+            portvalue[2] = portsvalues.get(port).toString();
+        } else {
+            portvalue[2] = "0";
+        }
+        ;
+        portvalue[3] = "";
+        portvalue[4] = "";
         return portvalue;
     }
 
