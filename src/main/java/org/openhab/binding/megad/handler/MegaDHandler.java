@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -184,7 +184,7 @@ public class MegaDHandler extends BaseThingHandler {
                             updateState(channel.getUID().getId(), OnOffType.OFF);
                         }
                     } catch (Exception e) {
-                        logger.debug(" Not m2 signal ", e.getLocalizedMessage());
+                        logger.debug(" Not m2 signal: {}", e.getLocalizedMessage());
                     }
 
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CLICK)) {
@@ -193,7 +193,7 @@ public class MegaDHandler extends BaseThingHandler {
                         try {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
                         } catch (Exception ex) {
-                            logger.debug(" Cannot update click ", ex.getLocalizedMessage());
+                            logger.debug(" Cannot update click: {} ", ex.getLocalizedMessage());
                         }
                     }
 
@@ -493,7 +493,7 @@ public class MegaDHandler extends BaseThingHandler {
     private synchronized @Nullable MegaDBridgeHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.error("Required bridge not defined for device {}.");
+            logger.error("Required bridge not defined for device.");
             // throw new NullPointerException("Required bridge not defined for device");
             return null;
         } else {
