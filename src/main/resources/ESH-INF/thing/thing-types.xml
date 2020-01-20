@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<thing:thing-descriptions bindingId="megad" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
-	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+<thing:thing-descriptions bindingId="megad"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 
 	<thing-type id="device">
@@ -76,9 +77,9 @@
 
 
 	<channel-type id="in">
-	 	<item-type>Switch</item-type>
+		<item-type>Switch</item-type>
 		<label>Input</label>
-		<description>Port set as  input signal for switch using</description>
+		<description>Port set as input signal for switch using</description>
 	</channel-type>
 	<channel-type id="incount">
 		<item-type>Number</item-type>
@@ -91,15 +92,15 @@
 		<description>Port set as output for switch using</description>
 	</channel-type>
 	<channel-type id="m2signal">
-        <item-type>Switch</item-type>
-        <label>Long press switch</label>
-        <description>React if long press from mega detected</description>
-    </channel-type>
-    <channel-type id="click">
-        <item-type>Number</item-type>
-        <label>Click</label>
-        <description>Counter, reacts if click mode enabled in megad</description>
-    </channel-type>
+		<item-type>Switch</item-type>
+		<label>Long press switch</label>
+		<description>React if long press from mega detected</description>
+	</channel-type>
+	<channel-type id="click">
+		<item-type>Number</item-type>
+		<label>Click</label>
+		<description>Counter, reacts if click mode enabled in megad</description>
+	</channel-type>
 	<channel-type id="dimmer">
 		<item-type>Dimmer</item-type>
 		<label>Dimmer</label>
@@ -176,14 +177,14 @@
 		<label>i2cdisplay</label>
 		<description>i2cdisplay </description>
 		<state readOnly="true" pattern="%s"></state>
-    </channel-type>
-		<channel-type id="smsphone">
+	</channel-type>
+	<channel-type id="smsphone">
 		<item-type>String</item-type>
 		<label>sms_phone</label>
 		<description>sms_phone</description>
 		<state readOnly="true"></state>
 	</channel-type>
-		<channel-type id="smstext">
+	<channel-type id="smstext">
 		<item-type>String</item-type>
 		<label>sms_text</label>
 		<description>sms_text</description>

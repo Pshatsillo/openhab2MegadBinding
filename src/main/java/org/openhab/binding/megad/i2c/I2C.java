@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -102,9 +102,9 @@ public class I2C {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error("1 - {}", e);
+            logger.error("1 - {}", e.getLocalizedMessage());
         } catch (ProtocolException e) {
-            logger.error("2 - {}", e);
+            logger.error("2 - {}", e.getLocalizedMessage());
         } catch (IOException e) {
             logger.error("Connect to megadevice {} error: {}", host, e.getLocalizedMessage());
         }
