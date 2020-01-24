@@ -201,13 +201,14 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             s.setTcpNoDelay(true);
             this.is = s.getInputStream();
             this.os = s.getOutputStream();
+            String input = readInput();
+            writeResponse();
+            s.close();
+            parseInput(input);
         } catch (IOException e) {
             logger.error("{}", e.getLocalizedMessage());
         }
 
-        String input = readInput();
-        writeResponse();
-        parseInput(input);
         return null;
     }
 
