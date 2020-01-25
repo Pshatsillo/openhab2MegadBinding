@@ -104,7 +104,7 @@ Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device
 
 2. Загрузить архив со всеми плагинами [отсюда](https://github.com/openhab/openhab2-addons/archive/master.zip) и распаковать
 3. Загрузить архив Мегад [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
-2. Скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
+2. Скопировать директорию `org.openhab.binding.megad` в папку `/openhab-addons/bundles`.
 3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
 
 ```bash
@@ -117,8 +117,10 @@ org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
 ## Как что-нибудь исправить?
 
 1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
-2. После пункта 5 в Eclipse IDE Setup перейти в папку `/openhab2-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
-3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
+2. `git clone https://github.com/openhab/openhab-addons.git`
+2. После пункта 5 в Eclipse IDE Setup перейти в папку `/openhab-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
+3. `mvn clean install -pl :org.openhab.binding.megad`
+3. Отредактировать файл `pom.xml` eclipse следующим образом: 
 
 ```bash
 <dependency>
