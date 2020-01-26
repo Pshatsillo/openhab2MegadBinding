@@ -18,6 +18,7 @@
 			<channel id="in" typeId="in" />
 			<channel id="incount" typeId="incount"></channel>
 			<channel id="out" typeId="out"></channel>
+			<channel id="ds2413" typeId="ds2413"></channel>
 			<channel id="m2signal" typeId="m2signal"></channel>
 			<channel id="click" typeId="click"></channel>
 			<channel id="dimmer" typeId="dimmer"></channel>
@@ -70,6 +71,10 @@
 				<label>I2C Parameter</label>
 				<description>Only for i2c</description>
 			</parameter>
+			<parameter name="ds2413_ch" type="text">
+				<label>DS2413 channel name</label>
+				<description>Only for DS2413</description>
+			</parameter>
 		</config-description>
 
 	</thing-type>
@@ -90,6 +95,11 @@
 		<item-type>Switch</item-type>
 		<label>Output</label>
 		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="ds2413">
+		<item-type>Switch</item-type>
+		<label>Output</label>
+		<description>Port set as output for ds2413-based two-channel switch</description>
 	</channel-type>
 	<channel-type id="m2signal">
 		<item-type>Switch</item-type>
