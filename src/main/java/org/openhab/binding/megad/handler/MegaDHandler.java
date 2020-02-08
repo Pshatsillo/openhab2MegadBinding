@@ -114,7 +114,6 @@ public class MegaDHandler extends BaseThingHandler {
                         logger.debug("Illegal dimmer value: {}", result);
                     }
                 }
-
             }
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_I2C_DISPLAY)) {
             logger.debug("display changed");
@@ -186,9 +185,7 @@ public class MegaDHandler extends BaseThingHandler {
                     } catch (Exception e) {
                         logger.debug(" Not m2 signal: {}", e.getLocalizedMessage());
                     }
-
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CLICK)) {
-
                     if (getCommands[3].equals("click")) {
                         try {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
@@ -196,7 +193,6 @@ public class MegaDHandler extends BaseThingHandler {
                             logger.debug(" Cannot update click: {} ", ex.getLocalizedMessage());
                         }
                     }
-
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
@@ -228,7 +224,6 @@ public class MegaDHandler extends BaseThingHandler {
                     try {
                         if (getCommands[5].equals("cnt")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[6]));
-
                         } else if (getCommands[3].equals("cnt")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[4]));
                         }
@@ -603,3 +598,4 @@ public class MegaDHandler extends BaseThingHandler {
         return result;
     }
 }
+

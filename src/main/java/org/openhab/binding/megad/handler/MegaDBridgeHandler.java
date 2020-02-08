@@ -203,8 +203,9 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
             this.os = s.getOutputStream();
             String input = readInput();
             writeResponse();
-            s.close();
+
             parseInput(input);
+            s.close();
         } catch (IOException e) {
             logger.error("{}", e.getLocalizedMessage());
         }
@@ -393,6 +394,7 @@ public class MegaDBridgeHandler extends BaseBridgeHandler {
         try {
             os.write(result.getBytes());
             s.setSoLinger(true, 0);
+
         } catch (IOException e) {
             logger.error("{}", e.getLocalizedMessage());
         }

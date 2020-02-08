@@ -14,6 +14,8 @@ package org.openhab.binding.megad.internal;
 
 import static org.openhab.binding.megad.MegaDBindingConstants.BINDING_ID;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 
 @Component(configurationPid = "binding.megad", service = ThingHandlerFactory.class)
+@NonNullByDefault
 public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
@@ -47,7 +50,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (thingTypeUID.equals(MegaDBindingConstants.THING_TYPE_UID_BRIDGE)) {
@@ -63,8 +66,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Override
-    public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration, ThingUID thingUID,
-            ThingUID bridgeUID) {
+    public @Nullable Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration,
+            @Nullable ThingUID thingUID, @Nullable ThingUID bridgeUID) {
         if (thingUID != null) {
             logger.trace("Create Thing for Type {}", thingUID.toString());
         }

@@ -1,3 +1,4 @@
+
 # OpenHAB 2 MegaD binding
 
 режимы работы: "in", "out", "dimmer", "temp", "humidity", "onewire", "adc", "at", "st", "ib", "tget", "contact", в процессе "i2c".
@@ -151,3 +152,4 @@ PS Опять всё поменялось. Ставил по этой ссылк
 [Yandex.Money](https://money.yandex.ru/to/410011024847033)
 
 Спасибо!
+
