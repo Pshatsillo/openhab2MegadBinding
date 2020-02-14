@@ -1,0 +1,174 @@
+package org.openhab.binding.megad.handler;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.ChannelUID;
+import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
+import org.eclipse.smarthome.core.thing.binding.ThingHandler;
+import org.eclipse.smarthome.core.types.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
+    private Logger logger = LoggerFactory.getLogger(MegaDBridge1WireBusHandler.class);
+    @Nullable
+    MegaDBridgeDeviceHandler bridgeDeviceHandler;
+    private @Nullable ScheduledFuture<?> refreshPollingJob;
+    boolean startup = true;
+    protected long lastRefresh = 0;
+    private Map<String, String> owsensorvalues = new HashMap<String, String>();
+
+    public MegaDBridge1WireBusHandler(Bridge bridge) {
+        super(bridge);
+    }
+
+    @Override
+    public void handleCommand(ChannelUID channelUID, Command command) {
+
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public void initialize() {
+        bridgeDeviceHandler = getBridgeHandler();
+        logger.debug("Thing Handler for {} started", getThing().getUID().getId());
+
+        if (bridgeDeviceHandler != null) {
+            registerMega1WirePortListener(bridgeDeviceHandler);
+        } else {
+            logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
+        }
+
+        String rr = getThing().getConfiguration().get("refresh").toString();
+        logger.debug("refresh: {}", rr);
+        int pollingPeriod = Integer.parseInt(rr) * 1000;
+        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    refresh(pollingPeriod);
+                }
+            }, 0, 1000, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @SuppressWarnings("null")
+    public void refresh(int interval) {
+        long now = System.currentTimeMillis();
+        if (startup) {
+            startup = false;
+        }
+
+        if (interval != 0) {
+            if (now >= (lastRefresh + interval)) {
+                String request = "http://"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                        + getThing().getConfiguration().get("port").toString() + "?cmd=list";
+                String updateRequest = sendRequest(request);
+                String[] getAddress = updateRequest.split("[;]");
+
+                for (int i = 0; getAddress.length > i; i++) {
+                    String[] getValues = getAddress[i].split("[:]");
+                    setPortsvalues(getValues[0], getValues[1]);
+                }
+
+                logger.debug("{}", updateRequest);
+
+                lastRefresh = now;
+            }
+        }
+
+    }
+
+    private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
+        Bridge bridge = getBridge();
+        if (bridge == null) {
+            logger.warn("Required bridge not defined for device {}.");
+            return null;
+        } else {
+            return getBridgeHandler(bridge);
+        }
+    }
+
+    private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler(Bridge bridge) {
+        ThingHandler handler = bridge.getHandler();
+        if (handler instanceof MegaDBridgeDeviceHandler) {
+            return (MegaDBridgeDeviceHandler) handler;
+        } else {
+            logger.debug("No available bridge handler found yet. Bridge: {} .", bridge.getUID());
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void registerMega1WirePortListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
+        if (bridgeHandler != null) {
+            bridgeHandler.registerMega1WireBusListener(this);
+        }
+    }
+
+    @Override
+    public void updateStatus(ThingStatus status) {
+        super.updateStatus(status);
+    }
+
+    @Override
+    public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
+        super.updateStatus(status, statusDetail, description);
+    }
+
+    public void setPortsvalues(String key, String value) {
+        owsensorvalues.put(key, value);
+    }
+
+    private String sendRequest(String URL) {
+        String result = "";
+        if (!URL.equals("")) {
+            try {
+                URL obj = new URL(URL);
+                HttpURLConnection con;
+
+                con = (HttpURLConnection) obj.openConnection();
+
+                logger.debug("URL: {}", URL);
+
+                con.setRequestMethod("GET");
+                // con.setReadTimeout(500);
+                con.setReadTimeout(1500);
+                con.setConnectTimeout(1500);
+                // add request header
+                con.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                logger.debug("input string-> {}", response.toString());
+                result = response.toString().trim();
+                con.disconnect();
+            } catch (IOException e) {
+                logger.error("Connect to megadevice {} error: {}",
+                        getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
+            }
+        }
+        return result;
+    }
+
+}

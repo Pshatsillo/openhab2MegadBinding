@@ -83,6 +83,26 @@
         </config-description>
 </thing-type>
 
+<thing-type id="1wireaddress">
+    <supported-bridge-type-refs>
+            <bridge-type-ref id="device"/>
+    </supported-bridge-type-refs>
+     <label>MegaD 1wire bus Thing</label>
+        <description>Binding for 1wire bus feature of Megadevice</description>
+        
+         <channels>
+            <channel id="1wtemp" typeId="1wtemp"></channel>
+        </channels>
+        
+        <config-description>
+            <parameter name="address" type="text">
+                <label>I2C SCL</label>
+            </parameter>
+        </config-description>
+        
+        
+</thing-type>
+
 	<channel-type id="in">
 		<item-type>Switch</item-type>
 		<label>Input</label>
@@ -119,6 +139,12 @@
 		<description>Temperature from sensor</description>
 		<state readOnly="true" pattern="%.1f °C"></state>
 	</channel-type>
+	<channel-type id="1wtemp">
+        <item-type>Number:Temperature</item-type>
+        <label>Temperature</label>
+        <description>Temperature from 1-wire sensor</description>
+        <state readOnly="true" pattern="%.1f °C"></state>
+    </channel-type>
 	<channel-type id="humidity">
 		<item-type>Number:Dimensionless</item-type>
 		<label>Humidity</label>

@@ -15,18 +15,15 @@ import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MegaDMegaItoCHandler extends BaseThingHandler {
+public class MegaD1WireSensorHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MegaDMegaPortsHandler.class);
-
+    private Logger logger = LoggerFactory.getLogger(MegaD1WireSensorHandler.class);
     private @Nullable ScheduledFuture<?> refreshPollingJob;
 
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
-    boolean startup = true;
-    protected long lastRefresh = 0;
 
-    public MegaDMegaItoCHandler(Thing thing) {
+    public MegaD1WireSensorHandler(Thing thing) {
         super(thing);
     }
 
@@ -34,13 +31,17 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
 
-    @SuppressWarnings("null")
+    @Override
+    public void dispose() {
+        super.dispose();
+    }
+
     @Override
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         // logger.debug("Thing Handler for {} started", getThing().getUID().getId());
         if (bridgeDeviceHandler != null) {
-            registerMegadItoCListener(bridgeDeviceHandler);
+            registerMegad1WireListener(bridgeDeviceHandler);
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
@@ -53,15 +54,10 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
                 @Override
                 public void run() {
                     int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
-                    refresh(pollingPeriod);
+                    // refresh(pollingPeriod);
                 }
             }, 0, 1000, TimeUnit.MILLISECONDS);
         }
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
     }
 
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
@@ -85,40 +81,6 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings("null")
-    public void refresh(int interval) {
-        long now = System.currentTimeMillis();
-        if (startup) {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                logger.warn("{}", e.getLocalizedMessage());
-            }
-            String[] portStatus = bridgeDeviceHandler
-                    .getPortsvalues(getThing().getConfiguration().get("port").toString());
-            if (portStatus[2].contains("ON")) {
-                // updateValues(portStatus, OnOffType.ON);
-            } else {
-                // updateValues(portStatus, OnOffType.OFF);
-            }
-            startup = false;
-        }
-        if (interval != 0) {
-            if (now >= (lastRefresh + interval)) {
-                updateData();
-                lastRefresh = now;
-            }
-        }
-    }
-
-    protected void updateData() {
-        logger.debug("Updating i2c things...");
-
-        String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
-                + getBridgeHandler().getThing().getConfiguration().get("password").toString() + "/?pt="
-                + getThing().getConfiguration().get("port").toString() + "&cmd=get";
-    }
-
     @Override
     public void updateStatus(ThingStatus status) {
         super.updateStatus(status);
@@ -129,9 +91,9 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
         super.updateStatus(status, statusDetail, description);
     }
 
-    private void registerMegadItoCListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
+    private void registerMegad1WireListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
         if (bridgeHandler != null) {
-            bridgeHandler.registerMegadItoCListener(this);
+            bridgeHandler.registerMegad1WireListener(this);
         }
     }
 

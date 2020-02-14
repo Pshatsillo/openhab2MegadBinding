@@ -25,8 +25,10 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
+import org.openhab.binding.megad.handler.MegaDBridge1WireBusHandler;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
 import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
+import org.openhab.binding.megad.handler.MegaD1WireSensorHandler;
 import org.openhab.binding.megad.handler.MegaDMegaItoCHandler;
 import org.openhab.binding.megad.handler.MegaDMegaPortsHandler;
 import org.osgi.service.component.annotations.Component;
@@ -49,6 +51,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_I2C);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREBUS_BRIDGE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREADDRESS);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_MEGAPORTS);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_INCOMING_BRIDGE);
@@ -63,17 +67,17 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_INCOMING_BRIDGE)) {
-            // logger.debug("createHandler Incoming connections");
             return new MegaDBridgeIncomingHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_DEVICE_BRIDGE)) {
-            // logger.debug("createHandler Mega Device hardware");
             return new MegaDBridgeDeviceHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
-            // logger.debug("createHandler Port items");
             return new MegaDMegaPortsHandler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_I2C)) {
-            // logger.debug("createHandler Port items");
             return new MegaDMegaItoCHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_1WIREBUS_BRIDGE)) {
+            return new MegaDBridge1WireBusHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_1WIREADDRESS)) {
+            return new MegaD1WireSensorHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

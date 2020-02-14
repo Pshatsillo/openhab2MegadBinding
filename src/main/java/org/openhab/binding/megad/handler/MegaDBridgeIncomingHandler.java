@@ -134,14 +134,16 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 s.setTcpNoDelay(true);
                 this.is = s.getInputStream();
                 this.os = s.getOutputStream();
+                String input = readInput();
+                writeResponse();
+                parseInput(input);
+                s.close();
 
             } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
             }
         }
-        String input = readInput();
-        writeResponse();
-        parseInput(input);
+
         return null;
     }
 
@@ -233,6 +235,10 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     }
 
     private void updateThingHandlerStatus(MegaDBridgeDeviceHandler thingHandler, ThingStatus status) {
+        thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 

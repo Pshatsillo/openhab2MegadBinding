@@ -44,6 +44,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
     private @Nullable Map<String, MegaDMegaPortsHandler> portsHandlerMap = new HashMap<String, MegaDMegaPortsHandler>();
     private @Nullable Map<String, MegaDMegaItoCHandler> ItoCHandlerMap = new HashMap<String, MegaDMegaItoCHandler>();
+    private @Nullable Map<String, MegaDBridge1WireBusHandler> OneWireHandlerMap = new HashMap<String, MegaDBridge1WireBusHandler>();
     private Map<String, String> portsvalues = new HashMap<String, String>();
 
     @Nullable
@@ -282,6 +283,21 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
+    @SuppressWarnings({ "null", "unused" })
+    public void registerMega1WireBusListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
+
+        String oneWirePort = megaDBridge1WireBusHandler.getThing().getConfiguration().get("port").toString();
+
+        if (OneWireHandlerMap.get(oneWirePort) != null) {
+            updateThingHandlerStatus(megaDBridge1WireBusHandler, ThingStatus.OFFLINE,
+                    ThingStatusDetail.CONFIGURATION_ERROR, "Device already exist");
+        } else {
+            OneWireHandlerMap.put(oneWirePort, megaDBridge1WireBusHandler);
+            updateThingHandlerStatus(megaDBridge1WireBusHandler, ThingStatus.ONLINE);
+            // megaDBridgeDeviceHandler.getAllPortsStatus();
+        }
+    }
+
     @SuppressWarnings("null")
     public void unregisterMegaDeviceListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
         String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
@@ -289,6 +305,16 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             portsHandlerMap.remove(ip);
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE);
         }
+    }
+
+    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
+        thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler, ThingStatus status,
+            ThingStatusDetail statusDetail, String decript) {
+        megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
+
     }
 
     private void updateThingHandlerStatus(MegaDMegaItoCHandler megaDMegaItoCHandler, ThingStatus status,
@@ -338,6 +364,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     public void setPortsvalues(String key, String value) {
         portsvalues.put(key, value);
+    }
+
+    public void registerMegad1WireListener(MegaD1WireSensorHandler megaDMega1WireBusHandler) {
+        // TODO Auto-generated method stub
+
     }
 
 }

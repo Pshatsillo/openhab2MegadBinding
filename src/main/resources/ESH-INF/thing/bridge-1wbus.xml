@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megad" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+    <bridge-type id="1wirebus">
+    
+    <supported-bridge-type-refs>
+            <bridge-type-ref id="device" />
+        </supported-bridge-type-refs>
+    
+        <label>Bridge Megad 1 wire bus port </label>
+        <description>This bridge is for port where 1-wire bus is located</description>
+
+        <config-description>
+           <parameter name="port" type="text" required="true">
+                <label>port</label>
+                <description>Port number to access the device channel.</description>
+                <default>0</default>
+            </parameter>
+            <parameter name="refresh" type="integer" required="true">
+                <label>refresh</label>
+                <description>refresh interval channel</description>
+                <default>30</default>
+            </parameter>
+        </config-description>
+
+    </bridge-type>
+</thing:thing-descriptions>

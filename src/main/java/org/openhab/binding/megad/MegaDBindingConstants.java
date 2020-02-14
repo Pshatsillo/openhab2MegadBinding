@@ -28,6 +28,8 @@ public class MegaDBindingConstants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
+    public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
+    public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
     public static final ThingTypeUID THING_TYPE_MEGAPORTS = new ThingTypeUID(BINDING_ID, "standart");
     public static final ThingTypeUID THING_TYPE_DEVICE_BRIDGE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
@@ -41,6 +43,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_M2 = "m2signal";
     public static final String CHANNEL_CLICK = "click";
     public static final String CHANNEL_DHTTEMP = "temp";
+    public static final String CHANNEL_1WTEMP = "1wtemp";
     public static final String CHANNEL_DHTHUM = "humidity";
     public static final String CHANNEL_PRESSURE = "pressure";
     public static final String CHANNEL_ONEWIRE = "onewire";
