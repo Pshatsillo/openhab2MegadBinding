@@ -83,6 +83,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         startBackgroundService();
     }
 
+    @SuppressWarnings("null")
     private void startBackgroundService() {
         logger.debug("Starting background service...");
         if (pollingJob == null || pollingJob.isCancelled()) {
@@ -126,6 +127,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
 
     };
 
+    @SuppressWarnings("null")
     protected @Nullable Runnable startHttpSocket() {
         if (s != null) {
             try {
@@ -160,6 +162,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         return string;
     }
 
+    @SuppressWarnings("null")
     private void writeResponse() {
         String result = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + 0 + "\r\n"
                 + "Connection: close\r\n\r\n";
@@ -238,10 +241,12 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         thingHandler.updateStatus(status);
     }
 
+    @SuppressWarnings("unused")
     private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
         if (pollingJob != null && !pollingJob.isCancelled()) {

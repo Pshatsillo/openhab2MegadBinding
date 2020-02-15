@@ -96,7 +96,7 @@
         
         <config-description>
             <parameter name="address" type="text">
-                <label>I2C SCL</label>
+                <label>---</label>
             </parameter>
         </config-description>
         

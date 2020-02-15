@@ -111,6 +111,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
         }
     }
 
+    @SuppressWarnings("null")
     protected void updateData() {
         logger.debug("Updating i2c things...");
 

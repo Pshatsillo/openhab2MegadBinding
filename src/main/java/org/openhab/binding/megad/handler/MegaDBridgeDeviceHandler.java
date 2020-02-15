@@ -215,7 +215,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             setPortsvalues(String.valueOf(i), getValues[i]);
         }
 
-        logger.debug("{}", updateRequest);
+        logger.debug("All ports is {}", updateRequest);
     }
 
     private String sendRequest(String URL) {
@@ -364,11 +364,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     public void setPortsvalues(String key, String value) {
         portsvalues.put(key, value);
-    }
-
-    public void registerMegad1WireListener(MegaD1WireSensorHandler megaDMega1WireBusHandler) {
-        // TODO Auto-generated method stub
-
     }
 
 }
