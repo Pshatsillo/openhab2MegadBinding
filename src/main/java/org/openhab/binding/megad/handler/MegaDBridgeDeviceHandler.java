@@ -139,15 +139,16 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     }
                 } else {
                     String[] parsedStatus = getCommands[2].split("[;]");
-                    for (String status : parsedStatus) {
-                        String[] mode = status.split("[/]");
+                    for (int i = 0; parsedStatus.length > i; i++) {
+                        megaportsHandler = portsHandlerMap.get(String.valueOf(i));
+                        String[] mode = parsedStatus[i].split("[/]");
                         if (mode[0].contains("ON")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], status);
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode[0]);
                             if (megaportsHandler != null) {
                                 megaportsHandler.updateValues(mode, OnOffType.ON);
                             }
                         } else if (mode[0].contains("OFF")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], status);
+                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode[0]);
                             if (megaportsHandler != null) {
                                 megaportsHandler.updateValues(mode, OnOffType.OFF);
                             }
@@ -187,7 +188,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         for (int i = 0; portsHandlerMap.size() > i; i++) {
                             megaportsHandler = portsHandlerMap.get(portsHandlerMap.keySet().toArray()[i].toString());
                             if (megaportsHandler != null) {
-                                megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                                megaportsHandler.updateValues(getCommands, null);
                             }
                         }
                     } else {
