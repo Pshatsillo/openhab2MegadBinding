@@ -1,23 +1,37 @@
+/**
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.megad.handler;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.eclipse.smarthome.core.thing.*;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+/**
+ * The {@link MegaDMegaItoCHandler} is responsible for i2c fatures of megad
+ *
+ * @author Petr Shatsillo - Initial contribution
+ */
+@NonNullByDefault
 public class MegaDMegaItoCHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MegaDMegaPortsHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MegaDMegaItoCHandler.class);
 
     private @Nullable ScheduledFuture<?> refreshPollingJob;
 
@@ -67,7 +81,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.error("Required bridge not defined for device {}.");
+            logger.error("Required bridge not defined for device.");
             // throw new NullPointerException("Required bridge not defined for device");
             return null;
         } else {
@@ -94,13 +108,13 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
             } catch (InterruptedException e) {
                 logger.warn("{}", e.getLocalizedMessage());
             }
-            String[] portStatus = bridgeDeviceHandler
+            /*String[] portStatus = bridgeDeviceHandler
                     .getPortsvalues(getThing().getConfiguration().get("port").toString());
             if (portStatus[2].contains("ON")) {
                 // updateValues(portStatus, OnOffType.ON);
             } else {
                 // updateValues(portStatus, OnOffType.OFF);
-            }
+            }*/
             startup = false;
         }
         if (interval != 0) {
@@ -115,9 +129,9 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
     protected void updateData() {
         logger.debug("Updating i2c things...");
 
-        String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
+        /*String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
                 + getBridgeHandler().getThing().getConfiguration().get("password").toString() + "/?pt="
-                + getThing().getConfiguration().get("port").toString() + "&cmd=get";
+                + getThing().getConfiguration().get("port").toString() + "&cmd=get";*/
     }
 
     @Override

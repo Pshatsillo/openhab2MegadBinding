@@ -1,16 +1,21 @@
+/**
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.megad.handler;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.eclipse.smarthome.core.thing.*;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
@@ -18,6 +23,15 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+/**
+ * The {@link MegaD1WireSensorHandler} class defines 1-wire bus feature.
+ * You can read 1-wire sensors connected to one port of MegaD as bus
+ *
+ * @author Petr Shatsillo - Initial contribution
+ */
+@NonNullByDefault
 public class MegaD1WireSensorHandler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaD1WireSensorHandler.class);
@@ -67,12 +81,10 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
     @SuppressWarnings({ "null" })
     public void refresh(int interval) {
         long now = System.currentTimeMillis();
-        if (startup) {
-
-        }
+        /*if (startup) {
+        }*/
         if (interval != 0) {
             if (now >= (lastRefresh + interval)) {
-
                 for (Channel channel : getThing().getChannels()) {
                     if (isLinked(channel.getUID().getId())) {
                         if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_1WTEMP)) {
@@ -82,7 +94,6 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
                         }
                     }
                 }
-
                 lastRefresh = now;
             }
         }
@@ -91,7 +102,7 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
     private synchronized @Nullable MegaDBridge1WireBusHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.error("Required bridge not defined for device {}.");
+            logger.error("Required bridge not defined for device.");
             // throw new NullPointerException("Required bridge not defined for device");
             return null;
         } else {

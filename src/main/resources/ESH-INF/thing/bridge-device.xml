@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-    <bridge-type id="device">
-    
-    <supported-bridge-type-refs>
-            <bridge-type-ref id="tcp" />
-        </supported-bridge-type-refs>
-    
-        <label>Bridge Megad hardware</label>
-        <description> Create bridge for device </description>
+	<bridge-type id="device">
 
-        <config-description>
-            <parameter name="hostname" type="text" required="true">
-                <label>Hostname or IP</label>
-                <description>Hostname or IP of the device</description>
-                <default>localhost</default>
-            </parameter>
-            <parameter name="password" type="text" required="true">
-                <label>Password</label>
-                <description>Password to access the device</description>
-                <default>sec</default>
-            </parameter>
-        </config-description>
+	<supported-bridge-type-refs>
+			<bridge-type-ref id="tcp" />
+		</supported-bridge-type-refs>
 
-    </bridge-type>
+		<label>Bridge Megad hardware</label>
+		<description> Create bridge for device </description>
+
+		<config-description>
+			<parameter name="hostname" type="text" required="true">
+				<label>Hostname or IP</label>
+				<description>Hostname or IP of the device</description>
+				<default>localhost</default>
+			</parameter>
+			<parameter name="password" type="text" required="true">
+				<label>Password</label>
+				<description>Password to access the device</description>
+				<default>sec</default>
+			</parameter>
+		</config-description>
+
+	</bridge-type>
 </thing:thing-descriptions>

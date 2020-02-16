@@ -1,15 +1,18 @@
+/**
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.megad.handler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
@@ -21,6 +24,22 @@ import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+/**
+ * The {@link MegaDBridge1WireBusHandler} class defines 1-wire bus feature.
+ * You can read 1-wire sensors connected to one port of MegaD as bus
+ *
+ * @author Petr Shatsillo - Initial contribution
+ */
+@NonNullByDefault
 public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridge1WireBusHandler.class);
     @Nullable
@@ -28,8 +47,8 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     boolean startup = true;
     protected long lastRefresh = 0;
-    private Map<String, String> owsensorvalues = new HashMap<String, String>();
-    private @Nullable Map<String, MegaD1WireSensorHandler> addressesHandlerMap = new HashMap<String, MegaD1WireSensorHandler>();
+    private Map<String, String> owsensorvalues = new HashMap<>();
+    private @Nullable Map<String, MegaD1WireSensorHandler> addressesHandlerMap = new HashMap<>();
 
     public MegaDBridge1WireBusHandler(Bridge bridge) {
         super(bridge);
@@ -37,7 +56,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
 
     @SuppressWarnings("null")
@@ -56,12 +74,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         logger.debug("refresh: {}", rr);
         int pollingPeriod = Integer.parseInt(rr) * 1000;
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    refresh(pollingPeriod);
-                }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            refreshPollingJob = scheduler.scheduleWithFixedDelay(() -> refresh(pollingPeriod), 0, 1000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -81,8 +94,8 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                 String updateRequest = sendRequest(request);
                 String[] getAddress = updateRequest.split("[;]");
 
-                for (int i = 0; getAddress.length > i; i++) {
-                    String[] getValues = getAddress[i].split("[:]");
+                for (String address : getAddress) {
+                    String[] getValues = address.split("[:]");
                     try {
                         setOwvalues(getValues[0], getValues[1]);
                     } catch (Exception e) {
@@ -95,7 +108,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                 lastRefresh = now;
             }
         }
-
     }
 
     @SuppressWarnings("unused")
@@ -120,7 +132,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     }
 
     public String getOwvalues(String address) {
-        String value = "";
+        String value;
         value = owsensorvalues.get(address);
         return value;
     }
@@ -128,7 +140,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.warn("Required bridge not defined for device {}.");
+            logger.warn("Required bridge not defined for device.");
             return null;
         } else {
             return getBridgeHandler(bridge);
@@ -160,9 +172,8 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     }
 
     private void updateThingHandlerStatus(MegaD1WireSensorHandler megaDMegaportsHandler, ThingStatus status,
-            ThingStatusDetail statusDetail, String decript) {
+                                          ThingStatusDetail statusDetail, String decript) {
         megaDMegaportsHandler.updateStatus(status, statusDetail, decript);
-
     }
 
     private void updateThingHandlerStatus(MegaD1WireSensorHandler thingHandler, ThingStatus status) {
@@ -213,7 +224,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
             addressesHandlerMap.remove(ip);
             updateThingHandlerStatus(megaD1WireSensorHandler, ThingStatus.OFFLINE);
         }
-
     }
 
     @SuppressWarnings("null")

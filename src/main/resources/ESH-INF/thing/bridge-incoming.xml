@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
-    
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
 <bridge-type id="tcp">
 <label>Bridge for incoming connections</label>
-        <description>This bridge represents incoming server for MegaD 
-        </description>
+		<description>This bridge represents incoming server for MegaD
+		</description>
 
-        <config-description>
-            <parameter name="port" type="integer" required="true" min="1024"
-                max="49151">
-                <context>network-address</context>
-                <label>MegaD server port</label>
-                <description>Port of the LAN gateway</description>
-                <default>0</default>
-            </parameter>
-        </config-description>
+		<config-description>
+			<parameter name="port" type="integer" required="true" min="1024"
+				max="49151">
+				<context>network-address</context>
+				<label>MegaD server port</label>
+				<description>Port of the LAN gateway</description>
+				<default>0</default>
+			</parameter>
+		</config-description>
 </bridge-type>
 </thing:thing-descriptions>

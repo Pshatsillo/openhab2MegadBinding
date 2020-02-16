@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,11 +12,6 @@
  */
 package org.openhab.binding.megad.internal;
 
-import static org.openhab.binding.megad.MegaDBindingConstants.*;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -25,15 +20,15 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.openhab.binding.megad.handler.MegaDBridge1WireBusHandler;
-import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
-import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
-import org.openhab.binding.megad.handler.MegaD1WireSensorHandler;
-import org.openhab.binding.megad.handler.MegaDMegaItoCHandler;
-import org.openhab.binding.megad.handler.MegaDMegaPortsHandler;
+import org.openhab.binding.megad.handler.*;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.openhab.binding.megad.MegaDBindingConstants.*;
 
 /**
  * The {@link MegaDHandlerFactory} is responsible for creating things and thing

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,6 +12,17 @@
  */
 package org.openhab.binding.megad.handler;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.library.types.*;
+import org.eclipse.smarthome.core.thing.*;
+import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
+import org.eclipse.smarthome.core.thing.binding.ThingHandler;
+import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.megad.MegaDBindingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,29 +33,8 @@ import java.net.URL;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.OpenClosedType;
-import org.eclipse.smarthome.core.library.types.PercentType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.megad.MegaDBindingConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * The {@link MegadHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link MegaDMegaPortsHandler} is responsible for standart features of megsd
  *
  * @author Petr Shatsillo - Initial contribution
  */
@@ -158,7 +148,7 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
-            logger.error("Required bridge not defined for device {}.");
+            logger.error("Required bridge not defined for device.");
             return null;
         } else {
             return getBridgeHandler(bridge);
@@ -358,22 +348,20 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
                             updateState(channel.getUID().getId(), OnOffType.OFF);
                         }
                     } catch (Exception e) {
-                        logger.debug(" Not m2 signal ", e.getLocalizedMessage());
+                        logger.debug(" Not m2 signal {}", e.getLocalizedMessage());
                     }
-
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CLICK)) {
                     try {
                         if (getCommands[2].equals("click")) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[3]));
                             } catch (Exception ex) {
-                                logger.debug(" Cannot update click ", ex.getLocalizedMessage());
+                                logger.debug(" Cannot update click {}", ex.getLocalizedMessage());
                             }
                         }
                     } catch (Exception ex) {
-                        logger.debug(" Cannot update click ", ex.getLocalizedMessage());
+                        logger.debug(" Cannot update click {}", ex.getLocalizedMessage());
                     }
-
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
@@ -405,7 +393,6 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
                     try {
                         if (getCommands[2].equals("cnt")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[3]));
-
                         } else if (getCommands[4].equals("cnt")) {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[5]));
                         } else if (getCommands[2].contains("/")) {
@@ -424,7 +411,6 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_TEXT)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[5]));
-
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {

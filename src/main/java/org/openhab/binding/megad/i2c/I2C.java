@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,13 +12,6 @@
  */
 package org.openhab.binding.megad.i2c;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.HashMap;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -27,7 +20,15 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.util.HashMap;
+
 /**
+ * The {@link I2C} is responsible for i2c raw requests
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
@@ -102,9 +103,9 @@ public class I2C {
             }
             con.disconnect();
         } catch (MalformedURLException e) {
-            logger.error("1 - {}", e);
+            logger.error("MalformedURLException - {}", e.getLocalizedMessage());
         } catch (ProtocolException e) {
-            logger.error("2 - {}", e);
+            logger.error("ProtocolException - {}", e.getLocalizedMessage());
         } catch (IOException e) {
             logger.error("Connect to megadevice {} error: {}", host, e.getLocalizedMessage());
         }

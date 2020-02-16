@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,18 +12,6 @@
  */
 package org.openhab.binding.megad.handler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -35,6 +23,14 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link MegaDBridgeIncomingHandler} is responsible for creating things and thing
@@ -115,7 +111,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                     if (ss != null) {
                         s = ss.accept();
                     }
-
                 } catch (IOException e) {
                     logger.error("ERROR in bridge. Incoming server has error: {}", e.getMessage());
                 }
@@ -140,7 +135,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 writeResponse();
                 parseInput(input);
                 s.close();
-
             } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
             }
@@ -201,14 +195,12 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 if (deviceHandler != null) {
                     deviceHandler.updateValues(command[2]);
                 }
-
             }
         }
     }
 
     @SuppressWarnings({ "unused", "null" })
     public void registerMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
-
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
         logger.debug("Register Device with ip {}", ip);
         if (devicesHandlerMap.get(ip) != null) {
@@ -219,7 +211,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDBridgeDeviceHandler, ThingStatus.ONLINE);
             // megaDBridgeDeviceHandler.getAllPortsStatus();
         }
-
     }
 
     @SuppressWarnings("null")
@@ -234,7 +225,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     private void updateThingHandlerStatus(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
         megaDBridgeDeviceHandler.updateStatus(status, statusDetail, decript);
-
     }
 
     private void updateThingHandlerStatus(MegaDBridgeDeviceHandler thingHandler, ThingStatus status) {
