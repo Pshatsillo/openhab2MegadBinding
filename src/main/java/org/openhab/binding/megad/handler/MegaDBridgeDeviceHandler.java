@@ -45,6 +45,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable Map<String, MegaDMegaPortsHandler> portsHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDMegaItoCHandler> itoCHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridge1WireBusHandler> oneWireHandlerMap = new HashMap<>();
+    private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
     private Map<String, String> portsvalues = new HashMap<>();
 
     @Nullable
@@ -293,6 +294,19 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
+    public void registerMegaExtenderPortListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
+        String extenderPort = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
+        if (extenderBridgeHandlerMap.get(extenderPort) != null) {
+            updateThingHandlerStatus(megaDBridgeExtenderPortHandler, ThingStatus.OFFLINE,
+                    ThingStatusDetail.CONFIGURATION_ERROR, "Device already exist");
+        } else {
+            extenderBridgeHandlerMap.put(extenderPort, megaDBridgeExtenderPortHandler);
+            updateThingHandlerStatus(megaDBridgeExtenderPortHandler, ThingStatus.ONLINE);
+            // megaDBridgeDeviceHandler.getAllPortsStatus();
+        }
+
+    }
+
     @SuppressWarnings("null")
     public void unregisterMegaDeviceListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
         String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
@@ -310,11 +324,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
-    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPortHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
-    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler, ThingStatus status,
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPortHandler megaDBridge1WireBusHandler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
         megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
@@ -335,6 +349,15 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     private void updateThingHandlerStatus(MegaDMegaPortsHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
+        thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler, ThingStatus status,
+                                          ThingStatusDetail statusDetail, String decript) {
+        megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
 
     @Override
@@ -362,5 +385,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     public void setPortsvalues(String key, String value) {
         portsvalues.put(key, value);
     }
+
 
 }

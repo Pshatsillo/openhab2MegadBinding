@@ -78,7 +78,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_EXTENDER_BRIDGE)) {
             return new MegaDBridgeExtenderPortHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_EXTENDER)) {
-            return new MegaDBridgeExtenderHandler(thing);
+            return new MegaDExtenderHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

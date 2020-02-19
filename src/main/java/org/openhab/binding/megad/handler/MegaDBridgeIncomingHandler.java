@@ -25,8 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -258,6 +260,43 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
         super.dispose();
+    }
+
+    public static String sendRequest(String URL) {
+        Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
+        String result = "";
+        if (!URL.equals("")) {
+            try {
+                java.net.URL obj = new URL(URL);
+                HttpURLConnection con;
+
+                con = (HttpURLConnection) obj.openConnection();
+
+                logger.debug("URL: {}", URL);
+
+                con.setRequestMethod("GET");
+                // con.setReadTimeout(500);
+                con.setReadTimeout(1500);
+                con.setConnectTimeout(1500);
+                // add request header
+                con.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                logger.debug("input string-> {}", response.toString());
+                result = response.toString().trim();
+                con.disconnect();
+            } catch (IOException e) {
+                logger.error("Connect to megadevice error: {}", e.getLocalizedMessage());
+            }
+        }
+        return result;
     }
 
 }
