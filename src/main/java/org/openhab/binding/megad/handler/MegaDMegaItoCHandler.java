@@ -14,15 +14,23 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.thing.*;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
 /**
  * The {@link MegaDMegaItoCHandler} is responsible for i2c fatures of megad
  *
@@ -108,13 +116,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
             } catch (InterruptedException e) {
                 logger.warn("{}", e.getLocalizedMessage());
             }
-            /*String[] portStatus = bridgeDeviceHandler
-                    .getPortsvalues(getThing().getConfiguration().get("port").toString());
-            if (portStatus[2].contains("ON")) {
-                // updateValues(portStatus, OnOffType.ON);
-            } else {
-                // updateValues(portStatus, OnOffType.OFF);
-            }*/
+            updateData();
             startup = false;
         }
         if (interval != 0) {
@@ -129,9 +131,71 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
     protected void updateData() {
         logger.debug("Updating i2c things...");
 
-        /*String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
+        String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
                 + getBridgeHandler().getThing().getConfiguration().get("password").toString() + "/?pt="
-                + getThing().getConfiguration().get("port").toString() + "&cmd=get";*/
+                + getThing().getConfiguration().get("port").toString() + "&cmd=get";
+        String[] updateRequest = sendRequest(result).split("[:/]");
+
+
+        for (Channel channel : getThing().getChannels()) {
+            if (isLinked(channel.getUID().getId())) {
+                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_TEMP)) {
+                    for (int i = 0; i < updateRequest.length; i++) {
+                        if (updateRequest.length == 1) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
+                            } catch (Exception ex) {
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[0], MegaDBindingConstants.CHANNEL_I2C_TEMP);
+                            }
+                        } else if (updateRequest[i].equals("temp")) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
+                            } catch (Exception ex) {
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_TEMP);
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_HUM)) {
+                    for (int i = 0; i < updateRequest.length; i++) {
+                        if (updateRequest[i].equals("hum")) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
+                            } catch (Exception ex) {
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_HUM);
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_PRESSURE)) {
+                    for (int i = 0; i < updateRequest.length; i++) {
+                        if (updateRequest[i].equals("press")) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
+                            } catch (Exception ex) {
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_PRESSURE);
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_GAS)) {
+                    for (int i = 0; i < updateRequest.length; i++) {
+                        if (updateRequest[i].equals("gas")) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
+                            } catch (Exception ex) {
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_GAS);
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_OTHER)) {
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
+                    } catch (Exception ex) {
+                        logger.debug("Value {} is incorrect for channel {}", updateRequest[0], MegaDBindingConstants.CHANNEL_I2C_OTHER);
+                    }
+                }
+            }
+        }
+
+
     }
 
     @Override
@@ -148,6 +212,46 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
         if (bridgeHandler != null) {
             bridgeHandler.registerMegadItoCListener(this);
         }
+    }
+
+    private String sendRequest(String URL) {
+        String result = "";
+        int count = 0;
+        if (!URL.equals("")) {
+            try {
+                java.net.URL obj = new URL(URL);
+                HttpURLConnection con;
+
+                con = (HttpURLConnection) obj.openConnection();
+
+                logger.debug("I2C request: {}", URL);
+
+                con.setRequestMethod("GET");
+                // con.setReadTimeout(500);
+                con.setReadTimeout(1500);
+                con.setConnectTimeout(1500);
+                // add request header
+                con.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                logger.debug("input string-> {}", response.toString());
+                result = response.toString().trim();
+                con.disconnect();
+            } catch (IOException e) {
+                logger.error("Connect to megadevice {} error: {}",
+                        bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        e.getLocalizedMessage());
+            }
+            count++;
+        }
+        return result;
     }
 
 }

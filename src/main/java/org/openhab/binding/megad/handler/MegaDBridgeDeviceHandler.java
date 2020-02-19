@@ -143,12 +143,12 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         megaportsHandler = portsHandlerMap.get(String.valueOf(i));
                         String[] mode = parsedStatus[i].split("[/]");
                         if (mode[0].contains("ON")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode[0]);
+                            logger.debug("Updating port {} Value is: {}", i, mode[0]);
                             if (megaportsHandler != null) {
                                 megaportsHandler.updateValues(mode, OnOffType.ON);
                             }
                         } else if (mode[0].contains("OFF")) {
-                            logger.debug("Updating: {} Value is: {}", getCommands[2], mode[0]);
+                            logger.debug("Updating port {} Value is: {}", i, mode[0]);
                             if (megaportsHandler != null) {
                                 megaportsHandler.updateValues(mode, OnOffType.OFF);
                             }
@@ -299,6 +299,14 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         if (portsHandlerMap.get(ip) != null) {
             portsHandlerMap.remove(ip);
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE);
+        }
+    }
+
+    public void unregisterMegad1WireListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
+        String ip = megaDBridge1WireBusHandler.getThing().getConfiguration().get("port").toString();
+        if (oneWireHandlerMap.get(ip) != null) {
+            oneWireHandlerMap.remove(ip);
+            updateThingHandlerStatus(megaDBridge1WireBusHandler, ThingStatus.OFFLINE);
         }
     }
 

@@ -134,10 +134,16 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 String input = readInput();
                 writeResponse();
                 parseInput(input);
-                Thread.sleep(100);
-                s.close();
-            } catch (IOException | InterruptedException e) {
+                //Thread.sleep(100);
+
+            } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
+            } finally {
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    logger.error("{}", e.getLocalizedMessage());
+                }
             }
         }
 

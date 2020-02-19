@@ -42,10 +42,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_DIMMER = "dimmer";
     public static final String CHANNEL_M2 = "m2signal";
     public static final String CHANNEL_CLICK = "click";
-    public static final String CHANNEL_DHTTEMP = "temp";
     public static final String CHANNEL_1WTEMP = "1wtemp";
-    public static final String CHANNEL_DHTHUM = "humidity";
-    public static final String CHANNEL_PRESSURE = "pressure";
     public static final String CHANNEL_ONEWIRE = "onewire";
     public static final String CHANNEL_ADC = "adc";
     public static final String CHANNEL_AT = "at";
@@ -58,4 +55,11 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_CONTACT = "contact";
     public static final String CHANNEL_SMS_PHONE = "smsphone";
     public static final String CHANNEL_SMS_TEXT = "smstext";
+
+    //i2c
+    public static final String CHANNEL_I2C_TEMP = "temp";
+    public static final String CHANNEL_I2C_HUM = "humidity";
+    public static final String CHANNEL_I2C_PRESSURE = "pressure";
+    public static final String CHANNEL_I2C_GAS = "gas";
+    public static final String CHANNEL_I2C_OTHER = "other";
 }

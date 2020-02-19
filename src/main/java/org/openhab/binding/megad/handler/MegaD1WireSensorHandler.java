@@ -52,6 +52,10 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
+        if (bridgeDeviceHandler != null) {
+            bridgeDeviceHandler.unregisterMegad1WireListener(this);
+        }
+
         super.dispose();
     }
 

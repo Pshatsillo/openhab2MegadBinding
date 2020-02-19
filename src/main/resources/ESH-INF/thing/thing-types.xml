@@ -61,6 +61,8 @@
 			<channel id="temp" typeId="temp"></channel>
 			<channel id="humidity" typeId="humidity"></channel>
 			<channel id="pressure" typeId="pressure"></channel>
+			<channel id="gas" typeId="gas"></channel>
+			<channel id="other" typeId="other"></channel>
 		</channels>
 
 		<config-description>
@@ -73,13 +75,6 @@
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>
-			</parameter>
-			<parameter name="scl" type="text">
-				<label>I2C SCL</label>
-			</parameter>
-			<parameter name="i2c_dev" type="text">
-				<label>I2C Device</label>
-				<description>Please copy from megad settings</description>
 			</parameter>
 		</config-description>
 </thing-type>
@@ -157,6 +152,18 @@
 		<label>Pressure</label>
 		<description>Pressure</description>
 		<state readOnly="true" pattern="%.1f"></state>
+	</channel-type>
+	<channel-type id="gas">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Pressure</label>
+		<description>Pressure</description>
+		<state readOnly="true" pattern="%.1f"></state>
+	</channel-type>
+	<channel-type id="other">
+		<item-type>Number</item-type>
+		<label>Other values</label>
+		<description>Other values</description>
+		<state readOnly="true"></state>
 	</channel-type>
 	<channel-type id="i2c">
 		<item-type>String</item-type>
