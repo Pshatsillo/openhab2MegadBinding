@@ -95,9 +95,25 @@
 				<label>---</label>
 			</parameter>
 		</config-description>
-
-
 </thing-type>
+
+	<thing-type id="extender">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="extenderport"/>
+		</supported-bridge-type-refs>
+		<label>MegaD 1wire bus Thing</label>
+		<description>Binding for 1wire bus feature of Megadevice</description>
+
+		<channels>
+			<channel id="1wtemp" typeId="1wtemp"></channel>
+		</channels>
+
+		<config-description>
+			<parameter name="address" type="text">
+				<label>---</label>
+			</parameter>
+		</config-description>
+	</thing-type>
 
 	<channel-type id="in">
 		<item-type>Switch</item-type>

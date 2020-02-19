@@ -27,6 +27,8 @@ public class MegaDBindingConstants {
     public static final String BINDING_ID = "megad";
 
     // List of all Thing Type UIDs
+    public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
+    public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
     public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
     public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
     public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
@@ -62,4 +64,8 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_I2C_PRESSURE = "pressure";
     public static final String CHANNEL_I2C_GAS = "gas";
     public static final String CHANNEL_I2C_OTHER = "other";
+
+    //extender
+    public static final String CHANNEL_EXTENDER_IN= "extin";
+    public static final String CHANNEL_EXTENDER_OUT= "extout";
 }

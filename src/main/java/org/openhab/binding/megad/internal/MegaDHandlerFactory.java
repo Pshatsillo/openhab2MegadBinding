@@ -45,6 +45,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_I2C);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREBUS_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREADDRESS);
@@ -73,6 +75,10 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDBridge1WireBusHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_1WIREADDRESS)) {
             return new MegaD1WireSensorHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_EXTENDER_BRIDGE)) {
+            return new MegaDBridgeExtenderPortHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_EXTENDER)) {
+            return new MegaDBridgeExtenderHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
