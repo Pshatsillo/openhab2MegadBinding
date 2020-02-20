@@ -172,8 +172,8 @@
 	</channel-type>
 	<channel-type id="gas">
 		<item-type>Number:Dimensionless</item-type>
-		<label>Pressure</label>
-		<description>Pressure</description>
+		<label>Gas</label>
+		<description>Gas</description>
 		<state readOnly="true" pattern="%.1f"></state>
 	</channel-type>
 	<channel-type id="other">
