@@ -96,8 +96,12 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
                     if (isLinked(channel.getUID().getId())) {
                         if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_1WTEMP)) {
                             String address = getThing().getConfiguration().get("address").toString();
-                            updateState(channel.getUID().getId(),
-                                    DecimalType.valueOf(bridgeDeviceHandler.getOwvalues(address)));
+                            try {
+                                updateState(channel.getUID().getId(),
+                                        DecimalType.valueOf(bridgeDeviceHandler.getOwvalues(address)));
+                            } catch (Exception e){
+                                logger.debug("Can't update 1w-bus channel value bacause of {}", e.getMessage());
+                            }
                         }
                     }
                 }
