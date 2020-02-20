@@ -12,16 +12,16 @@
  */
 package org.openhab.binding.megad.handler;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.*;
+import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.ChannelUID;
+import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The {@link MegaDExtenderHandler} is responsible for creating MegaD extenders
@@ -30,32 +30,35 @@ import java.util.Map;
  *
  * @author Petr Shatsillo - Initial contribution
  */
+@NonNullByDefault
 public class MegaDExtenderHandler extends BaseThingHandler {
+    @Nullable
     MegaDBridgeExtenderPortHandler extenderPortBridge;
     private Logger logger = LoggerFactory.getLogger(MegaDExtenderHandler.class);
 
     public MegaDExtenderHandler(Thing thing) {
         super(thing);
-
-
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
-
+    @SuppressWarnings("null")
     @Override
     public void initialize() {
         extenderPortBridge = getBridgeHandler();
-        String port = getThing().getConfiguration().get("extport").toString();
-        while(!extenderPortBridge.getStateStarted()) {
-            
-        }
-
-            String portValue = extenderPortBridge.getPortsvalues(port);
+        //String port = getThing().getConfiguration().get("extport").toString();
+        if(extenderPortBridge != null) {
+            while (!extenderPortBridge.getStateStarted()) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    logger.error("{}", e.getMessage());
+                }
+            }
+            //String portValue = extenderPortBridge.getPortsvalues(port);
             logger.debug("Extender port value is {}", extenderPortBridge.getPortsvalues(getThing().getConfiguration().get("port").toString()));
-
+        }
     }
 
     private synchronized @Nullable MegaDBridgeExtenderPortHandler getBridgeHandler() {

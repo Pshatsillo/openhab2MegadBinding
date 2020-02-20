@@ -22,14 +22,10 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -206,50 +202,13 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     public void getAllPortsStatus() {
         String request = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
                 + getThing().getConfiguration().get("password").toString() + "/?cmd=all";
-        String updateRequest = sendRequest(request);
+        String updateRequest = MegaHttpHelpers.sendRequest(request);
         String[] getValues = updateRequest.split("[;]");
         for (int i = 0; getValues.length > i; i++) {
             setPortsvalues(String.valueOf(i), getValues[i]);
         }
 
         logger.debug("All ports is {}", updateRequest);
-    }
-
-    private String sendRequest(String URL) {
-        String result = "";
-        if (!URL.equals("")) {
-            try {
-                URL obj = new URL(URL);
-                HttpURLConnection con;
-
-                con = (HttpURLConnection) obj.openConnection();
-
-                logger.debug("URL: {}", URL);
-
-                con.setRequestMethod("GET");
-                // con.setReadTimeout(500);
-                con.setReadTimeout(1500);
-                con.setConnectTimeout(1500);
-                // add request header
-                con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                logger.debug("input string-> {}", response.toString());
-                result = response.toString().trim();
-                con.disconnect();
-            } catch (IOException e) {
-                logger.error("Connect to megadevice {} error: {}",
-                        getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
-            }
-        }
-        return result;
     }
 
     @SuppressWarnings({ "unused", "null" })
@@ -279,6 +238,14 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDMegaItoCHandler, ThingStatus.ONLINE);
         }
     }
+    @SuppressWarnings("null")
+    public void unregisterItoCListener(MegaDMegaItoCHandler megaDMegaItoCHandler) {
+        String ip = megaDMegaItoCHandler.getThing().getConfiguration().get("port").toString();
+        if (itoCHandlerMap.get(ip) != null) {
+            itoCHandlerMap.remove(ip);
+            updateThingHandlerStatus(megaDMegaItoCHandler, ThingStatus.OFFLINE);
+        }
+    }
 
     @SuppressWarnings({ "null", "unused" })
     public void registerMega1WireBusListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
@@ -293,7 +260,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             // megaDBridgeDeviceHandler.getAllPortsStatus();
         }
     }
-
+    @SuppressWarnings({ "unused", "null" })
     public void registerMegaExtenderPortListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
         String extenderPort = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
         if (extenderBridgeHandlerMap.get(extenderPort) != null) {
@@ -304,7 +271,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDBridgeExtenderPortHandler, ThingStatus.ONLINE);
             // megaDBridgeDeviceHandler.getAllPortsStatus();
         }
-
     }
 
     @SuppressWarnings("null")
@@ -315,7 +281,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE);
         }
     }
-
+    @SuppressWarnings({ "unused", "null" })
     public void unregisterMegad1WireListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
         String ip = megaDBridge1WireBusHandler.getThing().getConfiguration().get("port").toString();
         if (oneWireHandlerMap.get(ip) != null) {
@@ -359,7 +325,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                                           ThingStatusDetail statusDetail, String decript) {
         megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
-
+    @SuppressWarnings({ "unused", "null" })
     @Override
     public void dispose() {
         if (bridgeIncomingHandler != null) bridgeIncomingHandler.unregisterMegaDeviceListener(this);

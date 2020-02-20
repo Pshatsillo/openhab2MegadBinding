@@ -49,13 +49,16 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
-
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
+        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+            refreshPollingJob.cancel(true);
+            refreshPollingJob = null;
+        }
         if (bridgeDeviceHandler != null) {
             bridgeDeviceHandler.unregisterMegad1WireListener(this);
         }
-
         super.dispose();
     }
 

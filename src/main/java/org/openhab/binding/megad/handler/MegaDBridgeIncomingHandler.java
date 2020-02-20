@@ -25,10 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -40,12 +38,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Petr Shatsillo - Initial contribution
  */
-
 @NonNullByDefault
 public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
-
-    private Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
-
+    Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
     private int port;
     @Nullable
     private ScheduledFuture<?> pollingJob;
@@ -61,9 +56,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     private OutputStream os;
     @Nullable
     MegaDBridgeDeviceHandler deviceHandler;
-
     private @Nullable Map<String, MegaDBridgeDeviceHandler> devicesHandlerMap = new HashMap<String, MegaDBridgeDeviceHandler>();
-
     public MegaDBridgeIncomingHandler(Bridge bridge) {
         super(bridge);
     }
@@ -136,8 +129,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 String input = readInput();
                 writeResponse();
                 parseInput(input);
-                //Thread.sleep(100);
-
             } catch (IOException e) {
                 logger.error("{}", e.getLocalizedMessage());
             } finally {
@@ -181,21 +172,10 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     private void parseInput(@Nullable String s) {
-        // String[] getCommands;
         if (!(s == null || s.trim().length() == 0)) {
             if (s.contains("GET") && s.contains("?")) {
                 logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
-                // String[] commandParse = s.split("[/ ]");
                 String[] command = s.split("[? ]");
-                // String[] getCommands1 = commandParse1[3].split("[=]");
-                // String[] getListPortsCommands1 = getCommands1[1].split("[;]");
-                // logger.debug(commandParse1.toString());
-                // String command = commandParse[2];
-                // getCommands = command.split("[?&>=]");
-
-                // for (int i = 0; getCommands.length > i; i++) {
-                // logger.debug("{} value {}", i, getCommands[i]);
-                // }
                 if (this.s.getInetAddress().getHostAddress().equals("0:0:0:0:0:0:0:1")) {
                     deviceHandler = devicesHandlerMap.get("localhost");
                 } else {
@@ -261,42 +241,4 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
         super.dispose();
     }
-
-    public static String sendRequest(String URL) {
-        Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
-        String result = "";
-        if (!URL.equals("")) {
-            try {
-                java.net.URL obj = new URL(URL);
-                HttpURLConnection con;
-
-                con = (HttpURLConnection) obj.openConnection();
-
-                logger.debug("URL: {}", URL);
-
-                con.setRequestMethod("GET");
-                // con.setReadTimeout(500);
-                con.setReadTimeout(1500);
-                con.setConnectTimeout(1500);
-                // add request header
-                con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                logger.debug("input string-> {}", response.toString());
-                result = response.toString().trim();
-                con.disconnect();
-            } catch (IOException e) {
-                logger.error("Connect to megadevice error: {}", e.getLocalizedMessage());
-            }
-        }
-        return result;
-    }
-
 }

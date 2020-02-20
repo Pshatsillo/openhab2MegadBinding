@@ -21,6 +21,7 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeExtenderPortHandler.class);
-    private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderHandlerMap = new HashMap<>();
+    //private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderHandlerMap = new HashMap<>();
     private Map<String, String> portsvalues = new HashMap<>();
     private boolean startedState = false;
     public MegaDBridgeExtenderPortHandler(Bridge bridge) {
@@ -48,9 +49,8 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
-
+    @SuppressWarnings({ "unused", "null" })
     @Override
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
@@ -62,7 +62,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
 
         String request = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt=" + getThing().getConfiguration().get("port").toString() + "&cmd=get";
-        String updateRequest = MegaDBridgeIncomingHandler.sendRequest(request);
+        String updateRequest = MegaHttpHelpers.sendRequest(request);
         String[] getValues = updateRequest.split("[;]");
         for (int i = 0; getValues.length > i; i++) {
             setPortsvalues(String.valueOf(i), getValues[i]);

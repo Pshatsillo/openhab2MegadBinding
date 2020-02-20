@@ -21,14 +21,10 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -91,7 +87,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                         + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "?cmd=list";
-                String updateRequest = sendRequest(request);
+                String updateRequest = MegaHttpHelpers.sendRequest(request);
                 String[] getAddress = updateRequest.split("[;]");
 
                 for (String address : getAddress) {
@@ -180,43 +176,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         thingHandler.updateStatus(status);
     }
 
-    private String sendRequest(String URL) {
-        String result = "";
-        if (!URL.equals("")) {
-            try {
-                URL obj = new URL(URL);
-                HttpURLConnection con;
-
-                con = (HttpURLConnection) obj.openConnection();
-
-                logger.debug("URL: {}", URL);
-
-                con.setRequestMethod("GET");
-                // con.setReadTimeout(500);
-                con.setReadTimeout(1500);
-                con.setConnectTimeout(1500);
-                // add request header
-                con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                logger.debug("input string-> {}", response.toString());
-                result = response.toString().trim();
-                con.disconnect();
-            } catch (IOException e) {
-                logger.error("Connect to megadevice {} error: {}",
-                        getThing().getConfiguration().get("hostname").toString(), e.getLocalizedMessage());
-            }
-        }
-        return result;
-    }
-
     @SuppressWarnings("null")
     public void unregisterMegad1WireListener(MegaD1WireSensorHandler megaD1WireSensorHandler) {
         String ip = megaD1WireSensorHandler.getThing().getConfiguration().get("address").toString();
@@ -226,7 +185,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("null")
+    @SuppressWarnings({ "unused", "null" })
     public void registerMegad1WireListener(MegaD1WireSensorHandler megaD1WireSensorHandler) {
         String oneWirePort = megaD1WireSensorHandler.getThing().getConfiguration().get("address").toString();
 
@@ -236,10 +195,9 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         } else {
             addressesHandlerMap.put(oneWirePort, megaD1WireSensorHandler);
             updateThingHandlerStatus(megaD1WireSensorHandler, ThingStatus.ONLINE);
-            // megaDBridgeDeviceHandler.getAllPortsStatus();
         }
     }
-
+    @SuppressWarnings({ "unused", "null" })
     @Override
     public void dispose() {
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {

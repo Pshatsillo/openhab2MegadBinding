@@ -20,14 +20,10 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -80,9 +76,18 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
             }, 0, 1000, TimeUnit.MILLISECONDS);
         }
     }
-
+    @SuppressWarnings({ "unused", "null" })
     @Override
     public void dispose() {
+        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+            refreshPollingJob.cancel(true);
+            refreshPollingJob = null;
+        }
+        if (bridgeDeviceHandler != null) {
+            bridgeDeviceHandler.unregisterItoCListener(this);
+        }
+
+
         super.dispose();
     }
 
@@ -134,7 +139,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
         String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
                 + getBridgeHandler().getThing().getConfiguration().get("password").toString() + "/?pt="
                 + getThing().getConfiguration().get("port").toString() + "&cmd=get";
-        String[] updateRequest = sendRequest(result).split("[:/]");
+        String[] updateRequest = MegaHttpHelpers.sendRequest(result).split("[:/]");
 
 
         for (Channel channel : getThing().getChannels()) {
@@ -194,10 +199,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
                 }
             }
         }
-
-
     }
-
     @Override
     public void updateStatus(ThingStatus status) {
         super.updateStatus(status);
@@ -213,45 +215,4 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
             bridgeHandler.registerMegadItoCListener(this);
         }
     }
-
-    private String sendRequest(String URL) {
-        String result = "";
-        int count = 0;
-        if (!URL.equals("")) {
-            try {
-                java.net.URL obj = new URL(URL);
-                HttpURLConnection con;
-
-                con = (HttpURLConnection) obj.openConnection();
-
-                logger.debug("I2C request: {}", URL);
-
-                con.setRequestMethod("GET");
-                // con.setReadTimeout(500);
-                con.setReadTimeout(1500);
-                con.setConnectTimeout(1500);
-                // add request header
-                con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                logger.debug("input string-> {}", response.toString());
-                result = response.toString().trim();
-                con.disconnect();
-            } catch (IOException e) {
-                logger.error("Connect to megadevice {} error: {}",
-                        bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
-                        e.getLocalizedMessage());
-            }
-            count++;
-        }
-        return result;
-    }
-
 }
