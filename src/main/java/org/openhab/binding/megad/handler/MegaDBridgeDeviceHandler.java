@@ -196,13 +196,15 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 }
             }
         }
-        if(extenderBridgeHandlerMap != null){
+        if(extenderBridgeHandlerMap != null) {
             logger.debug("command: {}", command);
-            extenderBridgeHandlerMap.forEach((k,v) ->{
-                if(v.getThing().getConfiguration().get("int").equals(getCommands[1])){
-                    v.updateValues(getCommands);
-                }
-            });
+            if (command.contains("ext")) {
+                extenderBridgeHandlerMap.forEach((k, v) -> {
+                    if (v.getThing().getConfiguration().get("int").equals(getCommands[1])) {
+                        v.updateValues(getCommands);
+                    }
+                });
+            }
         }
     }
 

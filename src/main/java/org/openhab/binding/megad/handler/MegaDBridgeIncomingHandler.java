@@ -14,6 +14,7 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -21,16 +22,14 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.internal.IncomingMessagesServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link MegaDBridgeIncomingHandler} is responsible for creating things and thing
@@ -45,15 +44,16 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     @Nullable
     private ScheduledFuture<?> pollingJob;
     private int refreshInterval = 300;
-    @Nullable
+   /* @Nullable
     private ServerSocket ss;
-    private boolean isRunning = true;
+    private boolean isRunning = true;*/
     @Nullable
-    Socket s = null;
-    @Nullable
+   // Socket s = null;
+    Server s;
+   /* @Nullable
     private InputStream is;
     @Nullable
-    private OutputStream os;
+    private OutputStream os;*/
     @Nullable
     MegaDBridgeDeviceHandler deviceHandler;
     private @Nullable Map<String, MegaDBridgeDeviceHandler> devicesHandlerMap = new HashMap<String, MegaDBridgeDeviceHandler>();
@@ -64,16 +64,30 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
-
+    @SuppressWarnings("null")
     @Override
     public void initialize() {
         logger.debug("Initializing Megad bridge handler {}", this.toString());
 
         MegaDConfiguration configuration = getConfigAs(MegaDConfiguration.class);
         port = configuration.port;
-        startBackgroundService();
+     //   startBackgroundService();
+        try {
+        s = new Server(port);
+        s.setHandler(new IncomingMessagesServlet(this));
+        //handler.addServletWithMapping(IncomingMessagesServlet.class, "/*");
+        s.start();
+        updateStatus(ThingStatus.ONLINE);
+        s.join();
+        } catch (IOException e) {
+            logger.error("ERROR! Cannot open port: {}", e.getMessage());
+            updateStatus(ThingStatus.OFFLINE);
+        } catch (Exception e) {
+            //  e.printStackTrace();
+        }
     }
 
+/*
     @SuppressWarnings("null")
     private void startBackgroundService() {
         logger.debug("Starting background service...");
@@ -81,27 +95,27 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
             pollingJob = scheduler.scheduleWithFixedDelay(pollingRunnable, 0, refreshInterval, TimeUnit.SECONDS);
         }
     }
+*/
 
-    private Runnable pollingRunnable = new Runnable() {
+   /* private Runnable pollingRunnable = new Runnable() {
         @SuppressWarnings("null")
         @Override
         public void run() {
             logger.debug("Polling job called");
-            try {
-                ss = new ServerSocket(port);
+
+                *//*ss = new ServerSocket(port);
 
                 ss.setPerformancePreferences(1, 0, 0);
                 ss.setReuseAddress(true);
+*//*
 
-                logger.info("MegaD bridge opened port {}", ss.getLocalPort());
+
+              //  logger.info("MegaD bridge opened port {}", ss.getLocalPort());
                 isRunning = true;
-                updateStatus(ThingStatus.ONLINE);
-            } catch (IOException e) {
-                logger.error("ERROR! Cannot open port: {}", e.getMessage());
-                updateStatus(ThingStatus.OFFLINE);
-            }
 
-            while (isRunning) {
+
+
+           *//* while (isRunning) {
                 try {
                     if (ss != null) {
                         s = ss.accept();
@@ -112,13 +126,13 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 if (!ss.isClosed()) {
                     new Thread(startHttpSocket());
                 }
-            }
+            }*//*
         }
 
-    };
+    };*/
 
-    @SuppressWarnings("null")
-    protected @Nullable Runnable startHttpSocket() {
+  //  @SuppressWarnings("null")
+   /* protected @Nullable Runnable startHttpSocket() {
         if (s != null) {
             try {
                 s.setKeepAlive(false);
@@ -141,23 +155,25 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         }
 
         return null;
-    }
+    }*/
 
-    private String readInput() {
+   /* private String readInput() {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String string = "";
         try {
-            string = br.readLine();
+          //  string = br.readLine();
+            while ((string = br.readLine()) != null) {
+                logger.debug("{}", string);
+            }
             logger.debug("{}", string);
         } catch (IOException e) {
             logger.error("{}", e.getLocalizedMessage());
         }
 
         return string;
-    }
+    }*/
 
-    @SuppressWarnings("null")
-    private void writeResponse() {
+    /* private void writeResponse() {
         String result = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + 0 + "\r\n"
                 + "Connection: close\r\n\r\n";
         if (os != null) {
@@ -168,27 +184,22 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
                 logger.error("{}", e.getLocalizedMessage());
             }
         }
-    }
+    }*/
 
     @SuppressWarnings("null")
-    private void parseInput(@Nullable String s) {
-        if (!(s == null || s.trim().length() == 0)) {
-            if (s.contains("GET") && s.contains("?")) {
-                logger.debug("incoming from Megad: {} {}", this.s.getInetAddress().getHostAddress(), s);
-                String[] command = s.split("[? ]");
-                if (this.s.getInetAddress().getHostAddress().equals("0:0:0:0:0:0:0:1")) {
+    public void parseInput(String s, String remoteHost) {
+                if (remoteHost.equals("0:0:0:0:0:0:0:1")) {
                     deviceHandler = devicesHandlerMap.get("localhost");
                 } else {
-                    deviceHandler = devicesHandlerMap.get(this.s.getInetAddress().getHostAddress());
+                    deviceHandler = devicesHandlerMap.get(remoteHost);
                 }
                 if (deviceHandler != null) {
-                    deviceHandler.updateValues(command[2]);
+                   deviceHandler.updateValues(s);
                 }
-            }
-        }
-    }
 
-    @SuppressWarnings({ "unused", "null" })
+        logger.debug("incoming from Megad: {} {}", remoteHost, s);
+    }
+    @SuppressWarnings({"unused","null"})
     public void registerMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
         logger.debug("Register Device with ip {}", ip);
@@ -232,13 +243,17 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
             pollingJob.cancel(true);
             pollingJob = null;
         }
-        isRunning = false;
+     //   isRunning = false;
         try {
-            ss.close();
+            s.stop();
+          //  ss.close();
         } catch (IOException e) {
             logger.error("{}", e.getLocalizedMessage());
+        } catch (Exception e) {
+            logger.error("{}", e.getMessage());
         }
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
         super.dispose();
     }
 }
+

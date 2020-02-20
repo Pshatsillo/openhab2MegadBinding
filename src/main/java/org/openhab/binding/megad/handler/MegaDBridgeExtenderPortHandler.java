@@ -77,8 +77,6 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
                 }
             }, 0, 1000, TimeUnit.MILLISECONDS);
         }
-
-
     }
 
     @SuppressWarnings("null")
@@ -103,7 +101,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             }
         }
     }
-
+    @SuppressWarnings("null")
     public void updateValues(String[] getCommands) {
         String port = getCommands[2].substring(3);
         String action = getCommands[3];
