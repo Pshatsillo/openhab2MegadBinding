@@ -196,6 +196,14 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 }
             }
         }
+        if(extenderBridgeHandlerMap != null){
+            logger.debug("command: {}", command);
+            extenderBridgeHandlerMap.forEach((k,v) ->{
+                if(v.getThing().getConfiguration().get("int").equals(getCommands[1])){
+                    v.updateValues(getCommands);
+                }
+            });
+        }
     }
 
     // @SuppressWarnings("null")
@@ -260,7 +268,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             // megaDBridgeDeviceHandler.getAllPortsStatus();
         }
     }
-    @SuppressWarnings({ "unused", "null" })
+    @SuppressWarnings({"unused","null"})
     public void registerMegaExtenderPortListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
         String extenderPort = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
         if (extenderBridgeHandlerMap.get(extenderPort) != null) {
@@ -281,7 +289,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE);
         }
     }
-    @SuppressWarnings({ "unused", "null" })
+    @SuppressWarnings("null")
     public void unregisterMegad1WireListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
         String ip = megaDBridge1WireBusHandler.getThing().getConfiguration().get("port").toString();
         if (oneWireHandlerMap.get(ip) != null) {
@@ -289,14 +297,22 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDBridge1WireBusHandler, ThingStatus.OFFLINE);
         }
     }
+    @SuppressWarnings("null")
+    public void unregisterMegaDeviceListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
+        String ip = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
+        if (extenderBridgeHandlerMap.get(ip) != null) {
+            extenderBridgeHandlerMap.remove(ip);
+            updateThingHandlerStatus(megaDBridgeExtenderPortHandler, ThingStatus.OFFLINE);
+        }
+    }
 
     private void updateThingHandlerStatus(MegaDBridgeExtenderPortHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
-    private void updateThingHandlerStatus(MegaDBridgeExtenderPortHandler megaDBridge1WireBusHandler, ThingStatus status,
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
-        megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
+        megaDBridgeExtenderPortHandler.updateStatus(status, statusDetail, decript);
     }
 
     private void updateThingHandlerStatus(MegaDMegaItoCHandler megaDMegaItoCHandler, ThingStatus status,
@@ -307,7 +323,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private void updateThingHandlerStatus(MegaDMegaItoCHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
-
     private void updateThingHandlerStatus(MegaDMegaPortsHandler megaDMegaportsHandler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
         megaDMegaportsHandler.updateStatus(status, statusDetail, decript);
@@ -325,7 +340,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                                           ThingStatusDetail statusDetail, String decript) {
         megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
-    @SuppressWarnings({ "unused", "null" })
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
         if (bridgeIncomingHandler != null) bridgeIncomingHandler.unregisterMegaDeviceListener(this);
