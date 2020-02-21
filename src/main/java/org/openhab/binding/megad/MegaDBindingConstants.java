@@ -35,6 +35,7 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_MEGAPORTS = new ThingTypeUID(BINDING_ID, "standart");
     public static final ThingTypeUID THING_TYPE_DEVICE_BRIDGE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
+    public static final ThingTypeUID THING_TYPE_MEGAD2W = new ThingTypeUID(BINDING_ID, "megad2w");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -68,4 +69,8 @@ public class MegaDBindingConstants {
     //extender
     public static final String CHANNEL_EXTENDER_IN= "extin";
     public static final String CHANNEL_EXTENDER_OUT= "extout";
+
+    //megad2w
+    public static final String CHANNEL_MEGAD2W_A= "a";
+    public static final String CHANNEL_MEGAD2W_B= "b";
 }

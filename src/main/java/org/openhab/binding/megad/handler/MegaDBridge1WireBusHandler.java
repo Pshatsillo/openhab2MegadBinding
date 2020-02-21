@@ -43,6 +43,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     boolean startup = true;
     protected long lastRefresh = 0;
+    @Nullable
     private Map<String, String> owsensorvalues = new HashMap<>();
     private @Nullable Map<String, MegaD1WireSensorHandler> addressesHandlerMap = new HashMap<>();
 
@@ -106,7 +107,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings("null")
     private void registerMega1WirePortListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
         if (bridgeHandler != null) {
             bridgeHandler.registerMega1WireBusListener(this);
@@ -122,11 +123,11 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
-
+    @SuppressWarnings("null")
     public void setOwvalues(String key, String value) {
         owsensorvalues.put(key, value);
     }
-
+    @SuppressWarnings("null")
     public String getOwvalues(String address) {
         String value;
         value = owsensorvalues.get(address);
@@ -205,7 +206,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
             refreshPollingJob = null;
         }
         if (bridgeDeviceHandler != null) {
-            bridgeDeviceHandler.unregisterMegad1WireListener(this);
+            bridgeDeviceHandler.unregisterMegad1WireBridgeListener(this);
         }
         super.dispose();
     }

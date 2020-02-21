@@ -45,7 +45,7 @@ public class MegaDExtenderHandler extends BaseThingHandler {
     public MegaDExtenderHandler(Thing thing) {
         super(thing);
     }
-
+    @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_OUT)) {

@@ -79,6 +79,39 @@
 		</config-description>
 </thing-type>
 
+	<thing-type id="megad2w">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="device"/>
+		</supported-bridge-type-refs>
+
+		<label>MegaD-2W Thing</label>
+		<description>Thing for module MegaD-2W</description>
+
+		<channels>
+			<channel id="a" typeId="a"></channel>
+			<channel id="b" typeId="b"></channel>
+		</channels>
+
+		<config-description>
+			<parameter name="port" type="text" required="true">
+				<label>port</label>
+				<description>Port number to access the device channel.</description>
+				<default>0</default>
+			</parameter>
+			<parameter name="addr" type="text">
+				<label>Address from Devices List</label>
+				<description></description>
+				<default>0</default>
+			</parameter>
+			<parameter name="refresh" type="integer" required="true">
+				<label>refresh</label>
+				<description>refresh interval channel</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+
 <thing-type id="1wireaddress">
 	<supported-bridge-type-refs>
 			<bridge-type-ref id="1wirebus"/>
@@ -91,8 +124,8 @@
 		</channels>
 
 		<config-description>
-			<parameter name="address" type="text">
-				<label>---</label>
+			<parameter name="address" type="text" required="true">
+				<label>address of 1-wire sensor</label>
 			</parameter>
 		</config-description>
 </thing-type>
@@ -263,5 +296,15 @@
 		<item-type>Switch</item-type>
 		<label>Output</label>
 		<description>Port set as output for switch using extender</description>
+	</channel-type>
+	<channel-type id="a">
+		<item-type>Switch</item-type>
+		<label>Output A</label>
+		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="b">
+		<item-type>Switch</item-type>
+		<label>Output B</label>
+		<description>Port set as output for switch using</description>
 	</channel-type>
 </thing:thing-descriptions>

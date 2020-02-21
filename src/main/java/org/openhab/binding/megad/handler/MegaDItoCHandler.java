@@ -28,14 +28,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The {@link MegaDMegaItoCHandler} is responsible for i2c fatures of megad
+ * The {@link MegaDItoCHandler} is responsible for i2c fatures of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDMegaItoCHandler extends BaseThingHandler {
+public class MegaDItoCHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MegaDMegaItoCHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MegaDItoCHandler.class);
 
     private @Nullable ScheduledFuture<?> refreshPollingJob;
 
@@ -44,7 +44,7 @@ public class MegaDMegaItoCHandler extends BaseThingHandler {
     boolean startup = true;
     protected long lastRefresh = 0;
 
-    public MegaDMegaItoCHandler(Thing thing) {
+    public MegaDItoCHandler(Thing thing) {
         super(thing);
     }
 

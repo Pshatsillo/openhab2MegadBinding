@@ -170,7 +170,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
                                           ThingStatusDetail statusDetail, String decript) {
         megaDExtenderHandler.updateStatus(status, statusDetail, decript);
     }
-
+    @SuppressWarnings("null")
 public String[] getHostPassword(){
         String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
     return result;
@@ -194,14 +194,14 @@ public String[] getHostPassword(){
     public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
-
+    @SuppressWarnings("null")
     @Override
     public void dispose() {
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        if (bridgeDeviceHandler != null) bridgeDeviceHandler.unregisterMegaDeviceListener(this);
+        if (bridgeDeviceHandler != null) bridgeDeviceHandler.unregisterMegaDPortsListener(this);
         super.dispose();
     }
 

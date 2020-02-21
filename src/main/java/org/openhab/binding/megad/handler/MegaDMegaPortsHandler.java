@@ -46,7 +46,6 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
 
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
-    boolean isI2cInit = false;
     protected long lastRefresh = 0;
     boolean startup = true;
 
@@ -90,9 +89,7 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void initialize() {
-        // logger.debug("Ports init");
         bridgeDeviceHandler = getBridgeHandler();
-        // logger.debug("Thing Handler for {} started", getThing().getUID().getId());
         if (bridgeDeviceHandler != null) {
             registerMegadPortsListener(bridgeDeviceHandler);
         } else {
@@ -385,7 +382,7 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
             refreshPollingJob = null;
         }
         if (bridgeDeviceHandler != null) {
-            bridgeDeviceHandler.unregisterMegaDeviceListener(this);
+            bridgeDeviceHandler.unregisterMegaDPortsListener(this);
         }
         super.dispose();
     }
