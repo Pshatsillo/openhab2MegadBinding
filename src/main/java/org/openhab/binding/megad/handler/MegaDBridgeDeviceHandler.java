@@ -42,7 +42,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
-    private @Nullable Map<String, MegaD2WHandler> mega2WHandlerMap = new HashMap<>();
     private Map<String, String> portsvalues = new HashMap<>();
 
     @Nullable
@@ -371,36 +370,4 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
 //1WBRIDGE --------------------------------------------------------------------
-//MEGA 2W ---------------------------------------------------------------------
-@SuppressWarnings({ "null", "unused" })
-    public void registerMegad2WListener(MegaD2WHandler megaD2WHandler) {
-        String port = megaD2WHandler.getThing().getConfiguration().get("port").toString() +"addr"+ megaD2WHandler.getThing().getConfiguration().get("addr").toString();
-        logger.debug("Register Megad2W device with ip {} and port {}", getThing().getConfiguration().get("hostname").toString(),
-                megaD2WHandler.getThing().getConfiguration().get("port").toString());
-        if (mega2WHandlerMap.get(port) != null) {
-            updateThingHandlerStatus(megaD2WHandler, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                    "port already exists");
-        } else {
-            mega2WHandlerMap.put(port, megaD2WHandler);
-            updateThingHandlerStatus(megaD2WHandler, ThingStatus.ONLINE);
-        }
-    }
-    @SuppressWarnings("null")
-    public void unregisterMegad2WListener(MegaD2WHandler megaD2WHandler) {
-        String port = megaD2WHandler.getThing().getConfiguration().get("port").toString() +"addr"+ megaD2WHandler.getThing().getConfiguration().get("addr").toString();
-        if (mega2WHandlerMap.get(port) != null) {
-            mega2WHandlerMap.remove(port);
-            updateThingHandlerStatus(megaD2WHandler, ThingStatus.OFFLINE);
-        }
-    }
-
-    private void updateThingHandlerStatus(MegaD2WHandler megaD2WHandler, ThingStatus status) {
-        megaD2WHandler.updateStatus(status);
-    }
-
-    private void updateThingHandlerStatus(MegaD2WHandler megaD2WHandler, ThingStatus status,
-                                          ThingStatusDetail statusDetail, String decript) {
-        megaD2WHandler.updateStatus(status, statusDetail, decript);
-    }
-//MEGA 2W--------------------------------------------------------------------
 }

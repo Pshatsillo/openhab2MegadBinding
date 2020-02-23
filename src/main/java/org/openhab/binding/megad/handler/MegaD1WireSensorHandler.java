@@ -15,6 +15,7 @@ package org.openhab.binding.megad.handler;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.*;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -23,8 +24,11 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 /**
  * The {@link MegaD1WireSensorHandler} class defines 1-wire bus feature.
  * You can read 1-wire sensors connected to one port of MegaD as bus
@@ -35,29 +39,45 @@ import java.util.concurrent.TimeUnit;
 public class MegaD1WireSensorHandler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(MegaD1WireSensorHandler.class);
-    private @Nullable ScheduledFuture<?> refreshPollingJob;
-    boolean startup = true;
-    protected long lastRefresh = 0;
 
     @Nullable
-    MegaDBridge1WireBusHandler bridgeDeviceHandler;
+    MegaDBridge1WireBusHandler bridge1WireBusHandler;
 
     public MegaD1WireSensorHandler(Thing thing) {
         super(thing);
     }
-
+    @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        int state = 0;
+        String cmd ="";
+        String addr = "";
+        if (!command.toString().equals("REFRESH")) {
+            if (command.toString().equals("ON")) {
+                state = 1;
+            } else if (command.toString().equals("OFF")) {
+                state = 0;
+            }
+            if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_A)) {
+                cmd = bridge1WireBusHandler.getThing().getConfiguration().get("port").toString() + "A:";
+            } else  if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)) {
+                cmd = bridge1WireBusHandler.getThing().getConfiguration().get("port").toString() + "B:";
+            }
+            if(!getThing().getConfiguration().get("address").equals("0")){
+                addr = "&addr=" + getThing().getConfiguration().get("address").toString();
+            }
+            String result = "http://" + bridge1WireBusHandler.getHostPassword()[0] + "/"
+                    + bridge1WireBusHandler.getHostPassword()[1] + "/?cmd="
+                    + cmd + state + addr;
+            logger.debug("Switch: {}", result);
+            sendCommand(result);
+        }
     }
     @SuppressWarnings("null")
     @Override
     public void dispose() {
-        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
-            refreshPollingJob.cancel(true);
-            refreshPollingJob = null;
-        }
-        if (bridgeDeviceHandler != null) {
-            bridgeDeviceHandler.unregisterMegad1WireListener(this);
+        if (bridge1WireBusHandler != null) {
+            bridge1WireBusHandler.unregisterMegad1WireListener(this);
         }
         super.dispose();
     }
@@ -65,48 +85,82 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void initialize() {
-        bridgeDeviceHandler = getBridgeHandler();
-        // logger.debug("Thing Handler for {} started", getThing().getUID().getId());
-        if (bridgeDeviceHandler != null) {
-            registerMegad1WireListener(bridgeDeviceHandler);
+        bridge1WireBusHandler = getBridgeHandler();
+        if (bridge1WireBusHandler != null) {
+            registerMegad1WireListener(bridge1WireBusHandler);
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        // logger.debug("refresh: {}", rr);
+    }
 
-        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    refresh(30000);
+    @SuppressWarnings("null")
+    public void updateValues(String portStatus) {
+        String[] ports = portStatus.split("[/]");
+        for (Channel channel : getThing().getChannels()) {
+            if (isLinked(channel.getUID().getId())) {
+                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_A)){
+                    try {
+                        if (ports[0].equals("ON")) {
+                            updateState(channel.getUID().getId(), OnOffType.ON);
+                        } else if (ports[0].equals("OFF")) {
+                            updateState(channel.getUID().getId(), OnOffType.OFF);
+                        } else {
+                            logger.debug("Status {} is udefined", ports[0]);
+                        }
+                    } catch (Exception e){
+                        logger.debug("Cannot find value for port A");
+                    }
+                } else if(channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)){
+                    try {
+                        if (ports[1].equals("ON")) {
+                            updateState(channel.getUID().getId(), OnOffType.ON);
+                        } else if (ports[1].equals("OFF")) {
+                            updateState(channel.getUID().getId(), OnOffType.OFF);
+                        } else {
+                            logger.debug("Status {} is udefined", ports[1]);
+                        }
+                    } catch (Exception e){
+                        logger.debug("Cannot find value for port B");
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_1WTEMP)) {
+                    String address = getThing().getConfiguration().get("address").toString();
+                    try {
+                        updateState(channel.getUID().getId(),
+                                DecimalType.valueOf(bridge1WireBusHandler.getOwvalues(address)));
+                    } catch (Exception e){
+                        logger.debug("Can't update 1w-bus channel value bacause of {}", e.getMessage());
+                    }
                 }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
-    @SuppressWarnings({ "null" })
-    public void refresh(int interval) {
-        long now = System.currentTimeMillis();
-        /*if (startup) {
-        }*/
-        if (interval != 0) {
-            if (now >= (lastRefresh + interval)) {
-                for (Channel channel : getThing().getChannels()) {
-                    if (isLinked(channel.getUID().getId())) {
-                        if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_1WTEMP)) {
-                            String address = getThing().getConfiguration().get("address").toString();
-                            try {
-                                updateState(channel.getUID().getId(),
-                                        DecimalType.valueOf(bridgeDeviceHandler.getOwvalues(address)));
-                            } catch (Exception e){
-                                logger.debug("Can't update 1w-bus channel value bacause of {}", e.getMessage());
-                            }
-                        }
-                    }
-                }
-                lastRefresh = now;
+    @SuppressWarnings("null")
+    public void sendCommand(String Result) {
+        HttpURLConnection con;
+
+        URL megaURL;
+
+        try {
+            megaURL = new URL(Result);
+            con = (HttpURLConnection) megaURL.openConnection();
+            con.setReadTimeout(1000);
+            con.setConnectTimeout(1000);
+            con.setRequestMethod("GET");
+
+            // add request header
+            con.setRequestProperty("User-Agent", "Mozilla/5.0");
+            if (con.getResponseCode() == 200) {
+                logger.debug("OK");
             }
+            con.disconnect();
+        } catch (MalformedURLException | ProtocolException e) {
+            logger.error("{}", e.getLocalizedMessage());
+        } catch (IOException e) {
+            logger.error("Connect to megadevice {} {} error: ",
+                    bridge1WireBusHandler.getHostPassword()[0],
+                    e.getLocalizedMessage());
         }
     }
 

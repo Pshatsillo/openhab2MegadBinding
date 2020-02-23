@@ -46,13 +46,14 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     @Nullable
     private Map<String, String> owsensorvalues = new HashMap<>();
     private @Nullable Map<String, MegaD1WireSensorHandler> addressesHandlerMap = new HashMap<>();
-
+    private @Nullable MegaD1WireSensorHandler megaD1WireSensorHandler;
     public MegaDBridge1WireBusHandler(Bridge bridge) {
         super(bridge);
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+
     }
 
     @SuppressWarnings("null")
@@ -90,18 +91,22 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                         + getThing().getConfiguration().get("port").toString() + "?cmd=list";
                 String updateRequest = MegaHttpHelpers.sendRequest(request);
                 String[] getAddress = updateRequest.split("[;]");
-
                 for (String address : getAddress) {
                     String[] getValues = address.split("[:]");
                     try {
                         setOwvalues(getValues[0], getValues[1]);
+                        if(addressesHandlerMap != null) {
+                            megaD1WireSensorHandler = addressesHandlerMap.get(getValues[0]);
+                            if(megaD1WireSensorHandler != null) {
+                                megaD1WireSensorHandler.updateValues(getValues[1]);
+                            }
+                        }
+
                     } catch (Exception e) {
                         logger.debug("NOT 1-W BUS");
                     }
                 }
-
                 logger.debug("{}", updateRequest);
-
                 lastRefresh = now;
             }
         }
@@ -133,6 +138,12 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         value = owsensorvalues.get(address);
         return value;
     }
+    @SuppressWarnings("null")
+    public String[] getHostPassword(){
+        String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
+        return result;
+    }
+
 
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
