@@ -33,14 +33,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The {@link MegaDMegaPortsHandler} is responsible for standart features of megsd
+ * The {@link MegaDPortsHandler} is responsible for standart features of megsd
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDMegaPortsHandler extends BaseThingHandler {
+public class MegaDPortsHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MegaDMegaPortsHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
 
     private @Nullable ScheduledFuture<?> refreshPollingJob;
 
@@ -49,7 +49,7 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
     protected long lastRefresh = 0;
     boolean startup = true;
 
-    public MegaDMegaPortsHandler(Thing thing) {
+    public MegaDPortsHandler(Thing thing) {
         super(thing);
     }
 
@@ -75,7 +75,7 @@ public class MegaDMegaPortsHandler extends BaseThingHandler {
             }
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
-                int resultInt = (int) Math.round(Integer.parseInt(command.toString()) * 2.55);
+                int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                         + getThing().getConfiguration().get("port").toString() + ":" + resultInt;

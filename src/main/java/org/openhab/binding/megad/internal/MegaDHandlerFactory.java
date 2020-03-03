@@ -68,7 +68,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_DEVICE_BRIDGE)) {
             return new MegaDBridgeDeviceHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
-            return new MegaDMegaPortsHandler(thing);
+            return new MegaDPortsHandler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_I2C)) {
             return new MegaDItoCHandler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_1WIREBUS_BRIDGE)) {

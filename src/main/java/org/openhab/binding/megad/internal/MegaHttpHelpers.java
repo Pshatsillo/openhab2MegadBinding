@@ -59,7 +59,7 @@ public class MegaHttpHelpers {
                 result = response.toString().trim();
                 con.disconnect();
             } catch (IOException e) {
-                logger.error("Connect to megadevice error: {}", e.getLocalizedMessage());
+                logger.error("Connect to megadevice {} error: {}", URL, e.getLocalizedMessage());
             }
         }
         return result;

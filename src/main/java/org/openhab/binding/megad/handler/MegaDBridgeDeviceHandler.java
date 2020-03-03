@@ -38,7 +38,7 @@ import java.util.Map;
 @NonNullByDefault
 public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
-    private @Nullable Map<String, MegaDMegaPortsHandler> portsHandlerMap = new HashMap<>();
+    private @Nullable Map<String, MegaDPortsHandler> portsHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
@@ -47,7 +47,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
     @Nullable
-    MegaDMegaPortsHandler megaportsHandler;
+    MegaDPortsHandler megaportsHandler;
 
     public MegaDBridgeDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -248,32 +248,32 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     //STANDART PORTS------------------------------------------------
     @SuppressWarnings({ "unused", "null" })
-    public void registerMegadPortsListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
-        String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
+    public void registerMegadPortsListener(MegaDPortsHandler megaportsHandlerD) {
+        String ip = megaportsHandlerD.getThing().getConfiguration().get("port").toString();
         logger.debug("Register Device with ip {} and port {}", getThing().getConfiguration().get("hostname").toString(),
-                megaDMegaportsHandler.getThing().getConfiguration().get("port").toString());
+                megaportsHandlerD.getThing().getConfiguration().get("port").toString());
         if (portsHandlerMap.get(ip) != null) {
-            updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+            updateThingHandlerStatus(megaportsHandlerD, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "port already exists");
         } else {
-            portsHandlerMap.put(ip, megaDMegaportsHandler);
-            updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.ONLINE);
+            portsHandlerMap.put(ip, megaportsHandlerD);
+            updateThingHandlerStatus(megaportsHandlerD, ThingStatus.ONLINE);
         }
     }
     @SuppressWarnings("null")
-    public void unregisterMegaDPortsListener(MegaDMegaPortsHandler megaDMegaportsHandler) {
-        String ip = megaDMegaportsHandler.getThing().getConfiguration().get("port").toString();
+    public void unregisterMegaDPortsListener(MegaDPortsHandler megaportsHandlerD) {
+        String ip = megaportsHandlerD.getThing().getConfiguration().get("port").toString();
         if (portsHandlerMap.get(ip) != null) {
             portsHandlerMap.remove(ip);
-            updateThingHandlerStatus(megaDMegaportsHandler, ThingStatus.OFFLINE);
+            updateThingHandlerStatus(megaportsHandlerD, ThingStatus.OFFLINE);
         }
     }
-    private void updateThingHandlerStatus(MegaDMegaPortsHandler megaDMegaportsHandler, ThingStatus status,
+    private void updateThingHandlerStatus(MegaDPortsHandler megaportsHandlerD, ThingStatus status,
                                           ThingStatusDetail statusDetail, String decript) {
-        megaDMegaportsHandler.updateStatus(status, statusDetail, decript);
+        megaportsHandlerD.updateStatus(status, statusDetail, decript);
     }
 
-    private void updateThingHandlerStatus(MegaDMegaPortsHandler thingHandler, ThingStatus status) {
+    private void updateThingHandlerStatus(MegaDPortsHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
     //STANDART PORTS------------------------------------------------
