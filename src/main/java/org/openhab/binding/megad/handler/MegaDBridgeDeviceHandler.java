@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.megad.handler;
 
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -26,8 +27,11 @@ import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link MegaDBridgeIncomingHandler} is responsible for creating things and thing
@@ -43,6 +47,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
     private Map<String, String> portsvalues = new HashMap<>();
+    private @Nullable ScheduledFuture<?> refreshPollingJob;
 
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
@@ -70,6 +75,38 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
         logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
         getAllPortsStatus();
+
+        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    refresh();
+                }
+            }, 0, 1000, TimeUnit.MILLISECONDS);
+        }
+
+    }
+
+    private void refresh(){
+        Process proc = null;
+            try {
+                if(SystemUtils.IS_OS_WINDOWS) {
+                    proc = new ProcessBuilder("ping", "-w", "1000", "-n", "1", getThing().getConfiguration().get("hostname").toString()).start();
+                } else if (SystemUtils.IS_OS_LINUX) {
+                    proc = new ProcessBuilder("ping", "-w", "1", "-c", "1", getThing().getConfiguration().get("hostname").toString()).start();
+                } else if (SystemUtils.IS_OS_MAC_OSX){
+                    proc = new ProcessBuilder("ping", "-t", "1", "-c", "1", getThing().getConfiguration().get("hostname").toString()).start();
+                }
+                int result = proc.waitFor();
+                if (result == 0) {
+                    updateStatus(ThingStatus.ONLINE);
+                } else {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
+                }
+                logger.debug("ping {} result {}",getThing().getConfiguration().get("hostname").toString(), result);
+            } catch (IOException | InterruptedException e) {
+                logger.debug("proc error {}", e.getMessage());
+            }
     }
 
     private synchronized @Nullable MegaDBridgeIncomingHandler getBridgeHandler() {
@@ -222,6 +259,10 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     @SuppressWarnings("null")
     @Override
     public void dispose() {
+        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+            refreshPollingJob.cancel(true);
+            refreshPollingJob = null;
+        }
         if (bridgeIncomingHandler != null) bridgeIncomingHandler.unregisterMegaDeviceListener(this);
         super.dispose();
     }
