@@ -48,7 +48,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     protected long lastRefresh = 0;
     boolean startup = true;
-
+    protected int dimmervalue;
     public MegaDPortsHandler(Thing thing) {
         super(thing);
     }
@@ -75,13 +75,40 @@ public class MegaDPortsHandler extends BaseThingHandler {
             }
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
-                int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
-                        + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
-                logger.info("Dimmer: {}", result);
-                sendCommand(result);
+                try {
+                    int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
+                    dimmervalue = resultInt;
+                    result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                            + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                            + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                    logger.info("Dimmer: {}", result);
+                    sendCommand(result);
+                } catch (Exception e) {
+                    if (command.toString().equals("OFF")) {
+                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                                + getThing().getConfiguration().get("port").toString() + ":0";
+                        logger.info("Dimmer set to OFF");
+                        sendCommand(result);
+                    } else if (command.toString().equals("ON")) {
+                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                                + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                        logger.info("Dimmer restored to previous value: {}", result);
+                        sendCommand(result);
+                        int percent = 0;
+                        try {
+                            percent = (int) Math.round(dimmervalue / 2.55);
+                        } catch (Exception ex) {
+                        }
+                        updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
+                    } else {
+                        logger.debug("Illegal dimmer value: {}", result);
+                    }
+                }
             }
+
+
         }
     }
 
