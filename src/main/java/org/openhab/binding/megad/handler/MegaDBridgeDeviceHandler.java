@@ -48,6 +48,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
     private Map<String, String> portsvalues = new HashMap<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
+    int pingCount;
 
     @Nullable
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
@@ -100,10 +101,15 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 int result = proc.waitFor();
                 if (result == 0) {
                     updateStatus(ThingStatus.ONLINE);
+                    pingCount = 0;
                 } else {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
+                    if(pingCount >= 3) {
+                        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
+                    } else {
+                        pingCount++;
+                    }
                 }
-                logger.debug("ping {} result {}",getThing().getConfiguration().get("hostname").toString(), result);
+                //logger.debug("ping {} result {}",getThing().getConfiguration().get("hostname").toString(), result);
             } catch (IOException | InterruptedException e) {
                 logger.debug("proc error {}", e.getMessage());
             }
