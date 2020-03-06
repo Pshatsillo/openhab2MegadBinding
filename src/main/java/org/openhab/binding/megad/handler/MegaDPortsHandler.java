@@ -78,21 +78,22 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 try {
                     int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
                     dimmervalue = resultInt;
-                    result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                            + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                            + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                             + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
                     logger.info("Dimmer: {}", result);
                     sendCommand(result);
                 } catch (Exception e) {
                     if (command.toString().equals("OFF")) {
-                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                                 + getThing().getConfiguration().get("port").toString() + ":0";
                         logger.info("Dimmer set to OFF");
                         sendCommand(result);
+                        updateState(channelUID.getId(), PercentType.valueOf("0"));
                     } else if (command.toString().equals("ON")) {
-                        result = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
-                                + getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                                 + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
                         logger.info("Dimmer restored to previous value: {}", result);
                         sendCommand(result);
