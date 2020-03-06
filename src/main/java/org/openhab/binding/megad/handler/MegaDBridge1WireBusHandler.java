@@ -85,6 +85,15 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
 
         if (interval != 0) {
             if (now >= (lastRefresh + interval)) {
+                String conv = "http://"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                        + getThing().getConfiguration().get("port").toString() + "?cmd=conv";
+                MegaHttpHelpers.sendRequest(conv);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
                 String request = "http://"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
