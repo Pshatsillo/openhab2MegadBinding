@@ -371,12 +371,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     logger.debug("Does not accept incoming values");
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_PHONE)) {
                     try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[1]));
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_SMS_TEXT)) {
                     try {
-                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[5]));
+                        updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
                     } catch (Exception ex) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {

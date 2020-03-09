@@ -221,7 +221,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                             }
                         }
                     } else {
-                        if ((getCommands[0].equals("st")) || (getCommands[2].equals("sms_phone"))) {
+                        if ((getCommands[0].equals("st")) || (getCommands[0].equals("sms_phone"))) {
                             logger.debug("{}", portsHandlerMap.size());
 
                             for (int i = 0; portsHandlerMap.size() > i; i++) {
