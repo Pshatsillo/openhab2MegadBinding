@@ -331,7 +331,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
-                        percent = (int) Math.round(Integer.parseInt(getCommands[4]) / 2.55);
+                        percent = (int) Math.round(Integer.parseInt(getCommands[3]) / 2.55);
                     } catch (Exception ex) {
                     }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));

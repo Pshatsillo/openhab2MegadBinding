@@ -214,10 +214,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         }
                     } else if (command.contains("v=")) { // slave mode
                         if (megaportsHandler != null) {
-                            if (command.contains("v=1")) {
-                                megaportsHandler.updateValues(getCommands, OnOffType.ON);
-                            } else {
+                            String[] value = command.split("[=&]");
+                            if (value[3].equals("0")) {
                                 megaportsHandler.updateValues(getCommands, OnOffType.OFF);
+                            } else {
+                                megaportsHandler.updateValues(getCommands, OnOffType.ON);
                             }
                         }
                     } else {
