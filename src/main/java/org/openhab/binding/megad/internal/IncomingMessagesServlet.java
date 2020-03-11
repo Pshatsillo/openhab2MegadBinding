@@ -50,10 +50,10 @@ public class IncomingMessagesServlet extends AbstractHandler {
         response.setHeader("Content-Length", "0");
         PrintWriter out = response.getWriter();
         out.println("");
-        out.close();
+        //out.close();
         response.setHeader("Connection", "close");
         baseRequest.setHandled(true);
-        baseRequest.logout();
+        //baseRequest.logout();
         logger.debug("Incoming {}", request.getParameterMap());
         megaDBridgeIncomingHandler.parseInput(request.getQueryString(), request.getRemoteHost());
     }
