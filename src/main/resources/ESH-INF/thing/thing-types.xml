@@ -11,8 +11,8 @@
 			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
-		<label>MegaD Standart Thing</label>
-		<description>Binding for standart Megad features</description>
+		<label>(DEPRECATED) PLEASE USE MegaD Standard Thing</label>
+		<description>DO NOT USE THIS</description>
 
 		<channels>
 			<channel id="in" typeId="in" />
@@ -49,20 +49,33 @@
 
 </thing-type>
 
-<thing-type id="i2c">
-	<supported-bridge-type-refs>
-			<bridge-type-ref id="device"/>
-	</supported-bridge-type-refs>
+	<thing-type id="standard">
 
-		<label>MegaD I2C Sensors</label>
-		<description>Binding for I2C sensors features of Megadevice</description>
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="device"/>
+		</supported-bridge-type-refs>
+
+		<label>MegaD Standard Thing</label>
+		<description>Binding for standard Megad features</description>
 
 		<channels>
-			<channel id="temp" typeId="temp"></channel>
-			<channel id="humidity" typeId="humidity"></channel>
-			<channel id="pressure" typeId="pressure"></channel>
-			<channel id="gas" typeId="gas"></channel>
-			<channel id="other" typeId="other"></channel>
+			<channel id="in" typeId="in" />
+			<channel id="incount" typeId="incount"></channel>
+			<channel id="out" typeId="out"></channel>
+			<channel id="dimmer" typeId="dimmer"></channel>
+			<channel id="m2signal" typeId="m2signal"></channel>
+			<channel id="click" typeId="click"></channel>
+			<channel id="onewire" typeId="onewire"></channel>
+			<channel id="adc" typeId="adc"></channel>
+			<channel id="at" typeId="at"></channel>
+			<channel id="st" typeId="st"></channel>
+			<channel id="ib" typeId="ib"></channel>
+			<channel id="wiegand" typeId="wiegand"></channel>
+			<channel id="tget" typeId="tget"></channel>
+			<channel id="contact" typeId="contact"></channel>
+			<channel id="i2cdisplay" typeId="i2cdisplay"></channel>
+			<channel id="smsphone" typeId="smsphone"></channel>
+			<channel id="smstext" typeId="smstext"></channel>
 		</channels>
 
 		<config-description>
@@ -77,7 +90,65 @@
 				<default>30</default>
 			</parameter>
 		</config-description>
+
+	</thing-type>
+
+<thing-type id="i2c">
+	<supported-bridge-type-refs>
+		<bridge-type-ref id="device"/>
+	</supported-bridge-type-refs>
+
+	<label>MegaD I2C Sensors</label>
+	<description>Binding for I2C sensors features of Megadevice</description>
+
+	<channels>
+		<channel id="temp" typeId="temp"></channel>
+		<channel id="humidity" typeId="humidity"></channel>
+		<channel id="pressure" typeId="pressure"></channel>
+		<channel id="gas" typeId="gas"></channel>
+		<channel id="other" typeId="other"></channel>
+	</channels>
+
+	<config-description>
+		<parameter name="port" type="text" required="true">
+			<label>port</label>
+			<description>Port number to access the device channel.</description>
+			<default>0</default>
+		</parameter>
+		<parameter name="refresh" type="integer" required="true">
+			<label>refresh</label>
+			<description>refresh interval channel</description>
+			<default>30</default>
+		</parameter>
+	</config-description>
 </thing-type>
+
+	<thing-type id="i2cbussensor">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="itoc"/>
+		</supported-bridge-type-refs>
+
+		<label>MegaD I2C bus sensor handler</label>
+		<description>Binding for I2C bus sensors features of Megadevice</description>
+
+		<channels>
+			<channel id="par0" typeId="par0"></channel>
+			<channel id="par1" typeId="par1"></channel>
+			<channel id="par2" typeId="par2"></channel>
+		</channels>
+
+		<config-description>
+			<parameter name="sensortype" type="text" required="true">
+				<label>Sensor Type</label>
+				<description>Sensor type from megaD config</description>
+			</parameter>
+			<parameter name="refresh" type="integer" required="true">
+				<label>refresh</label>
+				<description>refresh interval channel</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
 
 <thing-type id="1wireaddress">
 	<supported-bridge-type-refs>
@@ -275,5 +346,23 @@
 		<item-type>Switch</item-type>
 		<label>Output B</label>
 		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="par0">
+		<item-type>Number</item-type>
+		<label>Parameter 0</label>
+		<description>Value without par= option</description>
+		<state readOnly="true" pattern="%.1f"></state>
+	</channel-type>
+	<channel-type id="par1">
+		<item-type>Number</item-type>
+		<label>Parameter 1</label>
+		<description>Value with par=1 option</description>
+		<state readOnly="true" pattern="%.1f"></state>
+	</channel-type>
+	<channel-type id="par2">
+		<item-type>Number</item-type>
+		<label>Parameter 2</label>
+		<description>Value with par=2 option</description>
+		<state readOnly="true" pattern="%.1f"></state>
 	</channel-type>
 </thing:thing-descriptions>

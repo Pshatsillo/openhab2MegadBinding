@@ -27,15 +27,18 @@ public class MegaDBindingConstants {
     public static final String BINDING_ID = "megad";
 
     // List of all Thing Type UIDs
+    public static final ThingTypeUID THING_TYPE_ITOC_BRIDGE = new ThingTypeUID(BINDING_ID, "itoc");
     public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
     public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
     public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
     public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
     public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
     public static final ThingTypeUID THING_TYPE_MEGAPORTS = new ThingTypeUID(BINDING_ID, "standart");
+    public static final ThingTypeUID THING_TYPE_MEGAPORTS_STD = new ThingTypeUID(BINDING_ID, "standard");
     public static final ThingTypeUID THING_TYPE_DEVICE_BRIDGE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
     public static final ThingTypeUID THING_TYPE_MEGAD2W = new ThingTypeUID(BINDING_ID, "megad2w");
+    public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -73,4 +76,8 @@ public class MegaDBindingConstants {
     //megad2w
     public static final String CHANNEL_MEGAD2W_A= "a";
     public static final String CHANNEL_MEGAD2W_B= "b";
+
+    public static final String CHANNEL_PAR0= "par0";
+    public static final String CHANNEL_PAR1= "par1";
+    public static final String CHANNEL_PAR2= "par2";
 }

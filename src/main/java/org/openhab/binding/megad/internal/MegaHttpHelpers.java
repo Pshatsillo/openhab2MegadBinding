@@ -33,10 +33,10 @@ public class MegaHttpHelpers {
         String result = "";
         if (!URL.equals("")) {
             try {
-                java.net.URL obj = new URL(URL);
+                java.net.URL urlreq = new URL(URL);
                 HttpURLConnection con;
 
-                con = (HttpURLConnection) obj.openConnection();
+                con = (HttpURLConnection) urlreq.openConnection();
 
                 logger.debug("URL: {}", URL);
 
@@ -55,7 +55,7 @@ public class MegaHttpHelpers {
                     response.append(inputLine);
                 }
                 in.close();
-                logger.debug("input string-> {}", response.toString());
+                logger.debug("input string from {}-> {}",URL, response.toString());
                 result = response.toString().trim();
                 con.disconnect();
             } catch (IOException e) {

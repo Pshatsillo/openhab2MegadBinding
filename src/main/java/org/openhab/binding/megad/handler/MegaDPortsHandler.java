@@ -125,7 +125,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
-        logger.debug("refresh: {}", rr[0]);
+        logger.debug("port {}, refresh interval is {} sec",getThing().getConfiguration().get("port").toString(), rr[0]);
         int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
@@ -141,13 +141,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
     public void refresh(int interval) {
         long now = System.currentTimeMillis();
         if (startup) {
-            try {
+           /* try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 logger.warn("{}", e.getLocalizedMessage());
-            }
+            }*/
             String[] portStatus = bridgeDeviceHandler
                     .getPortsvalues(getThing().getConfiguration().get("port").toString());
+
+            logger.debug("Port status of {} at startup is {}",getThing().getUID().toString(), portStatus);
             if (portStatus[2].contains("ON")) {
                 updateValues(portStatus, OnOffType.ON);
             } else {
@@ -191,7 +193,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     @SuppressWarnings({ "null" })
     protected void updateData() {
-        logger.debug("Updating Megadevice things...");
+        logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
         String result = "http://" + getBridgeHandler().getThing().getConfiguration().get("hostname").toString()
                 + "/" + getBridgeHandler().getThing().getConfiguration().get("password").toString() + "/?pt="
                 + getThing().getConfiguration().get("port").toString() + "&cmd=get";
@@ -295,7 +297,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     }
 
     public void updateValues(String[] getCommands, @Nullable OnOffType OnOff) {
-        logger.debug("updateValues {},{}", getCommands, OnOff);
+        logger.debug("updateValues of thing {}: {},{}",getThing().getUID().toString(), getCommands, OnOff);
         // logger.debug("getThing() -> {}" ng().getUID().getId());
         logger.debug("getActiveChannelListAsString() -> {}", getActiveChannelListAsString());
 
@@ -331,7 +333,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
                     try {
-                        percent = (int) Math.round(Integer.parseInt(getCommands[3]) / 2.55);
+                        percent = (int) Math.round(Integer.parseInt(getCommands[2]) / 2.55);
                     } catch (Exception ex) {
                     }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
@@ -439,7 +441,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ",
+            logger.error("Connect to megadevice {}  error: {} ",
                     bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                     e.getLocalizedMessage());
         }

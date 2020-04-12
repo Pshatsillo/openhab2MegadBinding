@@ -62,7 +62,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
-
+    @SuppressWarnings("null")
     @Override
     public void initialize() {
         bridgeIncomingHandler = getBridgeHandler();
@@ -87,7 +87,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
 
     }
-
+    @SuppressWarnings("null")
     private void refresh(){
         Process proc = null;
             try {
@@ -260,7 +260,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         for (int i = 0; getValues.length > i; i++) {
             setPortsvalues(String.valueOf(i), getValues[i]);
         }
-        logger.debug("All ports is {}", updateRequest);
+        logger.debug("All ports of device {} is {}",getThing().getConfiguration().get("hostname").toString(), updateRequest);
     }
 
     @SuppressWarnings("null")

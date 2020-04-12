@@ -53,6 +53,9 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_MEGAPORTS);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_INCOMING_BRIDGE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_ITOC_BRIDGE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_I2CBUSSENSOR);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_MEGAPORTS_STD);
     }
 
     @Override
@@ -69,6 +72,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDBridgeDeviceHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS)) {
             return new MegaDPortsHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_MEGAPORTS_STD)) {
+            return new MegaDPortsHandler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_I2C)) {
             return new MegaDItoCHandler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_1WIREBUS_BRIDGE)) {
@@ -79,6 +84,10 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDBridgeExtenderPortHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_EXTENDER)) {
             return new MegaDExtenderHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_ITOC_BRIDGE)) {
+            return new MegaDBridgeIToCBridgeHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_I2CBUSSENSOR)) {
+            return new MegaDItoCSensorHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
