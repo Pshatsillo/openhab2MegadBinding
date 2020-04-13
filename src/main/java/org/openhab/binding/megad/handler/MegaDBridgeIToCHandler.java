@@ -25,23 +25,22 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * The {@link MegaDBridgeIToCBridgeHandler} class defines I2C bus feature.
+ * The {@link MegaDBridgeIToCHandler} class defines I2C bus feature.
  * You can read I2C sensors connected to one port of MegaD as bus
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDBridgeIToCBridgeHandler extends BaseBridgeHandler {
-    private Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCBridgeHandler.class);
+public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
+    private Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCHandler.class);
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
-    public MegaDBridgeIToCBridgeHandler(Bridge bridge) {
+    public MegaDBridgeIToCHandler(Bridge bridge) {
         super(bridge);
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
 
     @Override
@@ -51,7 +50,9 @@ public class MegaDBridgeIToCBridgeHandler extends BaseBridgeHandler {
         updateStatus(ThingStatus.ONLINE);
     }
 
-
+    /**
+    @return array where [0] - hostname and [1] password
+    */
     @SuppressWarnings("null")
     public String[] getHostPassword(){
         String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};

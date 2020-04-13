@@ -53,7 +53,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
 
     @SuppressWarnings("null")
@@ -110,7 +109,6 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                                 megaD1WireSensorHandler.updateValues(getValues[1]);
                             }
                         }
-
                     } catch (Exception e) {
                         logger.debug("NOT 1-W BUS");
                     }

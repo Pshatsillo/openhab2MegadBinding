@@ -85,7 +85,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 }
             }, 0, 1000, TimeUnit.MILLISECONDS);
         }
-
     }
     @SuppressWarnings("null")
     private void refresh(){

@@ -135,6 +135,7 @@
 			<channel id="par0" typeId="par0"></channel>
 			<channel id="par1" typeId="par1"></channel>
 			<channel id="par2" typeId="par2"></channel>
+			<channel id="i2craw" typeId="i2craw"></channel>
 		</channels>
 
 		<config-description>
@@ -146,6 +147,10 @@
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>
+			</parameter>
+			<parameter name="rawparam" type="text">
+				<label>GET string of parameters for channel raw</label>
+				<description></description>
 			</parameter>
 		</config-description>
 	</thing-type>
@@ -364,5 +369,11 @@
 		<label>Parameter 2</label>
 		<description>Value with par=2 option</description>
 		<state readOnly="true" pattern="%.1f"></state>
+	</channel-type>
+	<channel-type id="i2craw">
+		<item-type>String</item-type>
+		<label>RAW data from i2c</label>
+		<description></description>
+		<state readOnly="true" pattern="%s"></state>
 	</channel-type>
 </thing:thing-descriptions>

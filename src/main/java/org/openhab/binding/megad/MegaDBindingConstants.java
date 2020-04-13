@@ -80,4 +80,5 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_PAR0= "par0";
     public static final String CHANNEL_PAR1= "par1";
     public static final String CHANNEL_PAR2= "par2";
+    public static final String CHANNEL_I2CRAW="i2craw";
 }

@@ -108,8 +108,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             }
-
-
         }
     }
 

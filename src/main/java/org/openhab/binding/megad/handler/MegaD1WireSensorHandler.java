@@ -91,7 +91,6 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
-
     }
 
     @SuppressWarnings("null")

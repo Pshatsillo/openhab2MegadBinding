@@ -18,6 +18,12 @@
 				<description>Port number to access the device channel.</description>
 				<default>0</default>
 			</parameter>
+			<parameter name="scl" type="text" required="true">
+				<label>scl port</label>
+				<description>SCL Port number</description>
+				<default>0</default>
+			</parameter>
+
 		</config-description>
 
 	</bridge-type>
