@@ -57,9 +57,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         int state = 0;
-
         String result = "";
-
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
             if (!command.toString().equals("REFRESH")) {
                 if (command.toString().equals("ON")) {
@@ -354,6 +352,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     int percent = 0;
+                    dimmervalue = Integer.parseInt(getCommands[2]);
                     try {
                         percent = (int) Math.round(Integer.parseInt(getCommands[2]) / 2.55);
                     } catch (Exception ex) {
