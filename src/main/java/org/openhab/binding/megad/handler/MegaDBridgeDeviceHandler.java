@@ -220,9 +220,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         if (megaportsHandler != null) {
                             String[] value = command.split("[=&]");
                             if (value[3].equals("0")) {
-                                megaportsHandler.updateValues(getCommands, OnOffType.OFF);
+                                String[] commandmod = {"","",value[3]};
+                                megaportsHandler.updateValues(commandmod, OnOffType.OFF);
                             } else {
-                                megaportsHandler.updateValues(getCommands, OnOffType.ON);
+                                String[] commandmod = {"","",value[3]};
+                                megaportsHandler.updateValues(commandmod, OnOffType.ON);
                             }
                         }
                     } else {
