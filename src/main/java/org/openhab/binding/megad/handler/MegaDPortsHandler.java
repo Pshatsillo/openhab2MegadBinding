@@ -123,7 +123,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
 
         String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
-        logger.debug("port {}, refresh interval is {} sec",getThing().getConfiguration().get("port").toString(), rr[0]);
+        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
         int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
@@ -139,20 +139,34 @@ public class MegaDPortsHandler extends BaseThingHandler {
     public void refresh(int interval) {
         long now = System.currentTimeMillis();
         if (startup) {
-           /* try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                logger.warn("{}", e.getLocalizedMessage());
-            }*/
+            int counter = 0;
+            while ((bridgeDeviceHandler
+                    .getPortsvalues(getThing().getConfiguration().get("port").toString())[2] == null)&&(counter != 300)) {
+                String[] portStatus = bridgeDeviceHandler
+                        .getPortsvalues(getThing().getConfiguration().get("port").toString());
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    logger.error("{}",e.getMessage());
+                }
+                logger.debug("waiting for value");
+                logger.debug("Port status of {} at startup is {}",getThing().getUID().toString(), portStatus);
+              counter ++;
+            }
             String[] portStatus = bridgeDeviceHandler
                     .getPortsvalues(getThing().getConfiguration().get("port").toString());
-
             logger.debug("Port status of {} at startup is {}",getThing().getUID().toString(), portStatus);
-            if (portStatus[2].contains("ON")) {
-                updateValues(portStatus, OnOffType.ON);
-            } else {
-                updateValues(portStatus, OnOffType.OFF);
+            assert portStatus[2] != null;
+            try {
+                if (portStatus[2].contains("ON")) {
+                    updateValues(portStatus, OnOffType.ON);
+                } else {
+                    updateValues(portStatus, OnOffType.OFF);
+                }
+            } catch (Exception e){
+                logger.debug("cannot set value for thing {}", getThing().getUID().toString());
             }
+
             startup = false;
         }
         if (interval != 0) {
@@ -297,7 +311,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
     public void updateValues(String[] getCommands, @Nullable OnOffType OnOff) {
         logger.debug("updateValues of thing {}: {},{}",getThing().getUID().toString(), getCommands, OnOff);
         // logger.debug("getThing() -> {}" ng().getUID().getId());
-        logger.debug("getActiveChannelListAsString() -> {}", getActiveChannelListAsString());
+        logger.debug("thing {}, active Channels is -> {}",getThing().getUID().toString(), getActiveChannelListAsString());
+        int counter = 0;
+        while ((getActiveChannelListAsString() == null) && (counter != 10)){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                logger.error("{}", e.getMessage());
+            }
+            counter ++;
+            logger.warn("thing {} has no active channels ", getThing().getUID().toString());
+        }
 
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
@@ -445,7 +469,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
-    public String getActiveChannelListAsString() {
+    public @Nullable String getActiveChannelListAsString() {
         String channelList = "";
         for (Channel channel : getThing().getChannels()) {
             // logger.debug("Channel ID {}", channel.getUID().getId());
@@ -457,6 +481,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 }
             }
         }
-        return channelList;
+        if(channelList.equals("")){
+            return null;
+        } else return channelList;
     }
 }

@@ -55,7 +55,7 @@ public class MegaHttpHelpers {
                     response.append(inputLine);
                 }
                 in.close();
-                logger.debug("input string from {}-> {}",URL, response.toString());
+                logger.debug("input string from {} -> {}",URL, response.toString());
                 result = response.toString().trim();
                 con.disconnect();
             } catch (IOException e) {

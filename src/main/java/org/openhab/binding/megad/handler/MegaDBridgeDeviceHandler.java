@@ -41,12 +41,16 @@ import java.util.concurrent.TimeUnit;
  */
 @NonNullByDefault
 public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
-    private Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
-    private @Nullable Map<String, MegaDPortsHandler> portsHandlerMap = new HashMap<>();
-    private @Nullable Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
-    private @Nullable Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
-    private @Nullable Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
-    private Map<String, String> portsvalues = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(MegaDBridgeDeviceHandler.class);
+    private @Nullable
+    final Map<String, MegaDPortsHandler> portsHandlerMap = new HashMap<>();
+    private @Nullable
+    final Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
+    private @Nullable
+    final Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
+    private @Nullable
+    final Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
+    private final Map<String, String> portsvalues = new HashMap<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     int pingCount;
 
@@ -192,7 +196,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                                 }
                             } else {
                                 if (megaportsHandler != null) {
-                                    megaportsHandler.updateValues(mode, null);
+                                    String[] commands = {"","",mode[0]};
+                                    megaportsHandler.updateValues(commands, null);
                                 }
                             }
                         }
@@ -281,9 +286,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         if (portsvalues.get(port) != null) {
             portvalue[2] = portsvalues.get(port).toString();
         } else {
-            portvalue[2] = "0";
+            portvalue[2] = null;
         }
-        ;
         portvalue[3] = "";
         portvalue[4] = "";
         return portvalue;

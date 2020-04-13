@@ -68,7 +68,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
         }
 
         String rr = getThing().getConfiguration().get("refresh").toString();
-        logger.debug("refresh: {}", rr);
+        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr);
         int pollingPeriod = Integer.parseInt(rr) * 1000;
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(() -> refresh(pollingPeriod), 0, 1000, TimeUnit.MILLISECONDS);
