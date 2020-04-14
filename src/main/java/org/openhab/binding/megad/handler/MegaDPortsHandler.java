@@ -247,6 +247,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
+                    if(updateRequest.equals("0")){
+                        logger.debug("dimmer value is 0, do not save dimmer value");
+                    } else {
+                        dimmervalue = Integer.parseInt(updateRequest);
+                    }
                     int percent = 0;
                     try {
                         percent = (int) Math.round(Integer.parseInt(updateRequest) / 2.55);
@@ -351,13 +356,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         logger.debug(" Cannot update click {}", ex.getLocalizedMessage());
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-                    int percent = 0;
-                    dimmervalue = Integer.parseInt(getCommands[2]);
+                    if(getCommands[2].equals("0")){
+                        logger.debug("dimmer value is 0, do not save dimmer value");
+                    } else {
+                        dimmervalue = Integer.parseInt(getCommands[2]);
+                    }
                     try {
-                        percent = (int) Math.round(Integer.parseInt(getCommands[2]) / 2.55);
+                        updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString((int) Math.round(Integer.parseInt(getCommands[2]) / 2.55))));
                     } catch (Exception ex) {
                     }
-                    updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
+
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
