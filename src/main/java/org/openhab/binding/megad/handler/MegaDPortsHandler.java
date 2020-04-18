@@ -75,7 +75,9 @@ public class MegaDPortsHandler extends BaseThingHandler {
             if (!command.toString().equals("REFRESH")) {
                 try {
                     int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
-                    dimmervalue = resultInt;
+                    if(resultInt != 0) {
+                        dimmervalue = resultInt;
+                    }
                     result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                             + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                             + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
