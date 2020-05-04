@@ -231,6 +231,24 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         if ((getCommands[0].equals("st")) || (getCommands[0].equals("sms_phone"))) {
                             logger.debug("{}", portsHandlerMap.size());
 
+                            String request = "http://" + getThing().getConfiguration().get("hostname").toString() + "/"
+                                    + getThing().getConfiguration().get("password").toString() + "/?cmd=all";
+                            String updateRequest = MegaHttpHelpers.sendRequest(request);
+                            String[] getValues = updateRequest.split("[;]");
+                            for (int i = 0; getValues.length > i; i++) {
+                                String[] val = {"","",getValues[i]};
+                                megaportsHandler = portsHandlerMap.get(String.valueOf(i));
+                                if (megaportsHandler != null) {
+                                    if(val[2].contains("ON")){
+                                        megaportsHandler.updateValues(val, OnOffType.ON);
+                                    } else if (val[2].contains("OFF")){
+                                        megaportsHandler.updateValues(val, OnOffType.OFF);
+                                    } else {
+                                        megaportsHandler.updateValues(val, null);
+                                    }
+                                }
+                            }
+
                             for (int i = 0; portsHandlerMap.size() > i; i++) {
                                 megaportsHandler = portsHandlerMap.get(portsHandlerMap.keySet().toArray()[i].toString());
                                 if (megaportsHandler != null) {
