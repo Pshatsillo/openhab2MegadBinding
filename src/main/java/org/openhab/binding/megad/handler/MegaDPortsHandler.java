@@ -48,7 +48,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     protected long lastRefresh = 0;
     boolean startup = true;
-    protected int dimmervalue;
+    protected int dimmervalue = 150;
     public MegaDPortsHandler(Thing thing) {
         super(thing);
     }
@@ -111,7 +111,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
-    // @SuppressWarnings({ "null", "unused" })
     @SuppressWarnings("null")
     @Override
     public void initialize() {

@@ -210,28 +210,34 @@
 			<channel id="apparentpower" typeId="apparentpower"/>
 			<channel id="reactivepower" typeId="reactivepower"/>
 			<channel id="powerfactor" typeId="powerfactor"/>
+			<channel id="phaseangle" typeId="phaseangle"/>
 			<channel id="frequency" typeId="frequency"/>
-			<channel id="importactiveenergy" typeId="importactiveenergy"/>
-			<channel id="exportactiveenergy" typeId="exportactiveenergy"/>
-			<channel id="importreactiveenergy" typeId="importreactiveenergy"/>
-			<channel id="exportreactiveenergy" typeId="exportreactiveenergy"/>
-			<channel id="totalsystempowerdemand" typeId="totalsystempowerdemand"/>
-			<channel id="maximumtotalsystempowerdemand" typeId="maximumtotalsystempowerdemand"/>
-			<channel id="importsystempowerdemand" typeId="importsystempowerdemand"/>
-			<channel id="maximumimportsystempowerdemand" typeId="maximumimportsystempowerdemand"/>
-			<channel id="exportsystempowerdemand" typeId="exportsystempowerdemand"/>
-			<channel id="maximumexportsystempowerdemand" typeId="maximumexportsystempowerdemand"/>
-			<channel id="currentdemand" typeId="currentdemand"/>
-			<channel id="maximumcurrentdemand" typeId="maximumcurrentdemand"/>
-			<channel id="totalactiveenergy" typeId="totalactiveenergy"/>
-			<channel id="totalreactiveenergy" typeId="totalreactiveenergy"/>
+			<channel id="importactnrg" typeId="importactnrg"/>
+			<channel id="exportactnrg" typeId="exportactnrg"/>
+			<channel id="importreactnrg" typeId="importreactnrg"/>
+			<channel id="exportreactnrg" typeId="exportreactnrg"/>
+			<channel id="totalsyspwrdmd" typeId="totalsyspwrdmd"/>
+			<channel id="maxtotalsyspwrdmd" typeId="maxtotalsyspwrdmd"/>
+			<channel id="importsyspwrdmd" typeId="importsyspwrdmd"/>
+			<channel id="maximportsyspwrdmd" typeId="maximportsyspwrdmd"/>
+			<channel id="exportsyspwrdmd" typeId="exportsyspwrdmd"/>
+			<channel id="maxexportsyspwrdmd" typeId="maxexportsyspwrdmd"/>
+			<channel id="currentdmd" typeId="currentdmd"/>
+			<channel id="maxcurrentdmd" typeId="maxcurrentdmd"/>
+			<channel id="totalactnrg" typeId="totalactnrg"/>
+			<channel id="totalreactnrg" typeId="totalreactnrg"/>
 		</channels>
 
 		<config-description>
-			<parameter name="port" type="text" required="true">
+			<parameter name="type" type="text" required="true">
 				<options>
 					<option value="sdm120">Eastron SDM 120 energy meter</option>
 				</options>
+			</parameter>
+			<parameter name="address" type="text" required="true">
+				<label>Modbus address</label>
+				<description>Modbus address</description>
+				<default>01</default>
 			</parameter>
 			<parameter name="refresh" type="integer" required="true">
 				<label>refresh</label>
@@ -427,129 +433,135 @@
 
 
 	<channel-type id="voltage">
-		<item-type>Number</item-type>
+		<item-type>Number:ElectricPotential</item-type>
 		<label>Voltage</label>
 		<description>Voltage</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="current">
-		<item-type>Number</item-type>
+		<item-type>Number:ElectricCurrent</item-type>
 		<label>Current</label>
 		<description>Current</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="activepower">
-		<item-type>Number</item-type>
-		<label>active power</label>
-		<description>active power</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<item-type>Number:Power</item-type>
+		<label>Active power</label>
+		<description>Active power</description>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="apparentpower">
 		<item-type>Number</item-type>
-		<label>apparent power</label>
+		<label>Apparent power</label>
 		<description>apparent power</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="reactivepower">
 		<item-type>Number</item-type>
-		<label>reactive power</label>
+		<label>Reactive power</label>
 		<description>reactive power</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="powerfactor">
 		<item-type>Number</item-type>
-		<label>power factor</label>
+		<label>Power factor</label>
 		<description>power factor</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="phaseangle">
+		<item-type>Number</item-type>
+		<label>Phase angle</label>
+		<description>frequency</description>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="frequency">
-		<item-type>Number</item-type>
-		<label>frequency</label>
+		<item-type>Number:Frequency</item-type>
+		<label>Frequency</label>
 		<description>frequency</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="importactiveenergy">
-		<item-type>Number</item-type>
-		<label>importactive energy</label>
+	<channel-type id="importactnrg">
+		<item-type>Number:Energy</item-type>
+		<label>Import active energy</label>
 		<description>importactive energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="exportactiveenergy">
+	<channel-type id="exportactnrg">
 		<item-type>Number</item-type>
-		<label>export active energy</label>
+		<label>Export active energy</label>
 		<description>export active energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="importreactiveenergy">
+	<channel-type id="importreactnrg">
 		<item-type>Number</item-type>
-		<label>import reactive energy</label>
+		<label>Import reactive energy</label>
 		<description>import reactive energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="exportreactiveenergy">
+	<channel-type id="exportreactnrg">
 		<item-type>Number</item-type>
-		<label>export reactive energy</label>
+		<label>Export reactive energy</label>
 		<description>export reactive energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="totalsystempowerdemand">
+	<channel-type id="totalsyspwrdmd">
 		<item-type>Number</item-type>
-		<label>total system power demand</label>
+		<label>Total system power demand</label>
 		<description>total system power demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="maximumtotalsystempowerdemand">
+	<channel-type id="maxtotalsyspwrdmd">
 		<item-type>Number</item-type>
-		<label>maximum total system power demand</label>
+		<label>Maximum total system power demand</label>
 		<description>maximum total system power demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="importsystempowerdemand">
+	<channel-type id="importsyspwrdmd">
 		<item-type>Number</item-type>
-		<label>import system power demand</label>
+		<label>Import system power demand</label>
 		<description>import system power demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="maximumimportsystempowerdemand">
+	<channel-type id="maximportsyspwrdmd">
 	<item-type>Number</item-type>
-	<label>maximum import system power demand</label>
+	<label>Maximum import system power demand</label>
 	<description>maximum import system power demand</description>
-	<state readOnly="true" pattern="%.1f"/>
+	<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="exportsystempowerdemand">
+	<channel-type id="exportsyspwrdmd">
 		<item-type>Number</item-type>
-		<label>export system power demand</label>
+		<label>Export system power demand</label>
 		<description>export system power demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="maximumexportsystempowerdemand">
+	<channel-type id="maxexportsyspwrdmd">
 	<item-type>Number</item-type>
-	<label>maximum export system power demand</label>
+	<label>Maximum export system power demand</label>
 	<description>maximum export system power demand</description>
-	<state readOnly="true" pattern="%.1f"/>
+	<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="currentdemand">
+	<channel-type id="currentdmd">
 		<item-type>Number</item-type>
-		<label>current demand</label>
+		<label>Current demand</label>
 		<description>current demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="maximumcurrentdemand">
+	<channel-type id="maxcurrentdmd">
 		<item-type>Number</item-type>
-		<label>maximum current demand</label>
+		<label>Maximum current demand</label>
 		<description>maximum current demand</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="totalactiveenergy">
+	<channel-type id="totalactnrg">
 		<item-type>Number</item-type>
-		<label>total active energy</label>
+		<label>Total active energy</label>
 		<description>total active energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
-	<channel-type id="totalreactiveenergy">
+	<channel-type id="totalreactnrg">
 		<item-type>Number</item-type>
-		<label>total reactive energy</label>
+		<label>Total reactive energy</label>
 		<description>total reactive energy</description>
-		<state readOnly="true" pattern="%.1f"/>
+		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 </thing:thing-descriptions>

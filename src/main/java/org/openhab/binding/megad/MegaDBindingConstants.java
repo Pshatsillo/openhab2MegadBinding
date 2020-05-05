@@ -37,12 +37,11 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_MEGAPORTS_STD = new ThingTypeUID(BINDING_ID, "standard");
     public static final ThingTypeUID THING_TYPE_DEVICE_BRIDGE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
-    public static final ThingTypeUID THING_TYPE_MEGAD2W = new ThingTypeUID(BINDING_ID, "megad2w");
     public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
+    public static final ThingTypeUID THING_TYPE_RS485 = new ThingTypeUID(BINDING_ID, "rs485");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
-    public static final String CHANNEL_RAWIN = "rawin";
     public static final String CHANNEL_INCOUNT = "incount";
     public static final String CHANNEL_OUT = "out";
     public static final String CHANNEL_DIMMER = "dimmer";
@@ -56,8 +55,6 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_IB = "ib";
     public static final String CHANNEL_WIEGAND = "wiegand";
     public static final String CHANNEL_TGET = "tget";
-    public static final String CHANNEL_I2C = "i2c";
-    public static final String CHANNEL_I2C_DISPLAY = "i2cdisplay";
     public static final String CHANNEL_CONTACT = "contact";
     public static final String CHANNEL_SMS_PHONE = "smsphone";
     public static final String CHANNEL_SMS_TEXT = "smstext";
@@ -81,4 +78,28 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_PAR1= "par1";
     public static final String CHANNEL_PAR2= "par2";
     public static final String CHANNEL_I2CRAW="i2craw";
+
+    //rs485 sdm120
+    public static final String CHANNEL_VOLTAGE = "voltage";
+    public static final String CHANNEL_CURRENT = "current";
+    public static final String CHANNEL_ACTIVEPOWER = "activepower";
+    public static final String CHANNEL_APPARENTPOWER = "apparentpower";
+    public static final String CHANNEL_REACTIVEPOWER = "reactivepower";
+    public static final String CHANNEL_POWERFACTOR = "powerfactor";
+    public static final String CHANNEL_PHASEANGLE = "phaseangle";
+    public static final String CHANNEL_FREQUENCY = "frequency";
+    public static final String CHANNEL_IMPORTACTNRG = "importactnrg";
+    public static final String CHANNEL_EXPORTACTNRG = "exportactnrg";
+    public static final String CHANNEL_IMPORTREACTNRG = "importreactnrg";
+    public static final String CHANNEL_EXPORTREACTNRG = "exportreactnrg";
+    public static final String CHANNEL_TOTALSYSPWRDMD = "totalsyspwrdmd";
+    public static final String CHANNEL_MAXTOTALSYSPWRDMD = "maxtotalsyspwrdmd";
+    public static final String CHANNEL_IMPORTSYSPWRDMD = "importsyspwrdmd";
+    public static final String CHANNEL_MAXIMPORTSYSPWRDMD = "maximportsyspwrdmd";
+    public static final String CHANNEL_EXPORTSYSPWRDMD = "exportsyspwrdmd";
+    public static final String CHANNEL_MAXEXPORTSYSPWRDMD = "maxexportsyspwrdmd";
+    public static final String CHANNEL_CURRENTDMD = "currentdmd";
+    public static final String CHANNEL_MAXCURRENTDMD = "maxcurrentdmd";
+    public static final String CHANNEL_TOTALACTNRG = "totalactnrg";
+    public static final String CHANNEL_TOTALREACTNRG = "totalreactnrg";
 }
