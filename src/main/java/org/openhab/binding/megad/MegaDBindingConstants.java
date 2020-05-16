@@ -39,6 +39,7 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
     public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
     public static final ThingTypeUID THING_TYPE_RS485 = new ThingTypeUID(BINDING_ID, "rs485");
+    public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -102,4 +103,8 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_MAXCURRENTDMD = "maxcurrentdmd";
     public static final String CHANNEL_TOTALACTNRG = "totalactnrg";
     public static final String CHANNEL_TOTALREACTNRG = "totalreactnrg";
+    //lcd 1609
+    public static final String CHANNEL_LINE1 = "line1";
+    public static final String CHANNEL_LINE2 = "line2";
+
 }

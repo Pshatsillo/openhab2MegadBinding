@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megad"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+<thing-type id="1wireaddress">
+	<supported-bridge-type-refs>
+			<bridge-type-ref id="1wirebus"/>
+	</supported-bridge-type-refs>
+		<label>MegaD 1wire bus Thing</label>
+		<description>Binding for 1wire bus feature of Megadevice like Temperatur sensors or Mege-2W module</description>
+
+		<channels>
+			<channel id="1wtemp" typeId="1wtemp"/>
+			<channel id="a" typeId="a"/>
+			<channel id="b" typeId="b"/>
+		</channels>
+
+		<config-description>
+			<parameter name="address" type="text" required="true">
+				<label>address of 1-wire sensor</label>
+			</parameter>
+		</config-description>
+</thing-type>
+</thing:thing-descriptions>

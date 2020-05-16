@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megad"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+
+	<thing-type id="standart">
+
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="device"/>
+		</supported-bridge-type-refs>
+
+		<label>(DEPRECATED) PLEASE USE MegaD Standard Thing</label>
+		<description>DO NOT USE THIS</description>
+
+		<channels>
+			<channel id="in" typeId="in" />
+			<channel id="incount" typeId="incount"/>
+			<channel id="out" typeId="out"/>
+			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="m2signal" typeId="m2signal"/>
+			<channel id="click" typeId="click"/>
+			<channel id="onewire" typeId="onewire"/>
+			<channel id="adc" typeId="adc"/>
+			<channel id="at" typeId="at"/>
+			<channel id="st" typeId="st"/>
+			<channel id="ib" typeId="ib"/>
+			<channel id="wiegand" typeId="wiegand"/>
+			<channel id="tget" typeId="tget"/>
+			<channel id="contact" typeId="contact"/>
+			<channel id="i2cdisplay" typeId="i2cdisplay"/>
+			<channel id="smsphone" typeId="smsphone"/>
+			<channel id="smstext" typeId="smstext"/>
+		</channels>
+		<config-description>
+			<parameter name="port" type="text" required="true">
+				<label>port</label>
+				<description>Port number to access the device channel.</description>
+				<default>0</default>
+			</parameter>
+			<parameter name="refresh" type="integer" required="true">
+				<label>refresh</label>
+				<description>refresh interval channel</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+	<thing-type id="standard">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="device"/>
+		</supported-bridge-type-refs>
+		<label>MegaD Standard Thing</label>
+		<description>Binding for standard Megad features</description>
+		<channels>
+			<channel id="in" typeId="in" />
+			<channel id="incount" typeId="incount"/>
+			<channel id="out" typeId="out"/>
+			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="m2signal" typeId="m2signal"/>
+			<channel id="click" typeId="click"/>
+			<channel id="onewire" typeId="onewire"/>
+			<channel id="adc" typeId="adc"/>
+			<channel id="at" typeId="at"/>
+			<channel id="st" typeId="st"/>
+			<channel id="ib" typeId="ib"/>
+			<channel id="wiegand" typeId="wiegand"/>
+			<channel id="tget" typeId="tget"/>
+			<channel id="contact" typeId="contact"/>
+			<channel id="i2cdisplay" typeId="i2cdisplay"/>
+			<channel id="smsphone" typeId="smsphone"/>
+			<channel id="smstext" typeId="smstext"/>
+		</channels>
+
+		<config-description>
+			<parameter name="port" type="text" required="true">
+				<label>port</label>
+				<description>Port number to access the device channel.</description>
+				<default>0</default>
+			</parameter>
+			<parameter name="refresh" type="integer" required="true">
+				<label>refresh</label>
+				<description>refresh interval channel</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+</thing:thing-descriptions>
