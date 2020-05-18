@@ -40,6 +40,7 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
     public static final ThingTypeUID THING_TYPE_RS485 = new ThingTypeUID(BINDING_ID, "rs485");
     public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
+    public static final ThingTypeUID THING_TYPE_ENCODER = new ThingTypeUID(BINDING_ID, "encoder");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -106,5 +107,9 @@ public class MegaDBindingConstants {
     //lcd 1609
     public static final String CHANNEL_LINE1 = "line1";
     public static final String CHANNEL_LINE2 = "line2";
+    //encoder
+    public static final String CHANNEL_DIRECTION = "direction";
+    public static final String CHANNEL_BUTTON = "button";
+    public static final String CHANNEL_ENCODERDIGITS = "encoderdigits";
 
 }

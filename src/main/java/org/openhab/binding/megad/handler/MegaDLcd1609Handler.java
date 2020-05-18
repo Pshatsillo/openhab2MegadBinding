@@ -61,11 +61,11 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
             if (!command.toString().equals("REFRESH")) {
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text=_________________&col=0&row=0";
+                        + getThing().getConfiguration().get("port").toString() + "&text=_________________";
                 sendCommand(result);
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command+"&col=0&row=0";
+                        + getThing().getConfiguration().get("port").toString() + "&text="+command;
                 sendCommand(result);
             }
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)){

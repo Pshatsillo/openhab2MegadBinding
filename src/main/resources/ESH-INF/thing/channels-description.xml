@@ -51,10 +51,10 @@
 		<item-type>Number:Dimensionless</item-type>
 		<label>Humidity</label>
 		<description>Humidity from sensor</description>
-		<state readOnly="true" pattern="%.1f %unit%"/>
+		<state readOnly="true" pattern="%.1f %%"/>
 	</channel-type>
 	<channel-type id="pressure">
-		<item-type>Number:Dimensionless</item-type>
+		<item-type>Number:Pressure</item-type>
 		<label>Pressure</label>
 		<description>Pressure</description>
 		<state readOnly="true" pattern="%.1f %unit%"/>
@@ -332,6 +332,22 @@
 		<item-type>String</item-type>
 		<label>Line 2</label>
 		<state pattern="%s"/>
+	</channel-type>
+
+
+	<channel-type id="direction">
+		<item-type>Rollershutter</item-type>
+		<label>Direction</label>
+		<state pattern="%s"/>
+	</channel-type>
+	<channel-type id="button">
+		<item-type>Switch</item-type>
+		<label>Press encoder</label>
+	</channel-type>
+	<channel-type id="encoderdigits">
+		<item-type>Number</item-type>
+		<label>Digit value</label>
+		<state pattern="%d"/>
 	</channel-type>
 
 </thing:thing-descriptions>

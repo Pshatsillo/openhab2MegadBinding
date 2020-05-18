@@ -50,6 +50,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     final Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable
     final Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
+    private @Nullable
+    final Map<String, MegaDEncoderHandler> megaDEncoderHandlerMap = new HashMap<>();
     private final Map<String, String> portsvalues = new HashMap<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     int pingCount;
@@ -58,7 +60,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     MegaDBridgeIncomingHandler bridgeIncomingHandler;
     @Nullable
     MegaDPortsHandler megaportsHandler;
-
+    @Nullable
+    MegaDEncoderHandler megaDEncoderHandler;
     public MegaDBridgeDeviceHandler(Bridge bridge) {
         super(bridge);
     }
@@ -160,7 +163,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         logger.debug("host: {}", getThing().getConfiguration().get("hostname").toString());
         if(command != null) {
             String[] getCommands = command.split("[?&>=]");
-            if (portsHandlerMap != null) {
+            if (portsHandlerMap.size() != 0) {
                 if (command.contains("all=")) { // loop incoming
                     logger.debug("Loop incoming from Megad: {} {}",
                             getThing().getConfiguration().get("hostname").toString(), command);
@@ -263,7 +266,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     }
                 }
             }
-            if (extenderBridgeHandlerMap != null) {
+            if (extenderBridgeHandlerMap.size() != 0) {
                 if (command.contains("ext")) {
                     extenderBridgeHandlerMap.forEach((k, v) -> {
                         if (v.getThing().getConfiguration().get("int").equals(getCommands[1])) {
@@ -271,6 +274,10 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         }
                     });
                 }
+            }
+            if(megaDEncoderHandlerMap.size() != 0) {
+                megaDEncoderHandler = megaDEncoderHandlerMap.get(getCommands[1]);
+                megaDEncoderHandler.updateValues(getCommands[3]);
             }
         }
     }
@@ -440,5 +447,36 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                                           ThingStatusDetail statusDetail, String decript) {
         megaDBridge1WireBusHandler.updateStatus(status, statusDetail, decript);
     }
+
 //1WBRIDGE --------------------------------------------------------------------
+
+//ENCODER
+
+    @SuppressWarnings({ "null", "unused" })
+    public void registerMegadEncoderListener(MegaDEncoderHandler megaDEncoderHandler) {
+        String extenderPort = megaDEncoderHandler.getThing().getConfiguration().get("int").toString();
+
+        if (megaDEncoderHandlerMap.get(extenderPort) != null) {
+            updateThingHandlerStatus(megaDEncoderHandler, ThingStatus.OFFLINE,
+                    ThingStatusDetail.CONFIGURATION_ERROR, "Device already exist");
+        } else {
+            megaDEncoderHandlerMap.put(extenderPort, megaDEncoderHandler);
+            updateThingHandlerStatus(megaDEncoderHandler, ThingStatus.ONLINE);
+        }
+    }
+
+    public void unregisterMegaDEncoderListener(MegaDEncoderHandler megaDEncoderHandler) {
+        String extenderPort = megaDEncoderHandler.getThing().getConfiguration().get("int").toString();
+        if (oneWireBusBridgeHandlerMap.get(extenderPort) != null) {
+            oneWireBusBridgeHandlerMap.remove(extenderPort);
+            updateThingHandlerStatus(megaDEncoderHandler, ThingStatus.OFFLINE);
+        }
+    }
+    private void updateThingHandlerStatus(MegaDEncoderHandler megaDEncoderHandler, ThingStatus status) {
+        megaDEncoderHandler.updateStatus(status);
+    }
+    private void updateThingHandlerStatus(MegaDEncoderHandler megaDEncoderHandler, ThingStatus status,
+                                          ThingStatusDetail statusDetail, String decript) {
+        megaDEncoderHandler.updateStatus(status, statusDetail, decript);
+    }
 }
