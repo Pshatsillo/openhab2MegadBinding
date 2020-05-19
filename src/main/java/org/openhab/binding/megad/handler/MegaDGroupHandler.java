@@ -14,10 +14,8 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.thing.*;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
@@ -31,55 +29,48 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Objects;
-import java.util.concurrent.ScheduledFuture;
 
 /**
- * The {@link MegaDLcd1609Handler} is responsible for LCD1609 feature of megad
+ * The {@link MegaDGroupHandler} is responsible for group feature of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDLcd1609Handler extends BaseThingHandler {
-    private final Logger logger = LoggerFactory.getLogger(MegaDLcd1609Handler.class);
-    @Nullable MegaDBridgeDeviceHandler  bridgeDeviceHandler;
+public class MegaDGroupHandler extends BaseThingHandler {
+    private final Logger logger = LoggerFactory.getLogger(MegaDGroupHandler.class);
+    @Nullable MegaDBridgeDeviceHandler bridgeDeviceHandler;
 
-    public MegaDLcd1609Handler(Thing thing) {
+    public MegaDGroupHandler(Thing thing) {
         super(thing);
+    }
+
+    @Override
+    public void handleCommand(ChannelUID channelUID, Command command) {
+        String result = "";
+        int state = 0;
+        if (!command.toString().equals("REFRESH")) {
+            if (command.toString().equals("ON")) {
+                state = 1;
+            }
+            if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_GROUP)) {
+                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                            + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd=g"
+                            + getThing().getConfiguration().get("groupnumber").toString() + ":" + state;
+                    sendCommand(result);
+            }
+        } else {
+            for (Channel channel : getThing().getChannels()) {
+                if (isLinked(channel.getUID().getId())) {
+                    updateState(channel.getUID().getId(), OnOffType.OFF);
+                }
+            }
+        }
     }
 
     @Override
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         updateStatus(ThingStatus.ONLINE);
-    }
-
-    @Override
-    public void handleCommand(ChannelUID channelUID, Command command) {
-        logger.debug("LCD send command: {}", command);
-        String result = "";
-        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)){
-            if (!command.toString().equals("REFRESH")) {
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text=_________________";
-                sendCommand(result);
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command;
-                sendCommand(result);
-            }
-        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)){
-            if (!command.toString().equals("REFRESH")) {
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text=_________________&col=0&row=1";
-                sendCommand(result);
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command+"&col=0&row=1";
-                sendCommand(result);
-            }
-        }
     }
 
     @SuppressWarnings("null")
@@ -125,6 +116,7 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
             return null;
         }
     }
+
     @SuppressWarnings("null")
     @Override
     public void dispose() {

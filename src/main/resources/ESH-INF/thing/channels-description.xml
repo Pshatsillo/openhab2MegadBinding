@@ -350,4 +350,9 @@
 		<state pattern="%d"/>
 	</channel-type>
 
+	<channel-type id="groupswitch">
+		<item-type>Switch</item-type>
+		<label>Group switch</label>
+	</channel-type>
+
 </thing:thing-descriptions>

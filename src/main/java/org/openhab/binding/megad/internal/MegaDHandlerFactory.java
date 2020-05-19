@@ -59,6 +59,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_RS485);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_LCD1609);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_ENCODER);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_GROUP);
     }
 
     @Override
@@ -97,6 +98,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDLcd1609Handler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_ENCODER)) {
             return new MegaDEncoderHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_GROUP)) {
+            return new MegaDGroupHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
