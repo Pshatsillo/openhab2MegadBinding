@@ -163,6 +163,17 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         logger.debug("host: {}", getThing().getConfiguration().get("hostname").toString());
         if(command != null) {
             String[] getCommands = command.split("[?&>=]");
+            String[] prm = command.split("[&]");
+            HashMap<String,String> params = new HashMap<>();
+
+            for (String param : prm) {
+                try {
+                    params.put(param.split("=")[0], param.split("=")[1]);
+                } catch (Exception e){
+                    params.put(param.split("=")[0], " ");
+                }
+            }
+
             if (portsHandlerMap.size() != 0) {
                 if (command.contains("all=")) { // loop incoming
                     logger.debug("Loop incoming from Megad: {} {}",
@@ -221,12 +232,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         }
                     } else if (command.contains("v=")) { // slave mode
                         if (megaportsHandler != null) {
-                            String[] value = command.split("[=&]");
-                            if (value[3].equals("0")) {
-                                String[] commandmod = {"","v",value[3]};
+                            if (params.get("v").equals("0")) {
+                                String[] commandmod = {"","v",params.get("v")};
                                 megaportsHandler.updateValues(commandmod, OnOffType.OFF);
                             } else {
-                                String[] commandmod = {"","",value[3]};
+                                String[] commandmod = {"","",params.get("v")};
                                 megaportsHandler.updateValues(commandmod, OnOffType.ON);
                             }
                         }

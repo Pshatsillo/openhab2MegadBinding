@@ -139,31 +139,33 @@ public class MegaDPortsHandler extends BaseThingHandler {
         long now = System.currentTimeMillis();
         if (startup) {
             int counter = 0;
-            while ((bridgeDeviceHandler
-                    .getPortsvalues(getThing().getConfiguration().get("port").toString())[2] == null)&&(counter != 300)) {
+            if(bridgeDeviceHandler != null) {
+                while ((bridgeDeviceHandler
+                        .getPortsvalues(getThing().getConfiguration().get("port").toString())[2] == null) && (counter != 300)) {
+                    String[] portStatus = bridgeDeviceHandler
+                            .getPortsvalues(getThing().getConfiguration().get("port").toString());
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        logger.error("{}", e.getMessage());
+                    }
+                    logger.debug("waiting for value");
+                    logger.debug("Port status of {} at startup is {}", getThing().getUID().toString(), portStatus);
+                    counter++;
+                }
                 String[] portStatus = bridgeDeviceHandler
                         .getPortsvalues(getThing().getConfiguration().get("port").toString());
+                logger.debug("Port status of {} at startup is {}", getThing().getUID().toString(), portStatus);
+                assert portStatus[2] != null;
                 try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    logger.error("{}",e.getMessage());
+                    if (portStatus[2].contains("ON")) {
+                        updateValues(portStatus, OnOffType.ON);
+                    } else {
+                        updateValues(portStatus, OnOffType.OFF);
+                    }
+                } catch (Exception e) {
+                    logger.debug("cannot set value for thing {}", getThing().getUID().toString());
                 }
-                logger.debug("waiting for value");
-                logger.debug("Port status of {} at startup is {}",getThing().getUID().toString(), portStatus);
-              counter ++;
-            }
-            String[] portStatus = bridgeDeviceHandler
-                    .getPortsvalues(getThing().getConfiguration().get("port").toString());
-            logger.debug("Port status of {} at startup is {}",getThing().getUID().toString(), portStatus);
-            assert portStatus[2] != null;
-            try {
-                if (portStatus[2].contains("ON")) {
-                    updateValues(portStatus, OnOffType.ON);
-                } else {
-                    updateValues(portStatus, OnOffType.OFF);
-                }
-            } catch (Exception e){
-                logger.debug("cannot set value for thing {}", getThing().getUID().toString());
             }
 
             startup = false;
