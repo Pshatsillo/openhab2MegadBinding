@@ -24,7 +24,7 @@
 				<label>Sensor Type</label>
 				<description>Sensor type from megaD config</description>
 			</parameter>
-			<parameter name="refresh" type="integer" required="true">
+			<parameter name="refresh" type="text" required="true">
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>

@@ -63,17 +63,17 @@ public class MegaDItoCHandler extends BaseThingHandler {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
-        logger.debug("refresh: {}", rr[0]);
-
+        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
+        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
+        float msec = Float.parseFloat(rr[0]);
+        int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                 @Override
                 public void run() {
-                    int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
                     refresh(pollingPeriod);
                 }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            }, 0, 100, TimeUnit.MILLISECONDS);
         }
     }
     @SuppressWarnings({ "unused", "null" })

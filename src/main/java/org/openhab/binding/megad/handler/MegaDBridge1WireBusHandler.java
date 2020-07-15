@@ -67,11 +67,17 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        String rr = getThing().getConfiguration().get("refresh").toString();
-        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr);
-        int pollingPeriod = Integer.parseInt(rr) * 1000;
+        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
+        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
+        float msec = Float.parseFloat(rr[0]);
+        int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(() -> refresh(pollingPeriod), 0, 1000, TimeUnit.MILLISECONDS);
+            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    refresh(pollingPeriod);
+                }
+            }, 0, 100, TimeUnit.MILLISECONDS);
         }
     }
 

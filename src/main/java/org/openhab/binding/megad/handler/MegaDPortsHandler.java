@@ -65,6 +65,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 } else if (command.toString().equals("OFF")) {
                     state = 0;
                 }
+                assert bridgeDeviceHandler != null;
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                         + getThing().getConfiguration().get("port").toString() + ":" + state;
@@ -74,10 +75,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
                 try {
-                    int resultInt = (int) Math.round(Integer.parseInt(command.toString().split("[.]")[0]) * 2.55);
-                    if(resultInt != 0) {
+                    int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                    int resultInt = (int) Math.round(uivalue * 2.55);
+                    if(uivalue == 1){
+                        resultInt = uivalue;
+                    } else if(resultInt != 0) {
                         dimmervalue = resultInt;
                     }
+                    assert bridgeDeviceHandler != null;
                     result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                             + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                             + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
@@ -85,6 +90,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     sendCommand(result);
                 } catch (Exception e) {
                     if (command.toString().equals("OFF")) {
+                        assert bridgeDeviceHandler != null;
                         result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                                 + getThing().getConfiguration().get("port").toString() + ":0";
@@ -92,6 +98,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         sendCommand(result);
                         updateState(channelUID.getId(), PercentType.valueOf("0"));
                     } else if (command.toString().equals("ON")) {
+                        assert bridgeDeviceHandler != null;
                         result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                                 + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
@@ -121,16 +128,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        String[] rr = getThing().getConfiguration().get("refresh").toString().split("[.]");
+        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
         logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
-        int pollingPeriod = Integer.parseInt(rr[0]) * 1000;
+        float msec = Float.parseFloat(rr[0]);
+        int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                 @Override
                 public void run() {
                     refresh(pollingPeriod);
                 }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            }, 0, 100, TimeUnit.MILLISECONDS);
         }
     }
 
