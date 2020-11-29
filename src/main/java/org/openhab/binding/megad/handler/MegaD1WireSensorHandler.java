@@ -12,23 +12,24 @@
  */
 package org.openhab.binding.megad.handler;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.thing.*;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.megad.MegaDBindingConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.thing.*;
+import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.types.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The {@link MegaD1WireSensorHandler} class defines 1-wire bus feature.
  * You can read 1-wire sensors connected to one port of MegaD as bus
@@ -46,11 +47,12 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
     public MegaD1WireSensorHandler(Thing thing) {
         super(thing);
     }
+
     @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         int state = 0;
-        String cmd ="";
+        String cmd = "";
         String addr = "";
         if (!command.toString().equals("REFRESH")) {
             if (command.toString().equals("ON")) {
@@ -60,19 +62,19 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
             }
             if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_A)) {
                 cmd = bridge1WireBusHandler.getThing().getConfiguration().get("port").toString() + "A:";
-            } else  if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)) {
+            } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)) {
                 cmd = bridge1WireBusHandler.getThing().getConfiguration().get("port").toString() + "B:";
             }
-            if(!getThing().getConfiguration().get("address").equals("0")){
+            if (!getThing().getConfiguration().get("address").equals("0")) {
                 addr = "&addr=" + getThing().getConfiguration().get("address").toString();
             }
             String result = "http://" + bridge1WireBusHandler.getHostPassword()[0] + "/"
-                    + bridge1WireBusHandler.getHostPassword()[1] + "/?cmd="
-                    + cmd + state + addr;
+                    + bridge1WireBusHandler.getHostPassword()[1] + "/?cmd=" + cmd + state + addr;
             logger.debug("Switch: {}", result);
             sendCommand(result);
         }
     }
+
     @SuppressWarnings("null")
     @Override
     public void dispose() {
@@ -98,7 +100,7 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
         String[] ports = portStatus.split("[/]");
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
-                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_A)){
+                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_A)) {
                     try {
                         if (ports[0].equals("ON")) {
                             updateState(channel.getUID().getId(), OnOffType.ON);
@@ -107,10 +109,10 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
                         } else {
                             logger.debug("Status {} is udefined", ports[0]);
                         }
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         logger.debug("Cannot find value for port A");
                     }
-                } else if(channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)){
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MEGAD2W_B)) {
                     try {
                         if (ports[1].equals("ON")) {
                             updateState(channel.getUID().getId(), OnOffType.ON);
@@ -119,7 +121,7 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
                         } else {
                             logger.debug("Status {} is udefined", ports[1]);
                         }
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         logger.debug("Cannot find value for port B");
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_1WTEMP)) {
@@ -127,7 +129,7 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
                     try {
                         updateState(channel.getUID().getId(),
                                 DecimalType.valueOf(bridge1WireBusHandler.getOwvalues(address)));
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         logger.debug("Can't update 1w-bus channel value bacause of {}", e.getMessage());
                     }
                 }
@@ -157,8 +159,7 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
         } catch (MalformedURLException | ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ",
-                    bridge1WireBusHandler.getHostPassword()[0],
+            logger.error("Connect to megadevice {} {} error: ", bridge1WireBusHandler.getHostPassword()[0],
                     e.getLocalizedMessage());
         }
     }
@@ -199,5 +200,4 @@ public class MegaD1WireSensorHandler extends BaseThingHandler {
             bridgeHandler.registerMegad1WireListener(this);
         }
     }
-
 }

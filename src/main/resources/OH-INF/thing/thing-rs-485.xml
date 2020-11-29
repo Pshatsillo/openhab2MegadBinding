@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad"
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 	<thing-type id="rs485">
 		<supported-bridge-type-refs>
@@ -11,7 +11,7 @@
 		<label>MegaD rs485 Thing</label>
 		<description>Binding for Modbus/rs485 Megad feature</description>
 		<channels>
-			<channel id="voltage" typeId="voltage" />
+			<channel id="voltage" typeId="voltage"/>
 			<channel id="current" typeId="current"/>
 			<channel id="activepower" typeId="activepower"/>
 			<channel id="apparentpower" typeId="apparentpower"/>

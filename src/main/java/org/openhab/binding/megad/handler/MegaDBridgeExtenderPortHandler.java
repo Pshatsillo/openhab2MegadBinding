@@ -12,23 +12,23 @@
  */
 package org.openhab.binding.megad.handler;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.types.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDBridgeExtenderPortHandler} is responsible for creating MegaD extenders
@@ -50,6 +50,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     protected long lastRefresh = 0;
     @Nullable
     MegaDExtenderHandler megaDExtenderHandler;
+
     public MegaDBridgeExtenderPortHandler(Bridge bridge) {
         super(bridge);
     }
@@ -57,6 +58,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
+
     @SuppressWarnings({ "unused", "null" })
     @Override
     public void initialize() {
@@ -66,8 +68,8 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
-        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
-        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
+        String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
+        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
         float msec = Float.parseFloat(rr[0]);
         int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
@@ -85,16 +87,18 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
         long now = System.currentTimeMillis();
         if (interval != 0) {
             if (now >= (lastRefresh + interval)) {
-                String request = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt=" + getThing().getConfiguration().get("port").toString() + "&cmd=get";
+                String request = "http://"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                        + getThing().getConfiguration().get("port").toString() + "&cmd=get";
                 String updateRequest = MegaHttpHelpers.sendRequest(request);
                 String[] getValues = updateRequest.split("[;]");
                 for (int i = 0; getValues.length > i; i++) {
                     setPortsvalues(String.valueOf(i), getValues[i]);
-                        megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(i));
-                        if(megaDExtenderHandler != null) {
-                            megaDExtenderHandler.update();
-                        }
+                    megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(i));
+                    if (megaDExtenderHandler != null) {
+                        megaDExtenderHandler.update();
+                    }
                 }
                 setStateStarted(true);
 
@@ -102,6 +106,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             }
         }
     }
+
     @SuppressWarnings("null")
     public void updateValues(String[] getCommands) {
         String port = getCommands[2].substring(3);
@@ -118,7 +123,6 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     public boolean getStateStarted() {
         return startedState;
     }
-
 
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
@@ -139,12 +143,14 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             return null;
         }
     }
+
     private void registerMegaExtenderPortBridgeListener(@Nullable MegaDBridgeDeviceHandler bridgeDeviceHandler) {
         if (bridgeDeviceHandler != null) {
             bridgeDeviceHandler.registerMegaExtenderPortListener(this);
         }
     }
-    @SuppressWarnings({"unused","null"})
+
+    @SuppressWarnings({ "unused", "null" })
     public void registerExtenderListener(MegaDExtenderHandler megaDExtenderHandler) {
         String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
         if (extenderHandlerMap.get(port) != null) {
@@ -155,6 +161,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.ONLINE);
         }
     }
+
     @SuppressWarnings("null")
     public void unregisterExtenderListener(@Nullable MegaDExtenderHandler megaDExtenderHandler) {
         String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
@@ -163,19 +170,22 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.OFFLINE);
         }
     }
+
     private void updateThingHandlerStatus(MegaDExtenderHandler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
     private void updateThingHandlerStatus(MegaDExtenderHandler megaDExtenderHandler, ThingStatus status,
-                                          ThingStatusDetail statusDetail, String decript) {
+            ThingStatusDetail statusDetail, String decript) {
         megaDExtenderHandler.updateStatus(status, statusDetail, decript);
     }
+
     @SuppressWarnings("null")
-public String[] getHostPassword(){
-        String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
-    return result;
-}
+    public String[] getHostPassword() {
+        String[] result = new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
+        return result;
+    }
 
     public String getPortsvalues(String port) {
         return portsvalues.get(port).toString();
@@ -184,7 +194,6 @@ public String[] getHostPassword(){
     public void setPortsvalues(String key, String value) {
         portsvalues.put(key, value);
     }
-
 
     @Override
     public void updateStatus(ThingStatus status) {
@@ -195,6 +204,7 @@ public String[] getHostPassword(){
     public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
+
     @SuppressWarnings("null")
     @Override
     public void dispose() {
@@ -202,9 +212,8 @@ public String[] getHostPassword(){
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        if (bridgeDeviceHandler != null) bridgeDeviceHandler.unregisterMegaDPortsListener(this);
+        if (bridgeDeviceHandler != null)
+            bridgeDeviceHandler.unregisterMegaDPortsListener(this);
         super.dispose();
     }
-
-
 }

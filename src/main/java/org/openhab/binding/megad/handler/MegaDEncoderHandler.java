@@ -14,12 +14,12 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.*;
-import org.eclipse.smarthome.core.thing.*;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.core.library.types.*;
+import org.openhab.core.thing.*;
+import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +31,10 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDEncoderHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(MegaDEncoderHandler.class);
-    @Nullable MegaDBridgeDeviceHandler  bridgeDeviceHandler;
+    @Nullable
+    MegaDBridgeDeviceHandler bridgeDeviceHandler;
     int prevval = 0;
+
     public MegaDEncoderHandler(Thing thing) {
         super(thing);
     }
@@ -49,9 +51,8 @@ public class MegaDEncoderHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
-//-----------------------------------------------------
+    // -----------------------------------------------------
 
     private void registerMegadEncoderListener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
         if (bridgeHandler != null) {
@@ -81,14 +82,13 @@ public class MegaDEncoderHandler extends BaseThingHandler {
 
     @Override
     public void updateStatus(ThingStatus status) {
-    super.updateStatus(status);
-}
+        super.updateStatus(status);
+    }
 
     @Override
     protected void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
-
 
     @SuppressWarnings("null")
     @Override
@@ -103,17 +103,17 @@ public class MegaDEncoderHandler extends BaseThingHandler {
         logger.debug("{}", getCommand);
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
-                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIRECTION)){
+                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIRECTION)) {
                     int value = Integer.parseInt(getCommand);
-                    if(prevval > value) {
+                    if (prevval > value) {
                         updateState(channel.getUID().getId(), DecimalType.valueOf("0"));
                     } else {
                         updateState(channel.getUID().getId(), DecimalType.valueOf("100"));
                     }
                     prevval = value;
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_BUTTON)){
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_BUTTON)) {
                     updateState(channel.getUID().getId(), OnOffType.ON);
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ENCODERDIGITS)){
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ENCODERDIGITS)) {
                     updateState(channel.getUID().getId(), DecimalType.valueOf(getCommand));
                 }
             }

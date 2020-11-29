@@ -4,13 +4,21 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<bridge-type id="1wirebus">
+	<thing-type id="i2c">
 		<supported-bridge-type-refs>
-			<bridge-type-ref id="device" />
+			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
-		<label>Bridge Megad 1 wire bus port </label>
-		<description>This bridge is for port where 1-wire bus is located</description>
+		<label>MegaD I2C Sensors</label>
+		<description>Binding for I2C sensors features of Megadevice</description>
+
+		<channels>
+			<channel id="temp" typeId="temp"/>
+			<channel id="humidity" typeId="humidity"/>
+			<channel id="pressure" typeId="pressure"/>
+			<channel id="gas" typeId="gas"/>
+			<channel id="other" typeId="other"/>
+		</channels>
 
 		<config-description>
 			<parameter name="port" type="text" required="true">
@@ -24,6 +32,5 @@
 				<default>30</default>
 			</parameter>
 		</config-description>
-
-	</bridge-type>
+	</thing-type>
 </thing:thing-descriptions>

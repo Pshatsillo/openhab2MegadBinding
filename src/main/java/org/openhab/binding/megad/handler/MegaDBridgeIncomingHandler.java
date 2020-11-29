@@ -12,24 +12,23 @@
  */
 package org.openhab.binding.megad.handler;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
-import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.megad.MegaDConfiguration;
-import org.openhab.binding.megad.internal.IncomingMessagesServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.server.Server;
+import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.internal.IncomingMessagesServlet;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.types.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDBridgeIncomingHandler} is responsible for creating things and thing
@@ -37,7 +36,7 @@ import java.util.concurrent.ScheduledFuture;
  *
  * @author Petr Shatsillo - Initial contribution
  */
-@NonNullByDefault
+// @NonNullByDefault
 public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
     private int port;
@@ -55,6 +54,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
+
     @SuppressWarnings("null")
     @Override
     public void initialize() {
@@ -69,6 +69,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
             });
         }
     }
+
     @SuppressWarnings("null")
     private void serverStart() {
         MegaDConfiguration configuration = getConfigAs(MegaDConfiguration.class);
@@ -87,20 +88,21 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("null")
+    // @SuppressWarnings("null")
     public void parseInput(String s, String remoteHost) {
-                if (remoteHost.equals("0:0:0:0:0:0:0:1")) {
-                    deviceHandler = devicesHandlerMap.get("localhost");
-                } else {
-                    deviceHandler = devicesHandlerMap.get(remoteHost);
-                }
-                if (deviceHandler != null) {
-                   deviceHandler.manageValues(s);
-                }
+        if (remoteHost.equals("0:0:0:0:0:0:0:1")) {
+            deviceHandler = devicesHandlerMap.get("localhost");
+        } else {
+            deviceHandler = devicesHandlerMap.get(remoteHost);
+        }
+        if (deviceHandler != null) {
+            deviceHandler.manageValues(s);
+        }
 
         logger.debug("incoming from Megad: {} {}", remoteHost, s);
     }
-    @SuppressWarnings({"unused","null"})
+
+    @SuppressWarnings({ "unused", "null" })
     public void registerMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
         logger.debug("Register Device with ip {}", ip);

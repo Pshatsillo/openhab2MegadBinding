@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megad"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="lcd1609">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="device"/>
+		</supported-bridge-type-refs>
+
+		<label>MegaD I2C LCD1609 display</label>
+		<description>Binding for I2C LCD1609 display Megadevice</description>
+
+		<channels>
+			<channel id="line1" typeId="line1"/>
+			<channel id="line2" typeId="line2"/>
+		</channels>
+
+		<config-description>
+			<parameter name="port" type="text" required="true">
+				<label>sda port</label>
+			</parameter>
+		</config-description>
+	</thing-type>
+</thing:thing-descriptions>

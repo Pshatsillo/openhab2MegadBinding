@@ -14,15 +14,14 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.types.Command;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * The {@link MegaDBridgeIToCHandler} class defines I2C bus feature.
@@ -35,6 +34,7 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCHandler.class);
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
+
     public MegaDBridgeIToCHandler(Bridge bridge) {
         super(bridge);
     }
@@ -51,15 +51,16 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     }
 
     /**
-    @return array where [0] - hostname and [1] password
-    */
+     * @return array where [0] - hostname and [1] password
+     */
     @SuppressWarnings("null")
-    public String[] getHostPassword(){
-        String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
+    public String[] getHostPassword() {
+        String[] result = new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
         return result;
     }
 
-    //-------------------------------------------------------------------
+    // -------------------------------------------------------------------
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
@@ -79,5 +80,4 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
             return null;
         }
     }
-
 }

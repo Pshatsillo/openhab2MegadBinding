@@ -13,7 +13,7 @@
 package org.openhab.binding.megad;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingTypeUID;
 
 /**
  * The {@link MegaDBindingConstants} class defines common constants, which are
@@ -62,27 +62,27 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_SMS_PHONE = "smsphone";
     public static final String CHANNEL_SMS_TEXT = "smstext";
 
-    //i2c
+    // i2c
     public static final String CHANNEL_I2C_TEMP = "temp";
     public static final String CHANNEL_I2C_HUM = "humidity";
     public static final String CHANNEL_I2C_PRESSURE = "pressure";
     public static final String CHANNEL_I2C_GAS = "gas";
     public static final String CHANNEL_I2C_OTHER = "other";
 
-    //extender
-    public static final String CHANNEL_EXTENDER_IN= "extin";
-    public static final String CHANNEL_EXTENDER_OUT= "extout";
+    // extender
+    public static final String CHANNEL_EXTENDER_IN = "extin";
+    public static final String CHANNEL_EXTENDER_OUT = "extout";
 
-    //megad2w
-    public static final String CHANNEL_MEGAD2W_A= "a";
-    public static final String CHANNEL_MEGAD2W_B= "b";
+    // megad2w
+    public static final String CHANNEL_MEGAD2W_A = "a";
+    public static final String CHANNEL_MEGAD2W_B = "b";
 
-    public static final String CHANNEL_PAR0= "par0";
-    public static final String CHANNEL_PAR1= "par1";
-    public static final String CHANNEL_PAR2= "par2";
-    public static final String CHANNEL_I2CRAW="i2craw";
+    public static final String CHANNEL_PAR0 = "par0";
+    public static final String CHANNEL_PAR1 = "par1";
+    public static final String CHANNEL_PAR2 = "par2";
+    public static final String CHANNEL_I2CRAW = "i2craw";
 
-    //rs485 sdm120
+    // rs485 sdm120
     public static final String CHANNEL_VOLTAGE = "voltage";
     public static final String CHANNEL_CURRENT = "current";
     public static final String CHANNEL_ACTIVEPOWER = "activepower";
@@ -105,14 +105,13 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_MAXCURRENTDMD = "maxcurrentdmd";
     public static final String CHANNEL_TOTALACTNRG = "totalactnrg";
     public static final String CHANNEL_TOTALREACTNRG = "totalreactnrg";
-    //lcd 1609
+    // lcd 1609
     public static final String CHANNEL_LINE1 = "line1";
     public static final String CHANNEL_LINE2 = "line2";
-    //encoder
+    // encoder
     public static final String CHANNEL_DIRECTION = "direction";
     public static final String CHANNEL_BUTTON = "button";
     public static final String CHANNEL_ENCODERDIGITS = "encoderdigits";
-    //group
+    // group
     public static final String CHANNEL_GROUP = "groupswitch";
-
 }

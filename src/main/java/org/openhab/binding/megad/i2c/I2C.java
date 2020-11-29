@@ -12,6 +12,13 @@
  */
 package org.openhab.binding.megad.i2c;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.util.HashMap;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -20,15 +27,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.HashMap;
-
 /**
  * The {@link I2C} is responsible for i2c raw requests
+ * 
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
@@ -450,5 +451,4 @@ public class I2C {
                 break;
         }
     }
-
 }
