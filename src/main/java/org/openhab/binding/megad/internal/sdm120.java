@@ -21,18 +21,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link sdm120} is responsible for rs485/modbus feature of megad
+ * The {@link Sdm120} is responsible for rs485/modbus feature of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 
 @NonNullByDefault
-public class sdm120 {
-    private static final Logger logger = LoggerFactory.getLogger(sdm120.class);
+public class Sdm120 {
 
     @Nullable
     public static String getValueFromSDM120(@Nullable MegaDBridgeDeviceHandler bridgeHandler, String address,
             String valueByte) {
+        final Logger logger = LoggerFactory.getLogger(Sdm120.class);
+        assert bridgeHandler != null;
         String result = "http://"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("hostname").toString() + "/"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
@@ -55,7 +56,6 @@ public class sdm120 {
             int n = (int) Long.parseLong(parse, 16);
             Float convert = Float.intBitsToFloat(n);
             return String.format("%.4f", convert).replace(",", ".");
-
         } catch (Exception ignored) {
             return null;
         }

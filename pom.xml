@@ -13,12 +13,16 @@
   <artifactId>org.openhab.binding.megad</artifactId>
 
   <name>openHAB Add-ons :: Bundles :: MegaD Binding</name>
+  <properties>
+    <dep.noembedding>commons-codec</dep.noembedding>
+  </properties>
 
   <dependencies>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.6</version>
+      <version>1.15</version>
+      <scope>compile</scope>
     </dependency>
 
   </dependencies>

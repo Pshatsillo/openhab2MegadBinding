@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.server.Server;
 import org.openhab.binding.megad.MegaDConfiguration;
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Petr Shatsillo - Initial contribution
  */
-// @NonNullByDefault
+@NonNullByDefault
 public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     Logger logger = LoggerFactory.getLogger(MegaDBridgeIncomingHandler.class);
     private int port;
@@ -89,14 +90,18 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     }
 
     // @SuppressWarnings("null")
-    public void parseInput(String s, String remoteHost) {
+    public void parseInput(@Nullable String s, @Nullable String remoteHost) {
+        assert remoteHost != null;
         if (remoteHost.equals("0:0:0:0:0:0:0:1")) {
+            assert devicesHandlerMap != null;
             deviceHandler = devicesHandlerMap.get("localhost");
         } else {
+            assert devicesHandlerMap != null;
             deviceHandler = devicesHandlerMap.get(remoteHost);
         }
         if (deviceHandler != null) {
-            deviceHandler.manageValues(s);
+            if (s != null)
+                deviceHandler.manageValues(s);
         }
 
         logger.debug("incoming from Megad: {} {}", remoteHost, s);

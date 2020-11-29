@@ -13,12 +13,12 @@
 package org.openhab.binding.megad.handler;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.SystemUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
@@ -95,31 +95,38 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private void refresh() {
         Process proc = null;
         try {
-            if (SystemUtils.IS_OS_WINDOWS) {
-                proc = new ProcessBuilder("ping", "-w", "1000", "-n", "1",
-                        getThing().getConfiguration().get("hostname").toString()).start();
-            } else if (SystemUtils.IS_OS_LINUX) {
-                proc = new ProcessBuilder("ping", "-w", "1", "-c", "1",
-                        getThing().getConfiguration().get("hostname").toString()).start();
-            } else if (SystemUtils.IS_OS_MAC_OSX) {
-                proc = new ProcessBuilder("ping", "-t", "1", "-c", "1",
-                        getThing().getConfiguration().get("hostname").toString()).start();
-            }
-            int result = proc.waitFor();
-            if (result == 0) {
-                updateStatus(ThingStatus.ONLINE);
-                pingCount = 0;
-            } else {
-                if (pingCount >= 3) {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                            "Device not responding on ping");
-                } else {
-                    pingCount++;
-                }
-            }
+            Socket sck = new Socket(getThing().getConfiguration().get("hostname").toString(), 80);
+            // boolean isr = sck.getInetAddress().isReachable(10);
+            updateStatus(ThingStatus.ONLINE);
+            sck.close();
+            /*
+             * if (SystemUtils.IS_OS_WINDOWS) {
+             * proc = new ProcessBuilder("ping", "-w", "1000", "-n", "1",
+             * getThing().getConfiguration().get("hostname").toString()).start();
+             * } else if (SystemUtils.IS_OS_LINUX) {
+             * proc = new ProcessBuilder("ping", "-w", "1", "-c", "1",
+             * getThing().getConfiguration().get("hostname").toString()).start();
+             * } else if (SystemUtils.IS_OS_MAC_OSX) {
+             * proc = new ProcessBuilder("ping", "-t", "1", "-c", "1",
+             * getThing().getConfiguration().get("hostname").toString()).start();
+             * }
+             * int result = proc.waitFor();
+             * if (result == 0) {
+             * updateStatus(ThingStatus.ONLINE);
+             * pingCount = 0;
+             * } else {
+             * if (pingCount >= 3) {
+             * updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+             * "Device not responding on ping");
+             * } else {
+             * pingCount++;
+             * }
+             * }
+             */
             // logger.debug("ping {} result {}",getThing().getConfiguration().get("hostname").toString(), result);
-        } catch (IOException | InterruptedException e) {
-            logger.debug("proc error {}", e.getMessage());
+        } catch (IOException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
+            // logger.debug("proc error {}", e.getMessage());
         }
     }
 
@@ -455,7 +462,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("null")
     public void unregisterMegad1WireBridgeListener(MegaDBridge1WireBusHandler megaDBridge1WireBusHandler) {
         String ip = megaDBridge1WireBusHandler.getThing().getConfiguration().get("port").toString();
         if (oneWireBusBridgeHandlerMap.get(ip) != null) {

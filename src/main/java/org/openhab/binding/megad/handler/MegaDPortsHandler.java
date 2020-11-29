@@ -380,29 +380,27 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         } else {
                             dimmervalue = Integer.parseInt(getCommands[2]);
                         }
-                    } catch (Exception e) {
-
+                    } catch (Exception ignored) {
                     }
                     try {
                         updateState(channel.getUID().getId(), PercentType
                                 .valueOf(Integer.toString((int) Math.round(Integer.parseInt(getCommands[2]) / 2.55))));
-                    } catch (Exception ex) {
+                    } catch (Exception ignored) {
                     }
-
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
-                    } catch (Exception ex) {
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WIEGAND)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
-                    } catch (Exception ex) {
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_AT)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                    } catch (Exception ex) {
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ADC)) {
                     try {
@@ -410,8 +408,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     } catch (Exception ex) {
                         try {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                        } catch (Exception e) {
-
+                        } catch (Exception ignored) {
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_INCOUNT)) {

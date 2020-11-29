@@ -182,7 +182,7 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings("null")
+    // @SuppressWarnings("null")
     // -------------------------------------------------------------------
     private synchronized @Nullable MegaDBridgeIToCHandler getBridgeHandler() {
         Bridge bridge = Objects.requireNonNull(getBridge());
