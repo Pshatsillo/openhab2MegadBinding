@@ -12,6 +12,13 @@
  */
 package org.openhab.binding.megad.handler;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.util.Objects;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -23,13 +30,6 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.Objects;
-
 /**
  * The {@link MegaDGroupHandler} is responsible for group feature of megad
  *
@@ -38,7 +38,8 @@ import java.util.Objects;
 @NonNullByDefault
 public class MegaDGroupHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(MegaDGroupHandler.class);
-    @Nullable MegaDBridgeDeviceHandler bridgeDeviceHandler;
+    @Nullable
+    MegaDBridgeDeviceHandler bridgeDeviceHandler;
 
     public MegaDGroupHandler(Thing thing) {
         super(thing);
@@ -53,10 +54,10 @@ public class MegaDGroupHandler extends BaseThingHandler {
                 state = 1;
             }
             if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_GROUP)) {
-                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd=g"
-                            + getThing().getConfiguration().get("groupnumber").toString() + ":" + state;
-                    sendCommand(result);
+                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd=g"
+                        + getThing().getConfiguration().get("groupnumber").toString() + ":" + state;
+                sendCommand(result);
             }
         } else {
             for (Channel channel : getThing().getChannels()) {
@@ -101,7 +102,7 @@ public class MegaDGroupHandler extends BaseThingHandler {
         }
     }
 
-    //----------------------------------------------------------
+    // ----------------------------------------------------------
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = Objects.requireNonNull(getBridge());
         return getBridgeHandler(bridge);

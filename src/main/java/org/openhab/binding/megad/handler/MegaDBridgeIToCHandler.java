@@ -23,7 +23,6 @@ import org.eclipse.smarthome.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * The {@link MegaDBridgeIToCHandler} class defines I2C bus feature.
  * You can read I2C sensors connected to one port of MegaD as bus
@@ -35,6 +34,7 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCHandler.class);
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
+
     public MegaDBridgeIToCHandler(Bridge bridge) {
         super(bridge);
     }
@@ -51,15 +51,16 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     }
 
     /**
-    @return array where [0] - hostname and [1] password
-    */
+     * @return array where [0] - hostname and [1] password
+     */
     @SuppressWarnings("null")
-    public String[] getHostPassword(){
-        String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
+    public String[] getHostPassword() {
+        String[] result = new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
         return result;
     }
 
-    //-------------------------------------------------------------------
+    // -------------------------------------------------------------------
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
         if (bridge == null) {
@@ -79,5 +80,4 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
             return null;
         }
     }
-
 }

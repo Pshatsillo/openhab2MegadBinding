@@ -12,15 +12,16 @@
  */
 package org.openhab.binding.megad.internal;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The {@link MegaHttpHelpers} is responsible for http request to megad
  *
@@ -55,7 +56,7 @@ public class MegaHttpHelpers {
                     response.append(inputLine);
                 }
                 in.close();
-                logger.debug("input string from {} -> {}",URL, response.toString());
+                logger.debug("input string from {} -> {}", URL, response.toString());
                 result = response.toString().trim();
                 con.disconnect();
             } catch (IOException e) {
@@ -65,4 +66,3 @@ public class MegaHttpHelpers {
         return result;
     }
 }
-

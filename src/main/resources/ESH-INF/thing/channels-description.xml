@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad"
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 
 	<channel-type id="in">
 		<item-type>Switch</item-type>
 		<label>Input</label>
-		<description>Port set as  input signal for switch using</description>
+		<description>Port set as input signal for switch using</description>
 	</channel-type>
 	<channel-type id="incount">
 		<item-type>Number</item-type>
@@ -24,6 +24,11 @@
 		<item-type>Dimmer</item-type>
 		<label>Dimmer</label>
 		<description>Dimmer used as output</description>
+	</channel-type>
+	<channel-type id="pwm">
+		<item-type>Number</item-type>
+		<label>PWM</label>
+		<description>Pure PWM without any adaptations. You can send values 0-255 to megad directly from rules</description>
 	</channel-type>
 	<channel-type id="m2signal">
 		<item-type>Switch</item-type>
@@ -116,7 +121,7 @@
 		<item-type>Number:Temperature</item-type>
 		<label>Megad temp</label>
 		<description>Temperature of MegaDevice</description>
-		<state readOnly="true" pattern="%.1f %unit%" />
+		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
 	<channel-type id="contact">
 		<item-type>Contact</item-type>
@@ -147,7 +152,7 @@
 	<channel-type id="extin">
 		<item-type>Switch</item-type>
 		<label>Input</label>
-		<description>Port set as  input signal for switch using extender</description>
+		<description>Port set as input signal for switch using extender</description>
 	</channel-type>
 	<channel-type id="extout">
 		<item-type>Switch</item-type>

@@ -11,6 +11,12 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.megad.handler;
+
+import java.io.*;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -24,13 +30,6 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 /**
  * The {@link MegaDLcd1609Handler} is responsible for LCD1609 feature of megad
  *
@@ -39,7 +38,8 @@ import java.util.Objects;
 @NonNullByDefault
 public class MegaDLcd1609Handler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(MegaDLcd1609Handler.class);
-    @Nullable MegaDBridgeDeviceHandler  bridgeDeviceHandler;
+    @Nullable
+    MegaDBridgeDeviceHandler bridgeDeviceHandler;
 
     public MegaDLcd1609Handler(Thing thing) {
         super(thing);
@@ -55,38 +55,41 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("LCD send command: {}", command);
         String result = "";
-        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)){
+        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)) {
             if (!command.toString().equals("REFRESH")) {
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "&text=________________";
-                //sendCommand(result);
-                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() +"&text=________________");
+                // sendCommand(result);
+                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                                + getThing().getConfiguration().get("port").toString() + "&text=________________");
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
-                   // e.printStackTrace();
+                    // e.printStackTrace();
                 }
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command.toString().replace(" ", "_");
-                //sendCommand(result);
-                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() +"&text="+command.toString().replace(" ", "_"));
+                        + getThing().getConfiguration().get("port").toString() + "&text="
+                        + command.toString().replace(" ", "_");
+                // sendCommand(result);
+                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                                + getThing().getConfiguration().get("port").toString() + "&text="
+                                + command.toString().replace(" ", "_"));
             }
-        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)){
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)) {
             if (!command.toString().equals("REFRESH")) {
                 assert bridgeDeviceHandler != null;
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "&text=________________&col=0&row=1";
-                //sendCommand(result);
-                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() +"&text=________________&col=0&row=1");
+                // sendCommand(result);
+                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                                + getThing().getConfiguration().get("port").toString()
+                                + "&text=________________&col=0&row=1");
 
                 try {
                     Thread.sleep(500);
@@ -95,21 +98,20 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
 
                 result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command.toString().replace(" ", "_")+"&col=0&row=1";
-                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="+command.toString().replace(" ", "_")+"&col=0&row=1");
+                        + getThing().getConfiguration().get("port").toString() + "&text="
+                        + command.toString().replace(" ", "_") + "&col=0&row=1";
+                sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                        "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                                + getThing().getConfiguration().get("port").toString() + "&text="
+                                + command.toString().replace(" ", "_") + "&col=0&row=1");
             }
         }
     }
 
     @SuppressWarnings("null")
     public void sendCommand(String hostname, String request) {
-        String req = "GET "+request+" HTTP/1.1\n\r " +
-                "User-Agent: Mozilla/5.0\n\r " +
-                "Host: 192.168.10.19\n\r " +
-                "Accept: text/html\n\r " +
-                "Connection: keep-alive";
+        String req = "GET " + request + " HTTP/1.1\n\r " + "User-Agent: Mozilla/5.0\n\r " + "Host: 192.168.10.19\n\r "
+                + "Accept: text/html\n\r " + "Connection: keep-alive";
         int degreeIndex = req.indexOf("°");
         req = req.replace("°", "_");
         int port = 80;
@@ -117,11 +119,11 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
             InputStream input = socket.getInputStream();
             OutputStream output = socket.getOutputStream();
             byte[] data = req.getBytes(StandardCharsets.UTF_8);
-            if(degreeIndex != -1) {
+            if (degreeIndex != -1) {
                 data[degreeIndex] = (byte) 0xdf;
             }
             output.write(data);
-            logger.info("LCD send: {}",data);
+            logger.info("LCD send: {}", data);
         } catch (UnknownHostException ex) {
             logger.error("Server not found: {}", ex.getMessage());
         } catch (IOException ex) {
@@ -129,7 +131,7 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
         }
     }
 
-    //----------------------------------------------------------
+    // ----------------------------------------------------------
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = Objects.requireNonNull(getBridge());
         return getBridgeHandler(bridge);
@@ -144,6 +146,7 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
             return null;
         }
     }
+
     @SuppressWarnings("null")
     @Override
     public void dispose() {

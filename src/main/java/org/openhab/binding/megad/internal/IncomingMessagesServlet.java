@@ -12,6 +12,13 @@
  */
 package org.openhab.binding.megad.internal;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.server.Request;
@@ -19,13 +26,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 
 /**
  * The {@link MegaDBridgeIncomingHandler} is responsible for creating things and thing
@@ -42,21 +42,20 @@ public class IncomingMessagesServlet extends AbstractHandler {
         this.megaDBridgeIncomingHandler = megaDBridgeIncomingHandler;
     }
 
-@SuppressWarnings("null")
+    @SuppressWarnings("null")
     @Override
-    public void handle(@Nullable String target,@Nullable Request baseRequest,@Nullable HttpServletRequest request,@Nullable HttpServletResponse response) throws IOException, ServletException {
+    public void handle(@Nullable String target, @Nullable Request baseRequest, @Nullable HttpServletRequest request,
+            @Nullable HttpServletResponse response) throws IOException, ServletException {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("Content-Length", "0");
         PrintWriter out = response.getWriter();
         out.println("");
-        //out.close();
+        // out.close();
         response.setHeader("Connection", "close");
         baseRequest.setHandled(true);
-        //baseRequest.logout();
+        // baseRequest.logout();
         logger.debug("Incoming {}", request.getParameterMap());
         megaDBridgeIncomingHandler.parseInput(request.getQueryString(), request.getRemoteHost());
     }
-
 }
-

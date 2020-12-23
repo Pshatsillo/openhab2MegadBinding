@@ -6,7 +6,7 @@
 
 	<bridge-type id="1wirebus">
 		<supported-bridge-type-refs>
-			<bridge-type-ref id="device" />
+			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
 		<label>Bridge Megad 1 wire bus port </label>

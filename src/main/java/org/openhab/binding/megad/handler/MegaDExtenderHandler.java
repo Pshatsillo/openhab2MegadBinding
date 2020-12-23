@@ -12,6 +12,12 @@
  */
 package org.openhab.binding.megad.handler;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -22,12 +28,6 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 
 /**
  * The {@link MegaDExtenderHandler} is responsible for creating MegaD extenders
@@ -45,6 +45,7 @@ public class MegaDExtenderHandler extends BaseThingHandler {
     public MegaDExtenderHandler(Thing thing) {
         super(thing);
     }
+
     @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
@@ -55,13 +56,15 @@ public class MegaDExtenderHandler extends BaseThingHandler {
             } else if (command.toString().equals("OFF")) {
                 state = 0;
             }
-           String result = "http://" + extenderPortBridge.getHostPassword()[0] + "/"
-                    + extenderPortBridge.getHostPassword()[1] + "/?cmd="+extenderPortBridge.getThing().getConfiguration().get("port").toString()+"e"
+            String result = "http://" + extenderPortBridge.getHostPassword()[0] + "/"
+                    + extenderPortBridge.getHostPassword()[1] + "/?cmd="
+                    + extenderPortBridge.getThing().getConfiguration().get("port").toString() + "e"
                     + getThing().getConfiguration().get("extport").toString() + ":" + state;
             logger.debug("Extender switch: {}", result);
             sendCommand(result);
         }
     }
+
     @SuppressWarnings("null")
     @Override
     public void initialize() {
@@ -71,7 +74,7 @@ public class MegaDExtenderHandler extends BaseThingHandler {
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
-        if(extenderPortBridge != null) {
+        if (extenderPortBridge != null) {
             while (!extenderPortBridge.getStateStarted()) {
                 try {
                     Thread.sleep(1);
@@ -88,15 +91,18 @@ public class MegaDExtenderHandler extends BaseThingHandler {
             extenderPortBridge.registerExtenderListener(this);
         }
     }
+
     @SuppressWarnings("null")
-    public void update(){
+    public void update() {
         try {
-            String portValue = extenderPortBridge.getPortsvalues(getThing().getConfiguration().get("extport").toString());
-            //logger.debug("Extender port value is {}", extenderPortBridge.getPortsvalues(portValue));
+            String portValue = extenderPortBridge
+                    .getPortsvalues(getThing().getConfiguration().get("extport").toString());
+            // logger.debug("Extender port value is {}", extenderPortBridge.getPortsvalues(portValue));
 
             for (Channel channel : getThing().getChannels()) {
                 if (isLinked(channel.getUID().getId())) {
-                    if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_IN)) || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_OUT))) {
+                    if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_IN))
+                            || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_OUT))) {
                         if (portValue.contains("ON")) {
                             updateState(channel.getUID().getId(), OnOffType.ON);
                         } else if (portValue.contains("OFF")) {
@@ -105,7 +111,7 @@ public class MegaDExtenderHandler extends BaseThingHandler {
                     }
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("Error updating port {}", e.getMessage());
         }
     }
@@ -124,14 +130,15 @@ public class MegaDExtenderHandler extends BaseThingHandler {
         }
     }
 
-
     @SuppressWarnings("null")
     @Override
     public void dispose() {
-        /*if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
-            refreshPollingJob.cancel(true);
-            refreshPollingJob = null;
-        }*/
+        /*
+         * if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+         * refreshPollingJob.cancel(true);
+         * refreshPollingJob = null;
+         * }
+         */
         if (extenderPortBridge != null) {
             extenderPortBridge.unregisterExtenderListener(this);
         }
@@ -167,6 +174,7 @@ public class MegaDExtenderHandler extends BaseThingHandler {
     public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
+
     @SuppressWarnings("null")
     public void sendCommand(String Result) {
         HttpURLConnection con;
@@ -191,11 +199,8 @@ public class MegaDExtenderHandler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ",
-                    extenderPortBridge.getHostPassword()[0],
+            logger.error("Connect to megadevice {} {} error: ", extenderPortBridge.getHostPassword()[0],
                     e.getLocalizedMessage());
         }
     }
-
-
 }

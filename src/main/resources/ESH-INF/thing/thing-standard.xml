@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad"
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 
 	<thing-type id="standart">
@@ -15,10 +15,11 @@
 		<description>DO NOT USE THIS</description>
 
 		<channels>
-			<channel id="in" typeId="in" />
+			<channel id="in" typeId="in"/>
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
 			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="pwm" typeId="pwm"/>
 			<channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
 			<channel id="onewire" typeId="onewire"/>
@@ -53,10 +54,11 @@
 		<label>MegaD Standard Thing</label>
 		<description>Binding for standard Megad features</description>
 		<channels>
-			<channel id="in" typeId="in" />
+			<channel id="in" typeId="in"/>
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
 			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="pwm" typeId="pwm"/>
 			<channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
 			<channel id="onewire" typeId="onewire"/>
@@ -82,6 +84,11 @@
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>
+			</parameter>
+			<parameter name="correction" type="boolean" required="true">
+				<label>Mega-328 correction</label>
+				<description>Set to true only if you send P-R value to server, else set to false</description>
+				<default>false</default>
 			</parameter>
 		</config-description>
 	</thing-type>

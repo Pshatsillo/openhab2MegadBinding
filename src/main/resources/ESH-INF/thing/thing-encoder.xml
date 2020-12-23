@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="megad"
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-						xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 
 	<thing-type id="encoder">
@@ -13,7 +13,7 @@
 		<description>Used for operate with http://www.duppa.net/i2cencoderv2/ encoder</description>
 
 		<channels>
-			<channel id="direction" typeId="direction" />
+			<channel id="direction" typeId="direction"/>
 			<channel id="button" typeId="button"/>
 			<channel id="encoderdigits" typeId="encoderdigits"/>
 		</channels>

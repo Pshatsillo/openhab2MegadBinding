@@ -12,6 +12,11 @@
  */
 package org.openhab.binding.megad.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -25,10 +30,6 @@ import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 /**
  * The {@link MegaDBridge1WireBusHandler} class defines 1-wire bus feature.
  * You can read 1-wire sensors connected to one port of MegaD as bus
@@ -47,6 +48,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private Map<String, String> owsensorvalues = new HashMap<>();
     private @Nullable Map<String, MegaD1WireSensorHandler> addressesHandlerMap = new HashMap<>();
     private @Nullable MegaD1WireSensorHandler megaD1WireSensorHandler;
+
     public MegaDBridge1WireBusHandler(Bridge bridge) {
         super(bridge);
     }
@@ -67,8 +69,8 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
-        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
+        String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
+        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
         float msec = Float.parseFloat(rr[0]);
         int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
@@ -90,9 +92,8 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
 
         if (interval != 0) {
             if (now >= (lastRefresh + interval)) {
-                String conv = "http://"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                String conv = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                        + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                         + getThing().getConfiguration().get("port").toString() + "?cmd=conv";
                 MegaHttpHelpers.sendRequest(conv);
                 try {
@@ -109,9 +110,9 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
                     String[] getValues = address.split("[:]");
                     try {
                         setOwvalues(getValues[0], getValues[1]);
-                        if(addressesHandlerMap != null) {
+                        if (addressesHandlerMap != null) {
                             megaD1WireSensorHandler = addressesHandlerMap.get(getValues[0]);
-                            if(megaD1WireSensorHandler != null) {
+                            if (megaD1WireSensorHandler != null) {
                                 megaD1WireSensorHandler.updateValues(getValues[1]);
                             }
                         }
@@ -141,22 +142,25 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     public void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, @Nullable String description) {
         super.updateStatus(status, statusDetail, description);
     }
+
     @SuppressWarnings("null")
     public void setOwvalues(String key, String value) {
         owsensorvalues.put(key, value);
     }
+
     @SuppressWarnings("null")
     public String getOwvalues(String address) {
         String value;
         value = owsensorvalues.get(address);
         return value;
     }
+
     @SuppressWarnings("null")
-    public String[] getHostPassword(){
-        String[] result = new String[]{bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(), bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()};
+    public String[] getHostPassword() {
+        String[] result = new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
         return result;
     }
-
 
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
@@ -193,7 +197,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     }
 
     private void updateThingHandlerStatus(MegaD1WireSensorHandler megaDMegaportsHandler, ThingStatus status,
-                                          ThingStatusDetail statusDetail, String decript) {
+            ThingStatusDetail statusDetail, String decript) {
         megaDMegaportsHandler.updateStatus(status, statusDetail, decript);
     }
 
@@ -222,6 +226,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
             updateThingHandlerStatus(megaD1WireSensorHandler, ThingStatus.ONLINE);
         }
     }
+
     @SuppressWarnings({ "unused", "null" })
     @Override
     public void dispose() {

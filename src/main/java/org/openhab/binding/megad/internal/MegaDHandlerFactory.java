@@ -12,6 +12,11 @@
  */
 package org.openhab.binding.megad.internal;
 
+import static org.openhab.binding.megad.MegaDBindingConstants.*;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -24,11 +29,6 @@ import org.openhab.binding.megad.handler.*;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.openhab.binding.megad.MegaDBindingConstants.*;
 
 /**
  * The {@link MegaDHandlerFactory} is responsible for creating things and thing

@@ -12,6 +12,9 @@
  */
 package org.openhab.binding.megad.handler;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DecimalType;
@@ -23,9 +26,6 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link MegaDItoCHandler} is responsible for i2c fatures of megad
@@ -63,8 +63,8 @@ public class MegaDItoCHandler extends BaseThingHandler {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
 
-        String[] rr = {getThing().getConfiguration().get("refresh").toString()};//.split("[.]");
-        logger.debug("Thing {}, refresh interval is {} sec",getThing().getUID().toString(), rr[0]);
+        String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
+        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
         float msec = Float.parseFloat(rr[0]);
         int pollingPeriod = (int) (msec * 1000);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
@@ -76,6 +76,7 @@ public class MegaDItoCHandler extends BaseThingHandler {
             }, 0, 100, TimeUnit.MILLISECONDS);
         }
     }
+
     @SuppressWarnings({ "unused", "null" })
     @Override
     public void dispose() {
@@ -86,7 +87,6 @@ public class MegaDItoCHandler extends BaseThingHandler {
         if (bridgeDeviceHandler != null) {
             bridgeDeviceHandler.unregisterItoCListener(this);
         }
-
 
         super.dispose();
     }
@@ -141,7 +141,6 @@ public class MegaDItoCHandler extends BaseThingHandler {
                 + getThing().getConfiguration().get("port").toString() + "&cmd=get";
         String[] updateRequest = MegaHttpHelpers.sendRequest(result).split("[:/]");
 
-
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
                 if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2C_TEMP)) {
@@ -150,13 +149,15 @@ public class MegaDItoCHandler extends BaseThingHandler {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
                             } catch (Exception ex) {
-                                logger.debug("Value {} is incorrect for channel {}", updateRequest[0], MegaDBindingConstants.CHANNEL_I2C_TEMP);
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[0],
+                                        MegaDBindingConstants.CHANNEL_I2C_TEMP);
                             }
                         } else if (updateRequest[i].equals("temp")) {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
                             } catch (Exception ex) {
-                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_TEMP);
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1],
+                                        MegaDBindingConstants.CHANNEL_I2C_TEMP);
                             }
                         }
                     }
@@ -166,7 +167,8 @@ public class MegaDItoCHandler extends BaseThingHandler {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
                             } catch (Exception ex) {
-                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_HUM);
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1],
+                                        MegaDBindingConstants.CHANNEL_I2C_HUM);
                             }
                         }
                     }
@@ -176,7 +178,8 @@ public class MegaDItoCHandler extends BaseThingHandler {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
                             } catch (Exception ex) {
-                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_PRESSURE);
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1],
+                                        MegaDBindingConstants.CHANNEL_I2C_PRESSURE);
                             }
                         }
                     }
@@ -186,7 +189,8 @@ public class MegaDItoCHandler extends BaseThingHandler {
                             try {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[i + 1]));
                             } catch (Exception ex) {
-                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1], MegaDBindingConstants.CHANNEL_I2C_GAS);
+                                logger.debug("Value {} is incorrect for channel {}", updateRequest[i + 1],
+                                        MegaDBindingConstants.CHANNEL_I2C_GAS);
                             }
                         }
                     }
@@ -194,12 +198,14 @@ public class MegaDItoCHandler extends BaseThingHandler {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest[0]));
                     } catch (Exception ex) {
-                        logger.debug("Value {} is incorrect for channel {}", updateRequest[0], MegaDBindingConstants.CHANNEL_I2C_OTHER);
+                        logger.debug("Value {} is incorrect for channel {}", updateRequest[0],
+                                MegaDBindingConstants.CHANNEL_I2C_OTHER);
                     }
                 }
             }
         }
     }
+
     @Override
     public void updateStatus(ThingStatus status) {
         super.updateStatus(status);
