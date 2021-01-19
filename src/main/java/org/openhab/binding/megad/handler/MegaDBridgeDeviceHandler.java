@@ -74,20 +74,21 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
         if (bridgeIncomingHandler != null) {
             registerMegaDeviceListener(bridgeIncomingHandler);
+            logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
+            getAllPortsStatus();
+
+            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh();
+                    }
+                }, 0, 1000, TimeUnit.MILLISECONDS);
+            }
         } else {
-            logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
-        }
-
-        logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
-        getAllPortsStatus();
-
-        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    refresh();
-                }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            logger.warn("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE,
+                    "Bridge for incoming connections not selected");
         }
     }
 
@@ -96,34 +97,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         Process proc = null;
         try {
             Socket sck = new Socket(getThing().getConfiguration().get("hostname").toString(), 80);
-            // boolean isr = sck.getInetAddress().isReachable(10);
             updateStatus(ThingStatus.ONLINE);
             sck.close();
-            /*
-             * if (SystemUtils.IS_OS_WINDOWS) {
-             * proc = new ProcessBuilder("ping", "-w", "1000", "-n", "1",
-             * getThing().getConfiguration().get("hostname").toString()).start();
-             * } else if (SystemUtils.IS_OS_LINUX) {
-             * proc = new ProcessBuilder("ping", "-w", "1", "-c", "1",
-             * getThing().getConfiguration().get("hostname").toString()).start();
-             * } else if (SystemUtils.IS_OS_MAC_OSX) {
-             * proc = new ProcessBuilder("ping", "-t", "1", "-c", "1",
-             * getThing().getConfiguration().get("hostname").toString()).start();
-             * }
-             * int result = proc.waitFor();
-             * if (result == 0) {
-             * updateStatus(ThingStatus.ONLINE);
-             * pingCount = 0;
-             * } else {
-             * if (pingCount >= 3) {
-             * updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-             * "Device not responding on ping");
-             * } else {
-             * pingCount++;
-             * }
-             * }
-             */
-            // logger.debug("ping {} result {}",getThing().getConfiguration().get("hostname").toString(), result);
         } catch (IOException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
             // logger.debug("proc error {}", e.getMessage());
@@ -134,6 +109,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         Bridge bridge = getBridge();
         if (bridge == null) {
             logger.warn("Required bridge not defined for device.");
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE,
+                    "Bridge for incoming connections not selected");
             return null;
         } else {
             return getBridgeHandler(bridge);
