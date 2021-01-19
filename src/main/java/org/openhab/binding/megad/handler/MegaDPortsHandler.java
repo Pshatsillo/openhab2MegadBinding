@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -116,6 +116,35 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     } else {
                         logger.debug("Illegal dimmer value: {}", result);
                     }
+                }
+            }
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
+            if (!command.toString().equals("REFRESH")) {
+                try {
+                    int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                    // int resultInt = (int) Math.round(uivalue * 2.55);
+                    if (uivalue != 0) {
+                        dimmervalue = uivalue;
+                    }
+                    assert bridgeDeviceHandler != null;
+                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                            + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                            + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + uivalue;
+                    logger.info("PWM: {}", result);
+                    sendCommand(result);
+                } catch (Exception e) {
+                    assert bridgeDeviceHandler != null;
+                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                            + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                            + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                    logger.info("PWM restored to previous value: {}", result);
+                    sendCommand(result);
+                    int percent = 0;
+                    try {
+                        percent = (int) Math.round(dimmervalue / 2.55);
+                    } catch (Exception ex) {
+                    }
+                    updateState(channelUID.getId(), DecimalType.valueOf(Integer.toString(dimmervalue)));
                 }
             }
         }
@@ -274,6 +303,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
                     }
                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
+                    try {
+                        updateState(channel.getUID().getId(),
+                                PercentType.valueOf(Integer.toString(Integer.parseInt(updateRequest))));
+                    } catch (Exception e) {
+                        logger.debug("Cannot update PWM value");
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TGET)) {
                     try {
                         String tempresult = "   http://"
@@ -350,6 +386,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         || (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_OUT))) {
                     if (OnOff != null) {
                         updateState(channel.getUID().getId(), OnOff);
+                        if (Boolean.parseBoolean(this.getThing().getConfiguration().get("correction").toString())) {
+                            String result = "http://"
+                                    + getBridgeHandler().getThing().getConfiguration().get("hostname").toString() + "/"
+                                    + getBridgeHandler().getThing().getConfiguration().get("password").toString()
+                                    + "/?pt=" + getThing().getConfiguration().get("port").toString() + "&cmd=get";
+                            try {
+                                String updateRequest = MegaHttpHelpers.sendRequest(result);
+                                updateState(channel.getUID().getId(), OnOffType.valueOf(updateRequest));
+                            } catch (Exception ex) {
+                                logger.debug("connect error");
+                            }
+                        } else {
+                            updateState(channel.getUID().getId(), OnOff);
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_M2)) {
                     try {

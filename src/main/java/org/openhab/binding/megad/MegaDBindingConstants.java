@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -48,6 +48,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_INCOUNT = "incount";
     public static final String CHANNEL_OUT = "out";
     public static final String CHANNEL_DIMMER = "dimmer";
+    public static final String CHANNEL_PWM = "pwm";
     public static final String CHANNEL_M2 = "m2signal";
     public static final String CHANNEL_CLICK = "click";
     public static final String CHANNEL_1WTEMP = "1wtemp";

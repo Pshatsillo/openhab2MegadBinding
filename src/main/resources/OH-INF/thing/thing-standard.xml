@@ -19,6 +19,7 @@
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
 			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="pwm" typeId="pwm"/>
 			<channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
 			<channel id="onewire" typeId="onewire"/>
@@ -43,6 +44,11 @@
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>
+			</parameter>
+			<parameter name="correction" type="boolean" required="true">
+				<label>Mega-328 correction</label>
+				<description>Set to true only if you send P-R value to server, else set to false</description>
+				<default>false</default>
 			</parameter>
 		</config-description>
 	</thing-type>

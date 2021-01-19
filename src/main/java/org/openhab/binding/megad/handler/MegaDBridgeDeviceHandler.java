@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -209,11 +209,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         for (int i = 0; parsedStatus.length > i; i++) {
                             megaportsHandler = portsHandlerMap.get(String.valueOf(i));
                             String[] mode = parsedStatus[i].split("[/]");
-                            if (mode[0].contains("ON")) {
+                            if (mode[0].equals("ON")) {
                                 if (megaportsHandler != null) {
                                     megaportsHandler.updateValues(mode, OnOffType.ON);
                                 }
-                            } else if (mode[0].contains("OFF")) {
+                            } else if (mode[0].equals("OFF")) {
                                 if (megaportsHandler != null) {
                                     megaportsHandler.updateValues(mode, OnOffType.OFF);
                                 }
