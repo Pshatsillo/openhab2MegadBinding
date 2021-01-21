@@ -74,20 +74,22 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
         if (bridgeIncomingHandler != null) {
             registerMegaDeviceListener(bridgeIncomingHandler);
+
+            logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
+            getAllPortsStatus();
+
+            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh();
+                    }
+                }, 0, 1000, TimeUnit.MILLISECONDS);
+            }
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
-        }
-
-        logger.debug("Device {} init", getThing().getConfiguration().get("hostname").toString());
-        getAllPortsStatus();
-
-        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    refresh();
-                }
-            }, 0, 1000, TimeUnit.MILLISECONDS);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE,
+                    "Bridge for incoming connections not selected");
         }
     }
 
@@ -202,11 +204,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                         for (int i = 0; parsedStatus.length > i; i++) {
                             megaportsHandler = portsHandlerMap.get(String.valueOf(i));
                             String[] mode = parsedStatus[i].split("[/]");
-                            if (mode[0].contains("ON")) {
+                            if (mode[0].equals("ON")) {
                                 if (megaportsHandler != null) {
                                     megaportsHandler.updateValues(mode, OnOffType.ON);
                                 }
-                            } else if (mode[0].contains("OFF")) {
+                            } else if (mode[0].equals("OFF")) {
                                 if (megaportsHandler != null) {
                                     megaportsHandler.updateValues(mode, OnOffType.OFF);
                                 }
