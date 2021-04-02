@@ -89,6 +89,11 @@
 				<description>refresh interval channel</description>
 				<default>30</default>
 			</parameter>
+			<parameter name="correction" type="boolean" required="true">
+				<label>Mega-328 correction</label>
+				<description>Set to true only if you send P-R value to server, else set to false</description>
+				<default>false</default>
+			</parameter>
 		</config-description>
 	</thing-type>
 
