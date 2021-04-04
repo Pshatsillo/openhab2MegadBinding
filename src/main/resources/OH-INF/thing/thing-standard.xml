@@ -63,12 +63,13 @@
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
 			<channel id="dimmer" typeId="dimmer"/>
-			<channel typeId="dimmer12bit" id="dimmer12bit"></channel><channel id="m2signal" typeId="m2signal"/>
+			<channel typeId="dimmer12bit" id="dimmer12bit"/>
+            <channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
 			<channel id="onewire" typeId="onewire"/>
 			<channel id="adc" typeId="adc"/>
 			<channel id="at" typeId="at"/>
-			<channel id="st" typeId="st"></channel>
+			<channel id="st" typeId="st"/>
 			<channel id="ib" typeId="ib"/>
 			<channel id="wiegand" typeId="wiegand"/>
 			<channel id="tget" typeId="tget"/>
