@@ -64,7 +64,7 @@
 			<channel id="out" typeId="out"/>
 			<channel id="dimmer" typeId="dimmer"/>
 			<channel id="dimmer12bit" typeId="dimmer12bit"/>
-            <channel id="m2signal" typeId="m2signal"/>
+			<channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
 			<channel id="onewire" typeId="onewire"/>
 			<channel id="adc" typeId="adc"/>
