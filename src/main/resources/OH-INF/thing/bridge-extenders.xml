@@ -23,6 +23,10 @@
 				<description>How often to sent update request to MegaD</description>
 				<default>30</default>
 			</parameter>
+			<parameter name="int" type="integer" required="true">
+				<label>INT</label>
+				<description>INT for extender</description>
+			</parameter>
 		</config-description>
 
 	</bridge-type>
