@@ -42,6 +42,9 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
     public static final ThingTypeUID THING_TYPE_ENCODER = new ThingTypeUID(BINDING_ID, "encoder");
     public static final ThingTypeUID THING_TYPE_GROUP = new ThingTypeUID(BINDING_ID, "group");
+    // dimmer12bit
+    public static final ThingTypeUID THING_TYPE_PCA9685_BRIDGE = new ThingTypeUID(BINDING_ID, "PCA9685Bridge");
+    public static final ThingTypeUID THING_TYPE_PCA9685 = new ThingTypeUID(BINDING_ID, "PCA9685");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -115,4 +118,6 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_ENCODERDIGITS = "encoderdigits";
     // group
     public static final String CHANNEL_GROUP = "groupswitch";
+    // dimmer12bit
+    public static final String CHANNEL_PCA9685_OUT = "pca9685out";
 }
