@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="megad"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+    <thing-type id="PCA9685">
+        <supported-bridge-type-refs>
+            <bridge-type-ref id="pca9685"/>
+        </supported-bridge-type-refs>
+        <label>MegaD PCA9685 extender port selector Thing</label>
+        <description>Binding for I2C extender feature of Megadevice</description>
+
+        <channels>
+            <channel id="extout" typeId="extout"/>
+        </channels>
+
+        <config-description>
+            <parameter name="extport" type="text">
+                <label>Port number of extender</label>
+            </parameter>
+        </config-description>
+    </thing-type>
+
+</thing:thing-descriptions>
