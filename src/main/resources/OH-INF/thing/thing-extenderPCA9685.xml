@@ -4,15 +4,15 @@
     xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
     xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-    <thing-type id="PCA9685">
+    <thing-type id="extenderPCA9685">
         <supported-bridge-type-refs>
-            <bridge-type-ref id="pca9685"/>
+            <bridge-type-ref id="extenderPCA9685Bridge"/>
         </supported-bridge-type-refs>
         <label>MegaD PCA9685 extender port selector Thing</label>
         <description>Binding for I2C extender feature of Megadevice</description>
 
         <channels>
-            <channel id="extout" typeId="extout"/>
+            <channel id="extPCA9685dimmer" typeId="extPCA9685dimmer"/>
         </channels>
 
         <config-description>

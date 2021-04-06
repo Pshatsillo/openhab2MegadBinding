@@ -46,7 +46,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable final Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
-    private @Nullable final Map<String, MegaDBridgePCA9685EPHandler> pca9685BridgeHandlerMap = new HashMap<>();
+    private @Nullable final Map<String, MegaDBridgeExtenderPCA9685Handler> extenderPCA9685BridgeHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDEncoderHandler> megaDEncoderHandlerMap = new HashMap<>();
     private final Map<String, String> portsvalues = new HashMap<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -273,7 +273,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     });
                 }
             }
-            if (pca9685BridgeHandlerMap.size() != 0) {
+            if (extenderPCA9685BridgeHandlerMap.size() != 0) {
                 // Для PCA9685 kosh_
             }
             if (megaDEncoderHandlerMap.size() != 0) {
@@ -411,6 +411,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     }
 
     @SuppressWarnings("null")
+    /* Maybe error, see unregisterMegaExtenderPCA9685Listener */
     public void unregisterMegaDPortsListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
         String ip = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
         if (extenderBridgeHandlerMap.get(ip) != null) {
@@ -431,33 +432,35 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     // PCA9685
     @SuppressWarnings({ "unused", "null" })
-    public void registerMegaPCA9685EPListener(MegaDBridgePCA9685EPHandler megaDBridgePCA9685EPHandler) {
-        String pca9685Port = megaDBridgePCA9685EPHandler.getThing().getConfiguration().get("port").toString();
-        if (pca9685BridgeHandlerMap.get(pca9685Port) != null) {
-            updateThingHandlerStatus(megaDBridgePCA9685EPHandler, ThingStatus.OFFLINE,
+    public void registerMegaExtenderPCA9685Listener(
+            MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler) {
+        String extenderPort = megaDBridgeExtenderPCA9685Handler.getThing().getConfiguration().get("port").toString();
+        if (extenderPCA9685BridgeHandlerMap.get(extenderPort) != null) {
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.OFFLINE,
                     ThingStatusDetail.CONFIGURATION_ERROR, "Device already exist");
         } else {
-            pca9685BridgeHandlerMap.put(pca9685Port, megaDBridgePCA9685EPHandler);
-            updateThingHandlerStatus(megaDBridgePCA9685EPHandler, ThingStatus.ONLINE);
+            extenderPCA9685BridgeHandlerMap.put(extenderPort, megaDBridgeExtenderPCA9685Handler);
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.ONLINE);
         }
     }
 
     @SuppressWarnings("null")
-    public void unregisterMegaDPortsListener(MegaDBridgePCA9685EPHandler megaDBridgePCA9685EPHandler) {
-        String ip = megaDBridgePCA9685EPHandler.getThing().getConfiguration().get("port").toString();
-        if (pca9685BridgeHandlerMap.get(ip) != null) {
-            pca9685BridgeHandlerMap.remove(ip);
-            updateThingHandlerStatus(megaDBridgePCA9685EPHandler, ThingStatus.OFFLINE);
+    public void unregisterMegaExtenderPCA9685Listener(
+            MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler) {
+        String extenderPort = megaDBridgeExtenderPCA9685Handler.getThing().getConfiguration().get("port").toString();
+        if (extenderPCA9685BridgeHandlerMap.get(extenderPort) != null) {
+            extenderPCA9685BridgeHandlerMap.remove(extenderPort);
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.OFFLINE);
         }
     }
 
-    private void updateThingHandlerStatus(MegaDBridgePCA9685EPHandler thingHandler, ThingStatus status) {
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPCA9685Handler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
-    private void updateThingHandlerStatus(MegaDBridgePCA9685EPHandler megaDBridgePCA9685EPHandler, ThingStatus status,
-            ThingStatusDetail statusDetail, String decript) {
-        megaDBridgePCA9685EPHandler.updateStatus(status, statusDetail, decript);
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler,
+            ThingStatus status, ThingStatusDetail statusDetail, String decript) {
+        megaDBridgeExtenderPCA9685Handler.updateStatus(status, statusDetail, decript);
     }
 
     // PCA9685

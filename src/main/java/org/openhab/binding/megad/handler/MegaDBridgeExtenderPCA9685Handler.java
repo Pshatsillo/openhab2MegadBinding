@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.thing.Bridge;
@@ -17,16 +18,27 @@ import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
+/**
+ * The {@link MegaDBridgeExtenderPCA9685Handler} is responsible for creating MegaD extenders
+ * based on PCA9685
+ * this class represent bridge for port where extender is located
+ *
+ * @author kosh_ - Initial contribution
+ */
+@NonNullByDefault
+public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
-    private Logger logger = LoggerFactory.getLogger(MegaDBridgePCA9685EPHandler.class);
-    private @Nullable ScheduledFuture<?> refreshPollingJob;
-    protected long lastRefresh = 0;
+    private Logger logger = LoggerFactory.getLogger(MegaDBridgeExtenderPCA9685Handler.class);
+    private Map<String, MegaDExtenderPCA9685Handler> extenderPCA9685HandlerMap = new HashMap<String, MegaDExtenderPCA9685Handler>();
     private Map<String, String> portsvalues = new HashMap<>();
     private boolean startedState = false;
+    private @Nullable ScheduledFuture<?> refreshPollingJob;
+    protected long lastRefresh = 0;
+    @Nullable
+    MegaDExtenderPCA9685Handler MegaDExtenderPCA9685Handler;
 
-    public MegaDBridgePCA9685EPHandler(Bridge bridge) {
+    public MegaDBridgeExtenderPCA9685Handler(Bridge bridge) {
         super(bridge);
     }
 
@@ -35,11 +47,12 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
 
     }
 
+    @SuppressWarnings({ "unused", "null" })
     @Override
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         if (bridgeDeviceHandler != null) {
-            registerMegaPCA9685EPBridgeListener(bridgeDeviceHandler);
+            registerMegaExtenderPCA9685BridgeListener(bridgeDeviceHandler);
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
@@ -57,28 +70,25 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
         }
     }
 
-    // >>
-
     @SuppressWarnings("null")
     public void refresh(int interval) {
         long now = System.currentTimeMillis();
         if (interval != 0) {
             if (now >= (lastRefresh + interval)) {
-                String request = "http://"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&cmd=get";
+                String hostname = getHostPassword()[0];
+                String password = getHostPassword()[1];
+                String port = getThing().getConfiguration().get("port").toString();
+                String request = "http://" + hostname + "/" + password + "/?pt=" + port + "&cmd=get";
                 String updateRequest = MegaHttpHelpers.sendRequest(request);
                 String[] getValues = updateRequest.split("[;]");
                 for (int i = 0; getValues.length > i; i++) {
                     setPortsvalues(String.valueOf(i), getValues[i]);
-                    megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(i));
-                    if (megaDExtenderHandler != null) {
-                        megaDExtenderHandler.update();
+                    MegaDExtenderPCA9685Handler = extenderPCA9685HandlerMap.get(String.valueOf(i));
+                    if (MegaDExtenderPCA9685Handler != null) {
+                        MegaDExtenderPCA9685Handler.update();
                     }
                 }
                 setStateStarted(true);
-
                 lastRefresh = now;
             }
         }
@@ -88,8 +98,8 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
     public void updateValues(String[] getCommands) {
         String port = getCommands[2].substring(3);
         String action = getCommands[3];
-        megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(port));
-        megaDExtenderHandler.updateValues(action);
+        MegaDExtenderPCA9685Handler = extenderPCA9685HandlerMap.get(String.valueOf(port));
+        MegaDExtenderPCA9685Handler.updateValues(action);
         logger.warn("Required bridge not defined for device.");
     }
 
@@ -100,8 +110,6 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
     public boolean getStateStarted() {
         return startedState;
     }
-
-    // <<
 
     private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
         Bridge bridge = getBridge();
@@ -123,41 +131,40 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
         }
     }
 
-    private void registerMegaPCA9685EPBridgeListener(@Nullable MegaDBridgeDeviceHandler bridgeDeviceHandler) {
+    private void registerMegaExtenderPCA9685BridgeListener(@Nullable MegaDBridgeDeviceHandler bridgeDeviceHandler) {
         if (bridgeDeviceHandler != null) {
-            bridgeDeviceHandler.registerMegaPCA9685EPListener(this);
+            bridgeDeviceHandler.registerMegaExtenderPCA9685Listener(this);
         }
     }
 
-    // >>
     @SuppressWarnings({ "unused", "null" })
-    public void registerExtenderListener(MegaDExtenderHandler megaDExtenderHandler) {
-        String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
-        if (extenderHandlerMap.get(port) != null) {
-            updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                    "port already exists");
+    public void registerExtenderPCA9685Listener(MegaDExtenderPCA9685Handler megaDExtenderPCA9685Handler) {
+        String port = megaDExtenderPCA9685Handler.getThing().getConfiguration().get("extport").toString();
+        if (extenderPCA9685HandlerMap.get(port) != null) {
+            updateThingHandlerStatus(megaDExtenderPCA9685Handler, ThingStatus.OFFLINE,
+                    ThingStatusDetail.CONFIGURATION_ERROR, "port already exists");
         } else {
-            extenderHandlerMap.put(port, megaDExtenderHandler);
-            updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.ONLINE);
+            extenderPCA9685HandlerMap.put(port, megaDExtenderPCA9685Handler);
+            updateThingHandlerStatus(megaDExtenderPCA9685Handler, ThingStatus.ONLINE);
         }
     }
 
     @SuppressWarnings("null")
-    public void unregisterExtenderListener(@Nullable MegaDExtenderHandler megaDExtenderHandler) {
-        String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
-        if (extenderHandlerMap.get(port) != null) {
-            extenderHandlerMap.remove(port);
-            updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.OFFLINE);
+    public void unregisterExtenderPCA9685Listener(@Nullable MegaDExtenderPCA9685Handler megaDExtenderPCA9685Handler) {
+        String port = megaDExtenderPCA9685Handler.getThing().getConfiguration().get("extport").toString();
+        if (extenderPCA9685HandlerMap.get(port) != null) {
+            extenderPCA9685HandlerMap.remove(port);
+            updateThingHandlerStatus(megaDExtenderPCA9685Handler, ThingStatus.OFFLINE);
         }
     }
 
-    private void updateThingHandlerStatus(MegaDExtenderHandler thingHandler, ThingStatus status) {
+    private void updateThingHandlerStatus(MegaDExtenderPCA9685Handler thingHandler, ThingStatus status) {
         thingHandler.updateStatus(status);
     }
 
-    private void updateThingHandlerStatus(MegaDExtenderHandler megaDExtenderHandler, ThingStatus status,
+    private void updateThingHandlerStatus(MegaDExtenderPCA9685Handler megaDExtenderPCA9685Handler, ThingStatus status,
             ThingStatusDetail statusDetail, String decript) {
-        megaDExtenderHandler.updateStatus(status, statusDetail, decript);
+        megaDExtenderPCA9685Handler.updateStatus(status, statusDetail, decript);
     }
 
     @SuppressWarnings("null")
@@ -193,10 +200,8 @@ public class MegaDBridgePCA9685EPHandler extends BaseBridgeHandler {
             refreshPollingJob = null;
         }
         if (bridgeDeviceHandler != null) {
-            bridgeDeviceHandler.unregisterMegaDPortsListener(this);
+            bridgeDeviceHandler.unregisterMegaExtenderPCA9685Listener(this);
         }
         super.dispose();
     }
-
-    // <<
 }

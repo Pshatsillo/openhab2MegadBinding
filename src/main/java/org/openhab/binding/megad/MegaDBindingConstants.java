@@ -28,8 +28,6 @@ public class MegaDBindingConstants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_ITOC_BRIDGE = new ThingTypeUID(BINDING_ID, "itoc");
-    public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
-    public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
     public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
     public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
     public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
@@ -42,9 +40,13 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
     public static final ThingTypeUID THING_TYPE_ENCODER = new ThingTypeUID(BINDING_ID, "encoder");
     public static final ThingTypeUID THING_TYPE_GROUP = new ThingTypeUID(BINDING_ID, "group");
-    // dimmer12bit
-    public static final ThingTypeUID THING_TYPE_PCA9685_BRIDGE = new ThingTypeUID(BINDING_ID, "PCA9685Bridge");
-    public static final ThingTypeUID THING_TYPE_PCA9685 = new ThingTypeUID(BINDING_ID, "PCA9685");
+    // Extender MCP230XX
+    public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
+    public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
+    // Extender PCA9685
+    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685_BRIDGE = new ThingTypeUID(BINDING_ID,
+            "extenderPCA9685Bridge");
+    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685 = new ThingTypeUID(BINDING_ID, "extenderPCA9685");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -76,6 +78,9 @@ public class MegaDBindingConstants {
     // extender
     public static final String CHANNEL_EXTENDER_IN = "extin";
     public static final String CHANNEL_EXTENDER_OUT = "extout";
+
+    // dimmer Extender PCA9685
+    public static final String CHANNEL_EXTENDER_PCA9685_DIMMER = "extPCA9685dimmer";
 
     // megad2w
     public static final String CHANNEL_MEGAD2W_A = "a";
@@ -118,6 +123,4 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_ENCODERDIGITS = "encoderdigits";
     // group
     public static final String CHANNEL_GROUP = "groupswitch";
-    // dimmer12bit
-    public static final String CHANNEL_PCA9685_OUT = "pca9685out";
 }
