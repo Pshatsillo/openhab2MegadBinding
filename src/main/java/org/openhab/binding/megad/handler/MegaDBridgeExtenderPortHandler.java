@@ -212,8 +212,9 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        if (bridgeDeviceHandler != null)
+        if (bridgeDeviceHandler != null) {
             bridgeDeviceHandler.unregisterMegaDPortsListener(this);
+        }
         super.dispose();
     }
 }

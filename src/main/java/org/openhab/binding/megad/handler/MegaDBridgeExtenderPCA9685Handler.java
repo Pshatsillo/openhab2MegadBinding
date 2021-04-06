@@ -42,7 +42,6 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-
     }
 
     @SuppressWarnings({ "unused", "null" })

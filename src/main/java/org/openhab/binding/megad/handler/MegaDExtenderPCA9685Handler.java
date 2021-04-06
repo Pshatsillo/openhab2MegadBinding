@@ -22,13 +22,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
-import org.openhab.core.library.types.PercentType;
-import org.openhab.core.thing.Bridge;
-import org.openhab.core.thing.Channel;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.library.types.*;
+import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
@@ -42,7 +37,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author kosh_ - Initial contribution
  */
-
 @NonNullByDefault
 public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @Nullable
@@ -194,7 +188,6 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                 updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
             }
         }
-
     }
 
     private synchronized @Nullable MegaDBridgeExtenderPCA9685Handler getBridgeHandler(Bridge bridge) {
