@@ -159,6 +159,13 @@
 		<label>Output</label>
 		<description>Port set as output for switch using extender</description>
 	</channel-type>
+
+	<channel-type id="extPCA9685dimmer">
+		<item-type>Dimmer</item-type>
+		<label>Dimmer</label>
+		<description>Dimmer used as output</description>
+	</channel-type>
+
 	<channel-type id="a">
 		<item-type>Switch</item-type>
 		<label>Output A</label>
