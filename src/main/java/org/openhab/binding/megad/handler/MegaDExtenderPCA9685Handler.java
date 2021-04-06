@@ -21,6 +21,7 @@ import java.net.URL;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @Nullable
     MegaDBridgeExtenderPCA9685Handler extenderPCA9685Bridge;
+    private double dimmerDivider = 40.95;
     protected int dimmervalue = 150;
     private Logger logger = LoggerFactory.getLogger(MegaDExtenderPCA9685Handler.class);
 
@@ -65,7 +67,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
             if (!command.toString().equals("REFRESH")) {
                 try {
                     int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                    int resultInt = (int) Math.round(uivalue * 40.95);
+                    int resultInt = (int) Math.round(uivalue * dimmerDivider);
                     if (uivalue == 1) {
                         resultInt = uivalue;
                     } else if (resultInt != 0) {
@@ -87,7 +89,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                         sendCommand(result);
                         int percent = 0;
                         try {
-                            percent = (int) Math.round(dimmervalue / 2.55);
+                            percent = (int) Math.round(dimmervalue / dimmerDivider);
                         } catch (Exception ex) {
                         }
                         updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
@@ -116,7 +118,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                     logger.error("{}", e.getMessage());
                 }
             }
-            update();
+            updateData(null);
         }
     }
 
@@ -126,35 +128,11 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings("null")
-    public void update() {
-        try {
-            String extport = extenderPCA9685Bridge
-                    .getPortsvalues(getThing().getConfiguration().get("extport").toString());
-            for (Channel channel : getThing().getChannels()) {
-                String idChannel = channel.getUID().getId();
-                if (isLinked(idChannel)) {
-                    if (idChannel.equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
-                        try {
-                            if (extport.equals("0")) {
-                                logger.debug("dimmer value is 0, do not save dimmer value");
-                            } else {
-                                dimmervalue = Integer.parseInt(extport);
-                            }
-                        } catch (Exception ignored) {
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error updating port {}", e.getMessage());
-        }
-    }
-
     public void updateValues(String action) {
         for (Channel channel : getThing().getChannels()) {
             String idChannel = channel.getUID().getId();
             if (isLinked(idChannel)) {
+                logger.debug("updateValues of thing {}: {}", getThing().getUID().toString(), action);
                 if (idChannel.equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
                     try {
                         if (action.equals("0")) {
@@ -186,6 +164,37 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         } else {
             return getBridgeHandler(bridge);
         }
+    }
+
+    @SuppressWarnings({ "null" })
+    protected void updateData(@Nullable String extport) {
+        String hostname = extenderPCA9685Bridge.getHostPassword()[0];
+        String password = extenderPCA9685Bridge.getHostPassword()[1];
+        String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
+        if (extport == null) {
+            extport = getThing().getConfiguration().get("extport").toString();
+        }
+        logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
+        String result = "http://" + hostname + "/" + password + "/?pt=" + port + "ext=" + extport + "&cmd=get";
+        String updateRequest = MegaHttpHelpers.sendRequest(result);
+        for (Channel channel : getThing().getChannels()) {
+            String idChannel = channel.getUID().getId();
+            if (idChannel.equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
+                if (updateRequest.equals("0")) {
+                    logger.debug("dimmer value is 0, do not save dimmer value");
+                } else {
+                    dimmervalue = Integer.parseInt(updateRequest);
+                }
+                int percent = 0;
+                try {
+                    percent = (int) Math.round(Integer.parseInt(updateRequest) / dimmerDivider);
+                } catch (Exception ex) {
+                    logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
+                }
+                updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
+            }
+        }
+
     }
 
     private synchronized @Nullable MegaDBridgeExtenderPCA9685Handler getBridgeHandler(Bridge bridge) {
