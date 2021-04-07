@@ -12,7 +12,7 @@
 		<description>Binding for I2C extender feature of Megadevice</description>
 
 		<channels>
-			<channel id="extPCA9685dimmer" typeId="extPCA9685dimmer"/>
+			<channel id="dimmer" typeId="dimmer"/>
 		</channels>
 
 		<config-description>

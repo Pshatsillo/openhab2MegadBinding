@@ -22,8 +22,13 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
-import org.openhab.core.library.types.*;
-import org.openhab.core.thing.*;
+import org.openhab.core.library.types.PercentType;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
@@ -57,7 +62,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         String password = extenderPCA9685Bridge.getHostPassword()[1];
         String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
         String extport = getThing().getConfiguration().get("extport").toString();
-        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
+        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
                 try {
                     int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
@@ -173,7 +178,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         String updateRequest = MegaHttpHelpers.sendRequest(result);
         for (Channel channel : getThing().getChannels()) {
             String idChannel = channel.getUID().getId();
-            if (idChannel.equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
+            if (idChannel.equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                 if (updateRequest.equals("0")) {
                     logger.debug("dimmer value is 0, do not save dimmer value");
                 } else {

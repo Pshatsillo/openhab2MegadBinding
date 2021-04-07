@@ -79,9 +79,6 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_EXTENDER_IN = "extin";
     public static final String CHANNEL_EXTENDER_OUT = "extout";
 
-    // dimmer Extender PCA9685
-    public static final String CHANNEL_EXTENDER_PCA9685_DIMMER = "extPCA9685dimmer";
-
     // megad2w
     public static final String CHANNEL_MEGAD2W_A = "a";
     public static final String CHANNEL_MEGAD2W_B = "b";
