@@ -28,7 +28,7 @@
 	<channel-type id="pwm">
 		<item-type>Number</item-type>
 		<label>PWM</label>
-		<description>Pure PWM without any adaptations. You can send values 0-255 to megad directly from rules</description>
+		<description>Pure PWM without any adaptations. You can send values to megad directly from rules</description>
 	</channel-type>
 	<channel-type id="m2signal">
 		<item-type>Switch</item-type>

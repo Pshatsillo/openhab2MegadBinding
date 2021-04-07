@@ -13,6 +13,7 @@
 
 		<channels>
 			<channel id="dimmer" typeId="dimmer"/>
+			<channel id="pwm" typeId="pwm"/>
 		</channels>
 
 		<config-description>

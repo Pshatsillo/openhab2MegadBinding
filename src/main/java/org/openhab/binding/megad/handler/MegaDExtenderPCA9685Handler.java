@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
@@ -46,7 +47,7 @@ import org.slf4j.LoggerFactory;
 public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @Nullable
     MegaDBridgeExtenderPCA9685Handler extenderPCA9685Bridge;
-    private double dimmerDivider = 40.95;
+    private int pwmMaxValue = 4095;
     protected int dimmervalue = 150;
     private Logger logger = LoggerFactory.getLogger(MegaDExtenderPCA9685Handler.class);
 
@@ -62,40 +63,71 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         String password = extenderPCA9685Bridge.getHostPassword()[1];
         String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
         String extport = getThing().getConfiguration().get("extport").toString();
-        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-            if (!command.toString().equals("REFRESH")) {
-                try {
-                    int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                    int resultInt = (int) Math.round(uivalue * dimmerDivider);
-                    if (uivalue == 1) {
-                        resultInt = uivalue;
-                    } else if (resultInt != 0) {
-                        dimmervalue = resultInt;
+        String strCommand = command.toString();
+        String idChannel = channelUID.getId();
+        if (!strCommand.equals("REFRESH")) {
+            result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":";
+            switch (idChannel) {
+                case MegaDBindingConstants.CHANNEL_DIMMER:
+                    switch (strCommand) {
+                        case "OFF":
+                            result += "0";
+                            logger.info("Dimmer set to OFF");
+                            sendCommand(result);
+                            updateState(idChannel, PercentType.valueOf("0"));
+                            break;
+                        case "ON":
+                            result += dimmervalue;
+                            logger.info("Dimmer restored to previous value: {}", result);
+                            sendCommand(result);
+                            int percent = 0;
+                            try {
+                                percent = Math.round(dimmervalue / pwmMaxValue / 100);
+                            } catch (Exception e) {
+                            }
+                            updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
+                            break;
+                        default:
+                            try {
+                                int uivalue = Integer.parseInt(strCommand.split("[.]")[0]);
+                                int resultInt = Math.round(uivalue * pwmMaxValue / 100);
+                                if (uivalue == 1) {
+                                    resultInt = uivalue;
+                                } else if (resultInt != 0) {
+                                    dimmervalue = resultInt;
+                                }
+                                result += resultInt;
+                                logger.info("Dimmer: {}", result);
+                                sendCommand(result);
+                            } catch (Exception e) {
+                                logger.debug("Illegal dimmer value: {}", result);
+                            }
+                            break;
                     }
-                    result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":" + resultInt;
-                    logger.info("Dimmer: {}", result);
-                    sendCommand(result);
-                } catch (Exception e) {
-                    if (command.toString().equals("OFF")) {
-                        result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":0";
-                        logger.info("Dimmer set to OFF");
-                        sendCommand(result);
-                        updateState(channelUID.getId(), PercentType.valueOf("0"));
-                    } else if (command.toString().equals("ON")) {
-                        result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":"
-                                + dimmervalue;
-                        logger.info("Dimmer restored to previous value: {}", result);
-                        sendCommand(result);
-                        int percent = 0;
-                        try {
-                            percent = (int) Math.round(dimmervalue / dimmerDivider);
-                        } catch (Exception ex) {
+                    break;
+                case MegaDBindingConstants.CHANNEL_PWM:
+                    int currentValue = 0;
+                    try {
+                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                        if (uivalue != 0) {
+                            currentValue = uivalue;
                         }
-                        updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
-                    } else {
-                        logger.debug("Illegal dimmer value: {}", result);
+                        if (uivalue > pwmMaxValue) {
+                            currentValue = pwmMaxValue;
+                        }
+                        result += currentValue;
+                        logger.info("PWM: {}", result);
+                        sendCommand(result);
+                    } catch (Exception e) {
+                        result += currentValue;
+                        logger.info("PWM restored to previous value: {}", result);
+                        sendCommand(result);
+                        updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
                     }
-                }
+                    break;
+                default:
+                    logger.warn("Channel {} for ExtenderPCA9685(handleCommand) not found", idChannel);
+                    break;
             }
         }
     }
@@ -132,15 +164,40 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
             String idChannel = channel.getUID().getId();
             if (isLinked(idChannel)) {
                 logger.debug("updateValues of thing {}: {}", getThing().getUID().toString(), action);
-                if (idChannel.equals(MegaDBindingConstants.CHANNEL_EXTENDER_PCA9685_DIMMER)) {
-                    try {
-                        if (action.equals("0")) {
-                            logger.debug("dimmer value is 0, do not save dimmer value");
-                        } else {
-                            dimmervalue = Integer.parseInt(action);
+                switch (idChannel) {
+                    case MegaDBindingConstants.CHANNEL_DIMMER:
+                        try {
+                            if (action.equals("0")) {
+                                logger.debug("dimmer value is 0, do not save dimmer value");
+                            } else {
+                                dimmervalue = Integer.parseInt(action);
+                            }
+                        } catch (Exception ignored) {
                         }
-                    } catch (Exception ignored) {
-                    }
+                        try {
+                            updateState(idChannel,
+                                    PercentType.valueOf(Integer.toString(Math.round(dimmervalue / pwmMaxValue / 100))));
+                        } catch (Exception ignored) {
+                        }
+                        break;
+                    case MegaDBindingConstants.CHANNEL_PWM:
+                        int currentValue = 0;
+                        try {
+                            if (action.equals("0")) {
+                                logger.debug("pwm value is 0, do not save pwm value");
+                            } else {
+                                currentValue = Integer.parseInt(action);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                        try {
+                            updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
+                        } catch (Exception ignored) {
+                        }
+                        break;
+                    default:
+                        logger.warn("Channel {} for ExtenderPCA9685(updateValues) not found", idChannel);
+                        break;
                 }
             }
         }
@@ -178,19 +235,40 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         String updateRequest = MegaHttpHelpers.sendRequest(result);
         for (Channel channel : getThing().getChannels()) {
             String idChannel = channel.getUID().getId();
-            if (idChannel.equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-                if (updateRequest.equals("0")) {
-                    logger.debug("dimmer value is 0, do not save dimmer value");
-                } else {
-                    dimmervalue = Integer.parseInt(updateRequest);
-                }
-                int percent = 0;
-                try {
-                    percent = (int) Math.round(Integer.parseInt(updateRequest) / dimmerDivider);
-                } catch (Exception ex) {
-                    logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
-                }
-                updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
+            switch (idChannel) {
+                case MegaDBindingConstants.CHANNEL_DIMMER:
+                    if (updateRequest.equals("0")) {
+                        logger.debug("dimmer value is 0, do not save dimmer value");
+                    } else {
+                        dimmervalue = Integer.parseInt(updateRequest);
+                    }
+                    int percent = 0;
+                    try {
+                        percent = Math.round(Integer.parseInt(updateRequest) / pwmMaxValue / 100);
+                    } catch (Exception e) {
+                        logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
+                    }
+                    updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
+                    break;
+                case MegaDBindingConstants.CHANNEL_PWM:
+                    int currentValue = 0;
+                    try {
+                        if (updateRequest.equals("0")) {
+                            logger.debug("pwm value is 0, do not save pwm value");
+                        } else {
+                            currentValue = Integer.parseInt(updateRequest);
+                        }
+                        if (currentValue > pwmMaxValue) {
+                            currentValue = pwmMaxValue;
+                        }
+                        updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
+                    } catch (Exception e) {
+                        logger.debug("Cannot update PWM value");
+                    }
+                    break;
+                default:
+                    logger.warn("Channel {} for ExtenderPCA9685(updateData) not found", idChannel);
+                    break;
             }
         }
     }
