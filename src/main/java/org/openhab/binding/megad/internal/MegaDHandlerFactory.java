@@ -19,7 +19,22 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.megad.handler.*;
+import org.openhab.binding.megad.handler.MegaD1WireSensorHandler;
+import org.openhab.binding.megad.handler.MegaDBridge1WireBusHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeExtenderPCA9685Handler;
+import org.openhab.binding.megad.handler.MegaDBridgeExtenderPortHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeIToCHandler;
+import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
+import org.openhab.binding.megad.handler.MegaDEncoderHandler;
+import org.openhab.binding.megad.handler.MegaDExtenderHandler;
+import org.openhab.binding.megad.handler.MegaDExtenderPCA9685Handler;
+import org.openhab.binding.megad.handler.MegaDGroupHandler;
+import org.openhab.binding.megad.handler.MegaDItoCHandler;
+import org.openhab.binding.megad.handler.MegaDItoCSensorHandler;
+import org.openhab.binding.megad.handler.MegaDLcd1609Handler;
+import org.openhab.binding.megad.handler.MegaDPortsHandler;
+import org.openhab.binding.megad.handler.MegaDRs485Handler;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -47,6 +62,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     static {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER_BRIDGE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER_PCA9685);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_EXTENDER_PCA9685_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_I2C);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREBUS_BRIDGE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_1WIREADDRESS);
@@ -88,6 +105,10 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDBridgeExtenderPortHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_EXTENDER)) {
             return new MegaDExtenderHandler(thing);
+        } else if (thingTypeUID.equals(THING_TYPE_EXTENDER_PCA9685_BRIDGE)) {
+            return new MegaDBridgeExtenderPCA9685Handler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_EXTENDER_PCA9685)) {
+            return new MegaDExtenderPCA9685Handler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_ITOC_BRIDGE)) {
             return new MegaDBridgeIToCHandler((Bridge) thing);
         } else if (thingTypeUID.equals(THING_TYPE_I2CBUSSENSOR)) {

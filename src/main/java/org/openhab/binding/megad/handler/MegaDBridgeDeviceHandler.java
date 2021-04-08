@@ -46,6 +46,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     private @Nullable final Map<String, MegaDItoCHandler> itoCHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDBridge1WireBusHandler> oneWireBusBridgeHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDBridgeExtenderPortHandler> extenderBridgeHandlerMap = new HashMap<>();
+    private @Nullable final Map<String, MegaDBridgeExtenderPCA9685Handler> extenderPCA9685BridgeHandlerMap = new HashMap<>();
     private @Nullable final Map<String, MegaDEncoderHandler> megaDEncoderHandlerMap = new HashMap<>();
     private final Map<String, String> portsvalues = new HashMap<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -272,6 +273,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     });
                 }
             }
+            if (extenderPCA9685BridgeHandlerMap.size() != 0) {
+                extenderPCA9685BridgeHandlerMap.forEach((k, v) -> {
+                    v.updateValues(getCommands);
+                });
+            }
             if (megaDEncoderHandlerMap.size() != 0) {
                 megaDEncoderHandler = megaDEncoderHandlerMap.get(getCommands[1]);
                 megaDEncoderHandler.updateValues(getCommands[3]);
@@ -299,8 +305,9 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        if (bridgeIncomingHandler != null)
+        if (bridgeIncomingHandler != null) {
             bridgeIncomingHandler.unregisterMegaDeviceListener(this);
+        }
         super.dispose();
     }
 
@@ -406,6 +413,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     }
 
     @SuppressWarnings("null")
+    /* Maybe error, see unregisterMegaExtenderPCA9685Listener */
     public void unregisterMegaDPortsListener(MegaDBridgeExtenderPortHandler megaDBridgeExtenderPortHandler) {
         String ip = megaDBridgeExtenderPortHandler.getThing().getConfiguration().get("port").toString();
         if (extenderBridgeHandlerMap.get(ip) != null) {
@@ -423,6 +431,41 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         megaDBridgeExtenderPortHandler.updateStatus(status, statusDetail, decript);
     }
     // Extender
+
+    // PCA9685
+    @SuppressWarnings({ "unused", "null" })
+    public void registerMegaExtenderPCA9685Listener(
+            MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler) {
+        String extenderPort = megaDBridgeExtenderPCA9685Handler.getThing().getConfiguration().get("port").toString();
+        if (extenderPCA9685BridgeHandlerMap.get(extenderPort) != null) {
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.OFFLINE,
+                    ThingStatusDetail.CONFIGURATION_ERROR, "Device already exist");
+        } else {
+            extenderPCA9685BridgeHandlerMap.put(extenderPort, megaDBridgeExtenderPCA9685Handler);
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.ONLINE);
+        }
+    }
+
+    @SuppressWarnings("null")
+    public void unregisterMegaExtenderPCA9685Listener(
+            MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler) {
+        String extenderPort = megaDBridgeExtenderPCA9685Handler.getThing().getConfiguration().get("port").toString();
+        if (extenderPCA9685BridgeHandlerMap.get(extenderPort) != null) {
+            extenderPCA9685BridgeHandlerMap.remove(extenderPort);
+            updateThingHandlerStatus(megaDBridgeExtenderPCA9685Handler, ThingStatus.OFFLINE);
+        }
+    }
+
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPCA9685Handler thingHandler, ThingStatus status) {
+        thingHandler.updateStatus(status);
+    }
+
+    private void updateThingHandlerStatus(MegaDBridgeExtenderPCA9685Handler megaDBridgeExtenderPCA9685Handler,
+            ThingStatus status, ThingStatusDetail statusDetail, String decript) {
+        megaDBridgeExtenderPCA9685Handler.updateStatus(status, statusDetail, decript);
+    }
+
+    // PCA9685
 
     // 1WBRIDGE --------------------------------------------------------------------
     @SuppressWarnings({ "null", "unused" })

@@ -4,16 +4,16 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<bridge-type id="pca9685">
+	<bridge-type id="extenderPCA9685Bridge">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="device"/>
 		</supported-bridge-type-refs>
 
-		<label>Bridge for Megad PCA9685 extender  </label>
+		<label>Bridge for Megad PCA9685 extenders  </label>
 		<description>This bridge is for port where extender is located</description>
 
 		<config-description>
-			<parameter name="sda" type="text" required="true">
+			<parameter name="port" type="text" required="true">
 				<label>SDA port number</label>
 				<description>Port number to access the device channel.</description>
 			</parameter>
