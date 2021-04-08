@@ -58,15 +58,14 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        String result = "";
-        String hostname = extenderPCA9685Bridge.getHostPassword()[0];
-        String password = extenderPCA9685Bridge.getHostPassword()[1];
-        String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
-        String extport = getThing().getConfiguration().get("extport").toString();
-        String strCommand = command.toString();
-        String idChannel = channelUID.getId();
+		String strCommand = command.toString();
         if (!strCommand.equals("REFRESH")) {
-            result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":";
+			String hostname = extenderPCA9685Bridge.getHostPassword()[0];
+			String password = extenderPCA9685Bridge.getHostPassword()[1];
+			String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
+			String extport = getThing().getConfiguration().get("extport").toString();
+            String result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":";
+			String idChannel = channelUID.getId();
             switch (idChannel) {
                 case MegaDBindingConstants.CHANNEL_DIMMER:
                     switch (strCommand) {
@@ -108,7 +107,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                 case MegaDBindingConstants.CHANNEL_PWM:
                     int currentValue = 0;
                     try {
-                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                        int uivalue = Integer.parseInt(strCommand.split("[.]")[0]);
                         if (uivalue != 0) {
                             currentValue = uivalue;
                         }

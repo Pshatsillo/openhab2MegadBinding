@@ -1,2 +1,4 @@
 /target/
 org.openhab.binding.megad.iml
+/.history/
+.classpath
