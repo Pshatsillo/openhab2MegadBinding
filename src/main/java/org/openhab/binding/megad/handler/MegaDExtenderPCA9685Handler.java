@@ -58,14 +58,14 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-		String strCommand = command.toString();
+        String strCommand = command.toString();
         if (!strCommand.equals("REFRESH")) {
-			String hostname = Bridge.getHostPassword()[0];
-			String password = Bridge.getHostPassword()[1];
-			String port = Bridge.getThing().getConfiguration().get("port").toString();
-			String extport = getThing().getConfiguration().get("extport").toString();
+            String hostname = Bridge.getHostPassword()[0];
+            String password = Bridge.getHostPassword()[1];
+            String port = Bridge.getThing().getConfiguration().get("port").toString();
+            String extport = getThing().getConfiguration().get("extport").toString();
             String result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":";
-			String idChannel = channelUID.getId();
+            String idChannel = channelUID.getId();
             switch (idChannel) {
                 case MegaDBindingConstants.CHANNEL_DIMMER:
                     switch (strCommand) {
@@ -135,7 +135,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @Override
     public void initialize() {
         Bridge = getBridgeHandler();
-		registerListenerThing(Bridge);
+        registerListenerThing(Bridge);
         if (Bridge != null) {
             while (!Bridge.getStateStarted()) {
                 try {
@@ -152,8 +152,8 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         if (bridge != null) {
             bridge.registerListenerThing(this);
         } else {
-			logger.debug("Can't register bridge for {}. BridgeHandler is null.", this.getThing().getUID());
-		}
+            logger.debug("Can't register bridge for {}. BridgeHandler is null.", this.getThing().getUID());
+        }
     }
 
     public void updateValues(String action) {
@@ -229,7 +229,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         }
     }
 
-	@SuppressWarnings({ "null" })
+    @SuppressWarnings({ "null" })
     protected void updateData(@Nullable String extport) {
         String hostname = Bridge.getHostPassword()[0];
         String password = Bridge.getHostPassword()[1];
@@ -308,8 +308,11 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ", Bridge.getHostPassword()[0],
-                    e.getLocalizedMessage());
+            logger.error(
+				"Connect to megadevice {} {} error: ",
+				Bridge.getHostPassword()[0],
+				e.getLocalizedMessage()
+			);
         }
     }
 }
