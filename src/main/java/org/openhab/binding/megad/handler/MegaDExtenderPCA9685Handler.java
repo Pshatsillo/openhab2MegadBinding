@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @Nullable
-    MegaDBridgeExtenderPCA9685Handler extenderPCA9685Bridge;
+    MegaDBridgeExtenderPCA9685Handler Bridge;
     private int pwmMaxValue = 4095;
     protected int dimmervalue = 150;
     private Logger logger = LoggerFactory.getLogger(MegaDExtenderPCA9685Handler.class);
@@ -60,9 +60,9 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
 		String strCommand = command.toString();
         if (!strCommand.equals("REFRESH")) {
-			String hostname = extenderPCA9685Bridge.getHostPassword()[0];
-			String password = extenderPCA9685Bridge.getHostPassword()[1];
-			String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
+			String hostname = Bridge.getHostPassword()[0];
+			String password = Bridge.getHostPassword()[1];
+			String port = Bridge.getThing().getConfiguration().get("port").toString();
 			String extport = getThing().getConfiguration().get("extport").toString();
             String result = "http://" + hostname + "/" + password + "/?cmd=" + port + "e" + extport + ":";
 			String idChannel = channelUID.getId();
@@ -134,14 +134,10 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void initialize() {
-        extenderPCA9685Bridge = getBridgeHandler();
-        if (extenderPCA9685Bridge != null) {
-            registerExtenderPCA9685Listener(extenderPCA9685Bridge);
-        } else {
-            logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
-        }
-        if (extenderPCA9685Bridge != null) {
-            while (!extenderPCA9685Bridge.getStateStarted()) {
+        Bridge = getBridgeHandler();
+		registerListenerThing(Bridge);
+        if (Bridge != null) {
+            while (!Bridge.getStateStarted()) {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
@@ -152,10 +148,12 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         }
     }
 
-    private void registerExtenderPCA9685Listener(@Nullable MegaDBridgeExtenderPCA9685Handler extenderPCA9685Bridge) {
-        if (extenderPCA9685Bridge != null) {
-            extenderPCA9685Bridge.registerExtenderPCA9685Listener(this);
-        }
+    private void registerListenerThing(@Nullable MegaDBridgeExtenderPCA9685Handler bridge) {
+        if (bridge != null) {
+            bridge.registerListenerThing(this);
+        } else {
+			logger.debug("Can't register bridge for {}. BridgeHandler is null.", this.getThing().getUID());
+		}
     }
 
     public void updateValues(String action) {
@@ -205,8 +203,8 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     @SuppressWarnings("null")
     @Override
     public void dispose() {
-        if (extenderPCA9685Bridge != null) {
-            extenderPCA9685Bridge.unregisterExtenderPCA9685Listener(this);
+        if (Bridge != null) {
+            Bridge.unregisterListenerThing(this);
         }
         super.dispose();
     }
@@ -221,11 +219,21 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         }
     }
 
-    @SuppressWarnings({ "null" })
+    private synchronized @Nullable MegaDBridgeExtenderPCA9685Handler getBridgeHandler(Bridge bridge) {
+        ThingHandler handler = bridge.getHandler();
+        if (handler instanceof MegaDBridgeExtenderPCA9685Handler) {
+            return (MegaDBridgeExtenderPCA9685Handler) handler;
+        } else {
+            logger.debug("No available bridge handler found yet. Bridge: {} .", bridge.getUID());
+            return null;
+        }
+    }
+
+	@SuppressWarnings({ "null" })
     protected void updateData(@Nullable String extport) {
-        String hostname = extenderPCA9685Bridge.getHostPassword()[0];
-        String password = extenderPCA9685Bridge.getHostPassword()[1];
-        String port = extenderPCA9685Bridge.getThing().getConfiguration().get("port").toString();
+        String hostname = Bridge.getHostPassword()[0];
+        String password = Bridge.getHostPassword()[1];
+        String port = Bridge.getThing().getConfiguration().get("port").toString();
         if (extport == null) {
             extport = getThing().getConfiguration().get("extport").toString();
         }
@@ -272,16 +280,6 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         }
     }
 
-    private synchronized @Nullable MegaDBridgeExtenderPCA9685Handler getBridgeHandler(Bridge bridge) {
-        ThingHandler handler = bridge.getHandler();
-        if (handler instanceof MegaDBridgeExtenderPCA9685Handler) {
-            return (MegaDBridgeExtenderPCA9685Handler) handler;
-        } else {
-            logger.debug("No available bridge handler found yet. Bridge: {} .", bridge.getUID());
-            return null;
-        }
-    }
-
     @Override
     public void updateStatus(ThingStatus status) {
         super.updateStatus(status);
@@ -293,12 +291,10 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     }
 
     @SuppressWarnings("null")
-    public void sendCommand(String Result) {
-        HttpURLConnection con;
-        URL megaURL;
+    public void sendCommand(String result) {
         try {
-            megaURL = new URL(Result);
-            con = (HttpURLConnection) megaURL.openConnection();
+            URL megaURL = new URL(result);
+            HttpURLConnection con = (HttpURLConnection) megaURL.openConnection();
             con.setReadTimeout(1000);
             con.setConnectTimeout(1000);
             con.setRequestMethod("GET");
@@ -312,7 +308,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error("Connect to megadevice {} {} error: ", extenderPCA9685Bridge.getHostPassword()[0],
+            logger.error("Connect to megadevice {} {} error: ", Bridge.getHostPassword()[0],
                     e.getLocalizedMessage());
         }
     }
