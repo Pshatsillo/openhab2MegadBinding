@@ -437,18 +437,11 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     public void registerMegaDBridgeExtenderPCA9685Listener(MegaDBridgeExtenderPCA9685Handler bridge) {
         String port = bridge.getThing().getConfiguration().get("port").toString();
         if (extenderPCA9685BridgeHandlerMap.get(port) != null) {
-            updateThingHandlerStatus(
-				bridge,
-				ThingStatus.OFFLINE,
-				ThingStatusDetail.CONFIGURATION_ERROR,
-                "Device already exist"
-			);
+            updateThingHandlerStatus(bridge, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                    "Device already exist");
         } else {
             extenderPCA9685BridgeHandlerMap.put(port, bridge);
-            updateThingHandlerStatus(
-				bridge,
-				ThingStatus.ONLINE
-			);
+            updateThingHandlerStatus(bridge, ThingStatus.ONLINE);
         }
     }
 
@@ -457,10 +450,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         String port = bridge.getThing().getConfiguration().get("port").toString();
         if (extenderPCA9685BridgeHandlerMap.get(port) != null) {
             extenderPCA9685BridgeHandlerMap.remove(port);
-            updateThingHandlerStatus(
-				bridge,
-				ThingStatus.OFFLINE
-			);
+            updateThingHandlerStatus(bridge, ThingStatus.OFFLINE);
         }
     }
 

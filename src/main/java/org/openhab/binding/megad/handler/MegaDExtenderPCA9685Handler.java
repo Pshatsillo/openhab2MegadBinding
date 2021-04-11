@@ -21,7 +21,6 @@ import java.net.URL;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Bridge;
@@ -81,7 +80,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                             sendCommand(result);
                             int percent = 0;
                             try {
-                                percent = Math.round(dimmervalue / pwmMaxValue / 100);
+                                percent = Math.round(dimmervalue * 100 / pwmMaxValue);
                             } catch (Exception e) {
                             }
                             updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
@@ -99,7 +98,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                                 logger.info("Dimmer: {}", result);
                                 sendCommand(result);
                             } catch (Exception e) {
-                                logger.debug("Illegal dimmer value: {}", result);
+                                logger.warn("Illegal dimmer value: {}", result);
                             }
                             break;
                     }
@@ -139,12 +138,13 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         if (Bridge != null) {
             while (!Bridge.getStateStarted()) {
                 try {
-                    Thread.sleep(1);
+                    logger.info("Waiting for a state started for Bridge");
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     logger.error("{}", e.getMessage());
                 }
             }
-            updateData(null);
+            update();
         }
     }
 
@@ -171,11 +171,13 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                             }
                         } catch (Exception ignored) {
                         }
+                        int percent = 0;
                         try {
-                            updateState(idChannel,
-                                    PercentType.valueOf(Integer.toString(Math.round(dimmervalue / pwmMaxValue / 100))));
-                        } catch (Exception ignored) {
+                            percent = Math.round(dimmervalue * 100 / pwmMaxValue);
+                        } catch (Exception e) {
+                            logger.debug("Cannot convert to dimmer values string: '{}'", dimmervalue);
                         }
+                        updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
                         break;
                     case MegaDBindingConstants.CHANNEL_PWM:
                         int currentValue = 0;
@@ -230,40 +232,44 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
     }
 
     @SuppressWarnings({ "null" })
-    protected void updateData(@Nullable String extport) {
-        String hostname = Bridge.getHostPassword()[0];
-        String password = Bridge.getHostPassword()[1];
-        String port = Bridge.getThing().getConfiguration().get("port").toString();
-        if (extport == null) {
-            extport = getThing().getConfiguration().get("extport").toString();
-        }
-        logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
-        String result = "http://" + hostname + "/" + password + "/?pt=" + port + "ext=" + extport + "&cmd=get";
-        String updateRequest = MegaHttpHelpers.sendRequest(result);
+    protected void update() {
+        /*
+         * String hostname = Bridge.getHostPassword()[0];
+         * String password = Bridge.getHostPassword()[1];
+         * String port = Bridge.getThing().getConfiguration().get("port").toString();
+         * if (extport == null) {
+         * extport = getThing().getConfiguration().get("extport").toString();
+         * }
+         * logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
+         * String result = "http://" + hostname + "/" + password + "/?pt=" + port + "&ext=" + extport + "&cmd=get";
+         * String updateRequest = MegaHttpHelpers.sendRequest(result);
+         */
+        String extport = getThing().getConfiguration().get("extport").toString();
+        String portValue = Bridge.getPortsvalues(extport);
         for (Channel channel : getThing().getChannels()) {
             String idChannel = channel.getUID().getId();
             switch (idChannel) {
                 case MegaDBindingConstants.CHANNEL_DIMMER:
-                    if (updateRequest.equals("0")) {
+                    if (portValue.equals("0")) {
                         logger.debug("dimmer value is 0, do not save dimmer value");
                     } else {
-                        dimmervalue = Integer.parseInt(updateRequest);
+                        dimmervalue = Integer.parseInt(portValue);
                     }
                     int percent = 0;
                     try {
-                        percent = Math.round(Integer.parseInt(updateRequest) / pwmMaxValue / 100);
+                        percent = Math.round(Integer.parseInt(portValue) * 100 / pwmMaxValue);
                     } catch (Exception e) {
-                        logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
+                        logger.debug("Cannot convert to dimmer values string: '{}'", portValue);
                     }
                     updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
                     break;
                 case MegaDBindingConstants.CHANNEL_PWM:
                     int currentValue = 0;
                     try {
-                        if (updateRequest.equals("0")) {
+                        if (portValue.equals("0")) {
                             logger.debug("pwm value is 0, do not save pwm value");
                         } else {
-                            currentValue = Integer.parseInt(updateRequest);
+                            currentValue = Integer.parseInt(portValue);
                         }
                         if (currentValue > pwmMaxValue) {
                             currentValue = pwmMaxValue;
@@ -308,11 +314,7 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         } catch (ProtocolException e) {
             logger.error("{}", e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.error(
-				"Connect to megadevice {} {} error: ",
-				Bridge.getHostPassword()[0],
-				e.getLocalizedMessage()
-			);
+            logger.error("Connect to megadevice {} {} error: ", Bridge.getHostPassword()[0], e.getLocalizedMessage());
         }
     }
 }
