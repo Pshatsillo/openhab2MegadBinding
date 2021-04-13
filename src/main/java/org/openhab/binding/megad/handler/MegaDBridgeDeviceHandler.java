@@ -274,9 +274,12 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 }
             }
             if (extenderPCA9685BridgeHandlerMap.size() != 0) {
-                extenderPCA9685BridgeHandlerMap.forEach((k, v) -> {
-                    v.updateValues(getCommands);
-                });
+                // PCA9685 Don`t have extender input
+                /*
+                 * extenderPCA9685BridgeHandlerMap.forEach((k, v) -> {
+                 * v.updateValues(getCommands);
+                 * });
+                 */
             }
             if (megaDEncoderHandlerMap.size() != 0) {
                 megaDEncoderHandler = megaDEncoderHandlerMap.get(getCommands[1]);

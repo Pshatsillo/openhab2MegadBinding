@@ -93,7 +93,6 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     public void updateValues(String[] getCommands) {
-        logger.info(getCommands.toString());
         String port = getCommands[2].substring(3);
         String action = getCommands[3];
         Thing = mapThings.get(String.valueOf(port));
