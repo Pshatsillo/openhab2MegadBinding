@@ -92,16 +92,16 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     // @SuppressWarnings("null")
     public void parseInput(@Nullable String s, @Nullable String remoteHost) {
         assert remoteHost != null;
-        if (remoteHost.equals("0:0:0:0:0:0:0:1")) {
-            assert devicesHandlerMap != null;
+        assert devicesHandlerMap != null;
+        if ("0:0:0:0:0:0:0:1".equals(remoteHost)) {
             deviceHandler = devicesHandlerMap.get("localhost");
         } else {
-            assert devicesHandlerMap != null;
             deviceHandler = devicesHandlerMap.get(remoteHost);
         }
         if (deviceHandler != null) {
-            if (s != null)
+            if (s != null) {
                 deviceHandler.manageValues(s);
+            }
         }
 
         logger.debug("incoming from Megad: {} {}", remoteHost, s);

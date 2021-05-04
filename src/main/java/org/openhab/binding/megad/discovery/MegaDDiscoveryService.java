@@ -15,7 +15,11 @@ package org.openhab.binding.megad.discovery;
 import static java.lang.Thread.sleep;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,8 +104,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 socket.close();
             } catch (IOException e) {
                 logger.warn("{}", e.getMessage());
-            } finally {
-
             }
             removeOlderResults(timestampOfLastScan);
         };
@@ -123,7 +125,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         final byte[] buffer = new byte[5];
 
         public void run() {
-            boolean running = true;
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 try {

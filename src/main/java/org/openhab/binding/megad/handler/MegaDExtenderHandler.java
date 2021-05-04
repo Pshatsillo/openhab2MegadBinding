@@ -22,7 +22,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.thing.*;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
@@ -120,9 +125,9 @@ public class MegaDExtenderHandler extends BaseThingHandler {
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
                 if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXTENDER_IN)) {
-                    if (action.equals("1")) {
+                    if ("1".equals(action)) {
                         updateState(channel.getUID().getId(), OnOffType.ON);
-                    } else if (action.equals("0")) {
+                    } else if ("0".equals(action)) {
                         updateState(channel.getUID().getId(), OnOffType.OFF);
                     }
                 }

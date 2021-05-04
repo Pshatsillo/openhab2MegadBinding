@@ -32,7 +32,7 @@ public class MegaHttpHelpers {
     public static String sendRequest(String URL) {
         Logger logger = LoggerFactory.getLogger(MegaHttpHelpers.class);
         String result = "";
-        if (!URL.equals("")) {
+        if (!"".equals(URL)) {
             try {
                 java.net.URL urlreq = new URL(URL);
                 HttpURLConnection con;

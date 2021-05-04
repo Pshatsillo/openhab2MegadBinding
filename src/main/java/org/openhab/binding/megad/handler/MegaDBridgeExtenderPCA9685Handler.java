@@ -1,3 +1,15 @@
+/**
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.megad.handler;
 
 import java.util.HashMap;
@@ -28,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
     @Nullable
-    MegaDBridgeDeviceHandler BridgeDevice;
+    MegaDBridgeDeviceHandler bridgeDevice;
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeExtenderPCA9685Handler.class);
     @Nullable
     private Map<String, MegaDExtenderPCA9685Handler> mapThings = new HashMap<String, MegaDExtenderPCA9685Handler>();
@@ -37,7 +49,7 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     protected long lastRefresh = 0;
     @Nullable
-    MegaDExtenderPCA9685Handler Thing;
+    MegaDExtenderPCA9685Handler thing;
 
     public MegaDBridgeExtenderPCA9685Handler(Bridge bridge) {
         super(bridge);
@@ -50,8 +62,8 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
     @SuppressWarnings({ "unused", "null" })
     @Override
     public void initialize() {
-        BridgeDevice = getBridgeHandler();
-        registerListenerBridge(BridgeDevice);
+        bridgeDevice = getBridgeHandler();
+        registerListenerBridge(bridgeDevice);
         String refresh = getThing().getConfiguration().get("refresh").toString();
         logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), refresh);
         float msec = Float.parseFloat(refresh) + 1;
@@ -95,8 +107,8 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
     public void updateValues(String[] getCommands) {
         String port = getCommands[2].substring(3);
         String action = getCommands[3];
-        Thing = mapThings.get(String.valueOf(port));
-        Thing.updateValues(action);
+        thing = mapThings.get(String.valueOf(port));
+        thing.updateValues(action);
         logger.warn("Required bridge not defined for device.");
     }
 
@@ -167,8 +179,8 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     public String[] getHostPassword() {
-        String[] result = new String[] { BridgeDevice.getThing().getConfiguration().get("hostname").toString(),
-                BridgeDevice.getThing().getConfiguration().get("password").toString() };
+        String[] result = new String[] { bridgeDevice.getThing().getConfiguration().get("hostname").toString(),
+                bridgeDevice.getThing().getConfiguration().get("password").toString() };
         return result;
     }
 
@@ -197,8 +209,8 @@ public class MegaDBridgeExtenderPCA9685Handler extends BaseBridgeHandler {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
-        if (BridgeDevice != null) {
-            BridgeDevice.unregisterMegaDBridgeExtenderPCA9685Listener(this);
+        if (bridgeDevice != null) {
+            bridgeDevice.unregisterMegaDBridgeExtenderPCA9685Listener(this);
         }
         super.dispose();
     }

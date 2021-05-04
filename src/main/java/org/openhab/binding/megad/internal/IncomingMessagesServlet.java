@@ -54,8 +54,9 @@ public class IncomingMessagesServlet extends AbstractHandler {
             out.println("");
             // out.close();
             response.setHeader("Connection", "close");
-            if (baseRequest != null)
+            if (baseRequest != null) {
                 baseRequest.setHandled(true);
+            }
             // baseRequest.logout();
             if (request != null) {
                 logger.debug("Incoming {}", request.getParameterMap());

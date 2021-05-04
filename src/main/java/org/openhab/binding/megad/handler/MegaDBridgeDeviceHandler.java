@@ -95,7 +95,6 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
 
     @SuppressWarnings("null")
     private void refresh() {
-        Process proc = null;
         try {
             Socket sck = new Socket(getThing().getConfiguration().get("hostname").toString(), 80);
             updateStatus(ThingStatus.ONLINE);
@@ -161,7 +160,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                 }
             }
 
-            if (portsHandlerMap.size() != 0) {
+            assert portsHandlerMap != null;
+            if (!portsHandlerMap.isEmpty()) {
                 if (command.contains("all=")) { // loop incoming
                     logger.debug("Loop incoming from Megad: {} {}",
                             getThing().getConfiguration().get("hostname").toString(), command);
@@ -264,7 +264,7 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     }
                 }
             }
-            if (extenderBridgeHandlerMap.size() != 0) {
+            if (extenderBridgeHandlerMap.isEmpty()) {
                 if (command.contains("ext")) {
                     extenderBridgeHandlerMap.forEach((k, v) -> {
                         if (v.getThing().getConfiguration().get("int").equals(getCommands[1])) {
@@ -273,15 +273,8 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                     });
                 }
             }
-            if (extenderPCA9685BridgeHandlerMap.size() != 0) {
-                // PCA9685 Don`t have extender input
-                /*
-                 * extenderPCA9685BridgeHandlerMap.forEach((k, v) -> {
-                 * v.updateValues(getCommands);
-                 * });
-                 */
-            }
-            if (megaDEncoderHandlerMap.size() != 0) {
+            assert megaDEncoderHandlerMap != null;
+            if (!megaDEncoderHandlerMap.isEmpty()) {
                 megaDEncoderHandler = megaDEncoderHandlerMap.get(getCommands[1]);
                 megaDEncoderHandler.updateValues(getCommands[3]);
             }

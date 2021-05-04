@@ -12,8 +12,10 @@
  */
 package org.openhab.binding.megad.handler;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -54,13 +56,13 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("LCD send command: {}", command);
-        String result = "";
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)) {
             if (!command.toString().equals("REFRESH")) {
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text=________________";
-                // sendCommand(result);
+                // result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() +
+                // "/"
+                // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                // + getThing().getConfiguration().get("port").toString() + "&text=________________";
+                // // sendCommand(result);
                 sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                         "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + getThing().getConfiguration().get("port").toString() + "&text=________________");
@@ -69,11 +71,12 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
                 } catch (InterruptedException e) {
                     // e.printStackTrace();
                 }
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="
-                        + command.toString().replace(" ", "_");
-                // sendCommand(result);
+                // result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() +
+                // "/"
+                // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                // + getThing().getConfiguration().get("port").toString() + "&text="
+                // + command.toString().replace(" ", "_");
+                // // sendCommand(result);
                 sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                         "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + getThing().getConfiguration().get("port").toString() + "&text="
@@ -82,10 +85,11 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)) {
             if (!command.toString().equals("REFRESH")) {
                 assert bridgeDeviceHandler != null;
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text=________________&col=0&row=1";
-                // sendCommand(result);
+                // result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() +
+                // "/"
+                // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                // + getThing().getConfiguration().get("port").toString() + "&text=________________&col=0&row=1";
+                // // sendCommand(result);
                 sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                         "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + getThing().getConfiguration().get("port").toString()
@@ -96,10 +100,11 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
                 } catch (InterruptedException ignored) {
                 }
 
-                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                        + getThing().getConfiguration().get("port").toString() + "&text="
-                        + command.toString().replace(" ", "_") + "&col=0&row=1";
+                // result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() +
+                // "/"
+                // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
+                // + getThing().getConfiguration().get("port").toString() + "&text="
+                // + command.toString().replace(" ", "_") + "&col=0&row=1";
                 sendCommand(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
                         "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + getThing().getConfiguration().get("port").toString() + "&text="
@@ -116,7 +121,6 @@ public class MegaDLcd1609Handler extends BaseThingHandler {
         req = req.replace("°", "_");
         int port = 80;
         try (Socket socket = new Socket(hostname, port)) {
-            InputStream input = socket.getInputStream();
             OutputStream output = socket.getOutputStream();
             byte[] data = req.getBytes(StandardCharsets.UTF_8);
             if (degreeIndex != -1) {

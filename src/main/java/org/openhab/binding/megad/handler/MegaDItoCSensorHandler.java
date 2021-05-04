@@ -22,7 +22,11 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.*;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
@@ -101,7 +105,7 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + getThing().getConfiguration().get("sensortype").toString();
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
-                    if (updateRequest.equals("NA")) {
+                    if ("NA".equals(updateRequest)) {
                         logger.debug("Value {} is incorrect for channel {}", updateRequest,
                                 MegaDBindingConstants.CHANNEL_PAR0);
                     } else {
@@ -121,7 +125,7 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=1";
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
-                    if (updateRequest.equals("NA")) {
+                    if ("NA".equals(updateRequest)) {
                         logger.debug("Value {} is incorrect for channel {}", updateRequest,
                                 MegaDBindingConstants.CHANNEL_PAR0);
                     } else {
@@ -141,7 +145,7 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=2";
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
-                    if (updateRequest.equals("NA")) {
+                    if ("NA".equals(updateRequest)) {
                         logger.debug("Value {} is incorrect for channel {}", updateRequest,
                                 MegaDBindingConstants.CHANNEL_PAR2);
                     } else {
