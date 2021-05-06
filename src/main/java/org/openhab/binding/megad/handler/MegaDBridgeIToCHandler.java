@@ -14,6 +14,7 @@ package org.openhab.binding.megad.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
@@ -47,6 +48,7 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
+        MegaDDiscoveryService.i2cBusList.add(this);
         updateStatus(ThingStatus.ONLINE);
     }
 

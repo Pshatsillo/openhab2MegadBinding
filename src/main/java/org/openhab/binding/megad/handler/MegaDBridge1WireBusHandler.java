@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -40,7 +41,10 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(MegaDBridge1WireBusHandler.class);
+    @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
+    @Nullable
+    MegaDDiscoveryService discovery;
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     boolean startup = true;
     protected long lastRefresh = 0;
@@ -50,7 +54,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
 
     public MegaDBridge1WireBusHandler(Bridge bridge) {
         super(bridge);
-        bridgeDeviceHandler = Objects.requireNonNull(getBridgeHandler());
+        // bridgeDeviceHandler = Objects.requireNonNull(getBridgeHandler());
     }
 
     @Override
@@ -61,7 +65,7 @@ public class MegaDBridge1WireBusHandler extends BaseBridgeHandler {
     public void initialize() {
         bridgeDeviceHandler = Objects.requireNonNull(getBridgeHandler());
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
-
+        MegaDDiscoveryService.oneWireBusList.add(this);
         // if (bridgeDeviceHandler != null) {
         registerMega1WirePortListener(bridgeDeviceHandler);
         // } else {

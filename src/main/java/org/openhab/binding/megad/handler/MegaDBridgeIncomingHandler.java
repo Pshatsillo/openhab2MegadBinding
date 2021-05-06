@@ -21,6 +21,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.server.Server;
 import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.internal.IncomingMessagesServlet;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -60,7 +61,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     @Override
     public void initialize() {
         logger.debug("Initializing Megad bridge handler {}", this.toString());
-
+        MegaDDiscoveryService.incomingBusList.add(this);
         if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
             scheduler.execute(new Runnable() {
                 @Override
@@ -151,6 +152,9 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         } catch (Exception e) {
             logger.error("Dispose ERROR: {}", e.getLocalizedMessage());
         }
+        int index = MegaDDiscoveryService.incomingBusList.indexOf(this);
+        MegaDDiscoveryService.incomingBusList.remove(index);
+        logger.debug("{}", index);
         updateStatus(ThingStatus.OFFLINE); // Set all State to offline
         super.dispose();
     }
