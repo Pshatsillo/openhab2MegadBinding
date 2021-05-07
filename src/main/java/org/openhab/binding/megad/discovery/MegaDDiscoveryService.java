@@ -193,7 +193,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                         DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
                                 .withProperty("address", getValues[0]).withRepresentationProperty("address")
                                 .withLabel(
-                                        "onwireSensor " + getValues[0] + "at bus " + onewireBus.getThing().getLabel())
+                                        "onwireSensor " + getValues[0] + " at bus " + onewireBus.getThing().getLabel())
                                 .withBridge(onewireBus.getThing().getUID()).build();
                         thingDiscovered(resultS);
                     } catch (Exception e) {
@@ -224,7 +224,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                             i2cBridge.getThing().getUID(), "I2CbusSensor_" + sensorType[3]);
                     DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
                             .withProperty("sensortype", sensorType[3]).withRepresentationProperty("sensortype")
-                            .withLabel("I2CSensor " + sensorType[3] + "at bus " + i2cBridge.getThing().getLabel())
+                            .withLabel("I2CSensor " + sensorType[3] + " at bus " + i2cBridge.getThing().getLabel())
                             .withBridge(i2cBridge.getThing().getUID()).build();
                     thingDiscovered(resultS);
                 }
