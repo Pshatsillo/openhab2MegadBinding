@@ -1,4 +1,4 @@
-# OpenHAB 2 MegaD binding
+# OpenHAB 2 MegaD binding (ДОКУМЕНТАЦИЯ НЕ АКТУАЛЬНА ДЛЯ OPENHAB 3, постараюсь привести в порядок максимально быстро)
 
 режимы работы: "in", "out", "dimmer", "temp", "humidity", "onewire", "adc", "at", "st", "ib", "tget", "contact", в процессе "i2c".
 
@@ -42,11 +42,9 @@ link
 .things:
 
 ```
-Bridge megad:bridge:megadeviceincoming
+Bridge megad:tcp:megadeviceincoming
 {
- Thing device onewire [hostname="localhost", port="3", password="sec", refresh="10"]
- Thing device kitchenout [hostname="localhost", port="1", refresh="0"]
- Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
+
 }
 ```
 
@@ -64,7 +62,7 @@ Contact MegaDContact  "[%s]" (Temperature, GF_Corridor) { channel = "megad:devic
 #### 1) Создаем бридж в файле .things.
 
 ```
-Bridge megad:bridge:megadeviceincoming {}
+Bridge megad:tcp:megadeviceincoming {}
 ```
 
 megad:bridge: - обязятельное поле, после двоеточия - произвольное название.
