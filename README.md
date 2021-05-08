@@ -4,47 +4,23 @@
 
 ## как запустить? 
 
-### 1) через PaperUI
+### 1) через Веб-интерфейс
 
-Configuration > System > Item Linking
-
-simple mode is turned off
-
-Save
-
-
-Inbox -> MegaD Binding -> Choose Thing
-
-Bridge Megad incoming server adapter
-
-OK
-
-Inbox -> MegaD Binding -> Choose Thing
-
-MegaD Binding Thing
-
-Bridge Selection - > Bridge Megad incoming server adapter - megad:bridge:megadeviceincoming
-
-Configuration Parameters
-
-OK
-
-Configuration > Things
-
-MegaD Binding Thing
-
-Channels
-
-link
 
 ### 2) через файлы
 
 .things:
 
 ```
-Bridge megad:tcp:megadeviceincoming
+Bridge megad:tcp:megadeviceincoming [port=8989]
 {
-
+	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
+		Thing standard  megaStandardPortFunc  "Mega port10" @ "Mega" [port="10", refresh="0"]
+		Bridge itoc i2cbus              "MegaD I2C Bridge"           [port="30", scl="31"] {
+			Thing i2cbussensor mLs   "MegaD P30 Датчик освещенности"  [sensortype="max44009", refresh="60"]
+			Thing i2cbussensor mtemp   "MegaD P30 Temp"       [sensortype="htu21d", refresh="60"]
+		}
+	}
 }
 ```
 
@@ -52,9 +28,7 @@ Bridge megad:tcp:megadeviceincoming
 .items:
 
 ```
-Number Temperature_GF_Corridor  "Temperature [%.1f °C]" <temperature>   (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:onewire:onewire" }
-Switch MegaDBindingThing_Input  "Temperature " (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:kitchenout:out" }  
-Contact MegaDContact  "[%s]" (Temperature, GF_Corridor) { channel = "megad:device:megadeviceincoming:bedroomcontact:contact" }
+
 ```
 
 
@@ -62,24 +36,36 @@ Contact MegaDContact  "[%s]" (Temperature, GF_Corridor) { channel = "megad:devic
 #### 1) Создаем бридж в файле .things.
 
 ```
-Bridge megad:tcp:megadeviceincoming {}
+Bridge megad:tcp:megadeviceincoming [port=8989] {}
 ```
 
-megad:bridge: - обязятельное поле, после двоеточия - произвольное название.
-
-#### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок
-
+megad:tcp: - обязятельное поле, после двоеточия - произвольное название.
+#### 2) Добавляем определение адреса меги внутрь фигурных скобок
 ```
-Bridge megad:bridge:megadeviceincoming
+Bridge megad:tcp:megadeviceincoming [port=8989]
 {
-Thing device onewire [hostname="localhost", port="3", password="sec", refresh="10"]
-Thing device kitchenout [hostname="localhost", port="1", refresh="0"]
-Thing device bedroomcontact [hostname="localhost", port="2", refresh="0"]
+	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
+	}
+}
+```
+
+device - обязательное поле, далее произвольное название
+
+#### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок выбранной меги
+
+```
+Bridge megad:tcp:megadeviceincoming[port=8989]
+{
+	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
+		Thing standard onewire "Датчик" [port="3", refresh="10"]
+		Thing standard kitchenout "Выключатель" [port="1", refresh="0"]
+		Thing standard bedroomcontact "Окно" [port="2", refresh="0"]
+	}
 }
 
 ```
 
-device - обязательное поле, далее произвольное название
+standard - обязательное поле, далее произвольное название
 
 #### 3) открываем .items и создаем наши переменные.
 
