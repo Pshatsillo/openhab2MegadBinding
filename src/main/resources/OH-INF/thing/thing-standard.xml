@@ -18,6 +18,7 @@
 			<channel id="in" typeId="in"/>
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
+			<channel id="ds2413" typeId="ds2413"/>
 			<channel id="dimmer" typeId="dimmer"/>
 			<channel id="pwm" typeId="pwm"/>
 			<channel id="m2signal" typeId="m2signal"/>
@@ -50,6 +51,10 @@
 				<description>Set to true only if you send P-R value to server, else set to false</description>
 				<default>false</default>
 			</parameter>
+			<parameter name="ds2413_ch" type="text">
+				<label>DS2413 channel name</label>
+				<description>Only for DS2413</description>
+			</parameter>
 		</config-description>
 	</thing-type>
 	<thing-type id="standard">
@@ -62,6 +67,7 @@
 			<channel id="in" typeId="in"/>
 			<channel id="incount" typeId="incount"/>
 			<channel id="out" typeId="out"/>
+			<channel id="ds2413" typeId="ds2413"/>
 			<channel id="dimmer" typeId="dimmer"/>
 			<channel id="m2signal" typeId="m2signal"/>
 			<channel id="click" typeId="click"/>
@@ -88,6 +94,10 @@
 				<label>refresh</label>
 				<description>refresh interval channel</description>
 				<default>30</default>
+			</parameter>
+			<parameter name="ds2413_ch" type="text">
+				<label>DS2413 channel name</label>
+				<description>Only for DS2413</description>
 			</parameter>
 			<parameter name="correction" type="boolean" required="true">
 				<label>Mega-328 correction</label>
