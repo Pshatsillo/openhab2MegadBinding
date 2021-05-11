@@ -52,6 +52,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_IN = "in";
     public static final String CHANNEL_INCOUNT = "incount";
     public static final String CHANNEL_OUT = "out";
+    public static final String CHANNEL_DS2413 = "ds2413";
     public static final String CHANNEL_DIMMER = "dimmer";
     public static final String CHANNEL_PWM = "pwm";
     public static final String CHANNEL_M2 = "m2signal";

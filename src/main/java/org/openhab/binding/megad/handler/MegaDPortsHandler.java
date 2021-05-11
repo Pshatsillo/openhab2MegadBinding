@@ -82,6 +82,19 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 logger.debug("Switch: {}", result);
                 sendCommand(result);
             }
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DS2413)) {
+            if (command.toString().equals("ON")) {
+                state = 1;
+            } else if (command.toString().equals("OFF")) {
+                state = 0;
+            }
+            result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                    + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
+                    + getThing().getConfiguration().get("port").toString()
+                    + getThing().getConfiguration().get("ds2413_ch") + ":" + state;
+            logger.info("Switch: {}", result);
+            sendCommand(result);
+
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
             if (!command.toString().equals("REFRESH")) {
                 try {

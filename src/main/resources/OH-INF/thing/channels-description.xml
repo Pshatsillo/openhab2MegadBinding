@@ -20,6 +20,11 @@
 		<label>Output</label>
 		<description>Port set as output for switch using</description>
 	</channel-type>
+	<channel-type id="ds2413">
+		<item-type>Switch</item-type>
+		<label>Output</label>
+		<description>Two-port ds2413 as output for switch using</description>
+	</channel-type>
 	<channel-type id="dimmer">
 		<item-type>Dimmer</item-type>
 		<label>Dimmer</label>
