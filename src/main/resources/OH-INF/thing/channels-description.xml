@@ -22,7 +22,7 @@
 	</channel-type>
 	<channel-type id="ds2413">
 		<item-type>Switch</item-type>
-		<label>Output</label>
+		<label>DS2413 Output</label>
 		<description>Two-port ds2413 as output for switch using</description>
 	</channel-type>
 	<channel-type id="dimmer">

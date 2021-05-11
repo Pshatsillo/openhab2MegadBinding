@@ -25,13 +25,6 @@ Bridge megad:tcp:megadeviceincoming [port=8989]
 ```
 
 
-.items:
-
-```
-
-```
-
-
 Принцип такой: 
 #### 1) Создаем бридж в файле .things.
 
@@ -41,6 +34,7 @@ Bridge megad:tcp:megadeviceincoming [port=8989] {}
 
 megad:tcp: - обязятельное поле, после двоеточия - произвольное название.
 #### 2) Добавляем определение адреса меги внутрь фигурных скобок
+
 ```
 Bridge megad:tcp:megadeviceincoming [port=8989]
 {
