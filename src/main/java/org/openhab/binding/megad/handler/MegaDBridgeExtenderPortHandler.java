@@ -113,7 +113,6 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
         String action = getCommands[3];
         megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(port));
         megaDExtenderHandler.updateValues(action);
-        logger.warn("Required bridge not defined for device.");
     }
 
     private void setStateStarted(boolean b) {
