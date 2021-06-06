@@ -42,8 +42,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     private Logger logger = LoggerFactory.getLogger(MegaDBridgeExtenderPortHandler.class);
-    @Nullable
-    private Map<String, MegaDExtenderHandler> extenderHandlerMap = new HashMap<String, MegaDExtenderHandler>();
+    private Map<Integer, MegaDExtenderHandler> extenderHandlerMap = new HashMap<Integer, MegaDExtenderHandler>();
     private Map<String, String> portsvalues = new HashMap<>();
     private boolean startedState = false;
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -95,7 +94,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
                 String[] getValues = updateRequest.split("[;]");
                 for (int i = 0; getValues.length > i; i++) {
                     setPortsvalues(String.valueOf(i), getValues[i]);
-                    megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(i));
+                    megaDExtenderHandler = extenderHandlerMap.get(i);
                     if (megaDExtenderHandler != null) {
                         megaDExtenderHandler.update();
                     }
@@ -111,7 +110,7 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     public void updateValues(String[] getCommands) {
         String port = getCommands[2].substring(3);
         String action = getCommands[3];
-        megaDExtenderHandler = extenderHandlerMap.get(String.valueOf(port));
+        megaDExtenderHandler = extenderHandlerMap.get(Integer.parseInt(port));
         megaDExtenderHandler.updateValues(action);
     }
 
@@ -152,11 +151,11 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     @SuppressWarnings({ "unused", "null" })
     public void registerExtenderListener(MegaDExtenderHandler megaDExtenderHandler) {
         String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
-        if (extenderHandlerMap.get(port) != null) {
+        if (extenderHandlerMap.get(Integer.parseInt(port)) != null) {
             updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "port already exists");
         } else {
-            extenderHandlerMap.put(port, megaDExtenderHandler);
+            extenderHandlerMap.put(Integer.parseInt(port), megaDExtenderHandler);
             updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.ONLINE);
         }
     }
@@ -164,8 +163,8 @@ public class MegaDBridgeExtenderPortHandler extends BaseBridgeHandler {
     @SuppressWarnings("null")
     public void unregisterExtenderListener(@Nullable MegaDExtenderHandler megaDExtenderHandler) {
         String port = megaDExtenderHandler.getThing().getConfiguration().get("extport").toString();
-        if (extenderHandlerMap.get(port) != null) {
-            extenderHandlerMap.remove(port);
+        if (extenderHandlerMap.get(Integer.parseInt(port)) != null) {
+            extenderHandlerMap.remove(Integer.parseInt(port));
             updateThingHandlerStatus(megaDExtenderHandler, ThingStatus.OFFLINE);
         }
     }
