@@ -30,32 +30,36 @@ OpenHAB 3 MegaD binding создан для интеграции многофу�
 		- **Bridge for Megad PCA9685 extenders** реализует поддержку  [PCA9685](https://www.ab-log.ru/smart-house/ethernet/megad-2561#conf-exp-pca), а **MegaD PCA9685 extender port selector Thing** реализует управление портом расширителя.
 	1. С типами всех каналов можно ознакомиться на вкладке **Channels** веб-интерфейса **каждого из Things**
 1. Текстовые файлы
-	1. .things:
+	1. Текстовые файлы
 
-```
-Bridge megad:tcp:megadeviceincoming [port=8989]
-{
-	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
-		Thing standard  megaStandardPortFunc  "Mega port10" @ "Mega" [port="10", refresh="0"]
-		Bridge itoc i2cbus              "MegaD I2C Bridge"           [port="30", scl="31"] {
-			Thing i2cbussensor mLs   "MegaD P30 Датчик освещенности"  [sensortype="max44009", refresh="60"]
-			Thing i2cbussensor mtemp   "MegaD P30 Temp"       [sensortype="htu21d", refresh="60"]
-		}
-	}
-}
-```
+Список ID для работы с текстовыми файлами things:
+
+|Thing     |Thing ID|Parameters | Channels|
+|:--:|:--:|:--:|:--:|
+| Bridge for incoming connections  |tcp  | port |
+| Bridge for incoming connections  |tcp  | port |
+| Bridge Megad hardware  | device  | hostname, password |
+| Bridge Megad 1 wire bus port  | 1wirebus  |port, refresh|
+| MegaD 1wire bus Thing  | 1wireaddress  |address|
+| Bridge Megad I2C bus port   | itoc  |port, scl|
+| MegaD I2C bus sensor handler  | i2cbussensor  | sensortype, refresh, rawparam|
+| Bridge for Megad MCP23008/MCP23017 extenders  |  extenderport| port, refresh, int|
+| MegaD MCP23008/MCP23017 extender port selector Thing  | extender  | extport|
+| Bridge for Megad PCA9685 extenders  | extenderPCA9685Bridge  |port, refresh|
+| MegaD PCA9685 extender port selector Thing  |  extenderPCA9685 |extport|
+| MegaD Standard Thing  | standard  |port, refresh, correction, ds2413_ch|
+| MegaD Group thing  | group  | groupnumber|
+| MegaD I2C LCD1609 display  | lcd1609  | port|
+|  MegaD I2C Sensors | i2c  | port, refresh|
+|  MegaD rs485 Thing |  rs485 | type(sdm120 only), address, refresh
+| MegaD thing for encoder  | encoder  | sda, scl, int|
 
 
-Принцип такой: 
-#### 1) Создаем бридж в файле .things.
 
-```
-Bridge megad:tcp:megadeviceincoming [port=8989] {}
-```
-
+- Создаем бридж в файле .things.
+`Bridge megad:tcp:megadeviceincoming [port=8989] {}`
 megad:tcp: - обязятельное поле, после двоеточия - произвольное название.
-#### 2) Добавляем определение адреса меги внутрь фигурных скобок
-
+- Добавляем определение адреса меги внутрь фигурных скобок
 ```
 Bridge megad:tcp:megadeviceincoming [port=8989]
 {
@@ -63,10 +67,9 @@ Bridge megad:tcp:megadeviceincoming [port=8989]
 	}
 }
 ```
-
 device - обязательное поле, далее произвольное название
 
-#### 2) Добавляем Thing (По сути наши порты для меги) внутрь фигурных скобок выбранной меги
+Это базовая настройка, далее сюда мы добавляем или bridge или thing
 
 ```
 Bridge megad:tcp:megadeviceincoming[port=8989]
@@ -79,8 +82,19 @@ Bridge megad:tcp:megadeviceincoming[port=8989]
 }
 
 ```
-
 standard - обязательное поле, далее произвольное название
+
+вариант с bridge:
+```
+Bridge megad:tcp:megadeviceincoming[port=8989]
+{
+	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
+		Bridge  1wirebus  busN1  "Bus 1 mega1"  [port="0", refresh="30"]
+			Thing 1wireaddress onewire "Датчик" [address="c6f479a20003"]
+	}
+}
+
+```
 
 #### 3) открываем .items и создаем наши переменные.
 
@@ -92,56 +106,7 @@ Contact MegaDContact "[%s]" (Temperature, GF_Corridor) { channel = "megad:device
 
 Последний параметр - режимы работы(каналы). до этого - путь, который мы создали в .things (megad:device:megadeviceincoming: - это название бриджа, bedroomcontact: - название Thing )
 
-
-#### 4) Далее аналогично 1 версии опенхаба
-
-## Как собрать?
-
-1. Скачать: 
-	[Java](https://jdk.java.net/12/)
-	[Maven](https://maven.apache.org/download.cgi)
-
-2. Загрузить архив со всеми плагинами [отсюда](https://github.com/openhab/openhab2-addons/archive/master.zip) и распаковать
-3. Загрузить архив Мегад [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/archive/master.zip) и распаковать
-2. Скопировать директорию `org.openhab.binding.megad` в папку `/openhab2-addons/bundles`.
-3. Перейти в скопированную папку и выполнить `mvn clean install`. Сборка должна пройти успешно и в папке `target` появиться архив с байндингом:
-
-```bash
-org.openhab.binding.megad git:(master) ✗ ls -l target | grep megad
--rw-r--r--   1 xxxxxxx  staff  29482 10 мар 21:35 org.openhab.binding.megad-2.5.0-SNAPSHOT.jar
-```
-
-## Или скачать готовый jar файл [отсюда](https://github.com/Pshatsillo/openhab2MegadBinding/releases)
-
-## Как что-нибудь исправить?
-
-1. Пройти по этой ссылке https://www.openhab.org/docs/developer/ide/eclipse.html
-2. После пункта 5 в Eclipse IDE Setup перейти в папку `/openhab2-addons/bundles` и выполнить `git submodule add  https://github.com/Pshatsillo/openhab2MegadBinding.git org.openhab.binding.megad` .
-3. Отредактировать файл `openhab2-addons/bom/openhab-addons/pom.xml` следующим образом: 
-
-```bash
-<dependency>
-    <groupId>org.openhab.addons.bundles</groupId>
-    <artifactId>org.openhab.binding.megad</artifactId>
-    <version>${project.version}</version>
-</dependency> 
-```
-
-добавить эти строки в конец похожих записей
-
-4. Перейти в папку `openhab2-addons\bom\openhab-addons` и запустить команду `mvn -DskipChecks -DskipTests clean install`
-
-5. Импортировать проект org.openhab.binding.megad в Eclipse IDE
-
-6. Отредактировать файл Eclipse `\launch\app\runtime\logback.xml`. Добавить в него эту строку: 
-
-```bash
-  <logger name="org.openhab.binding" level="DEBUG"/>
-```
-
-## Еще
-
-По многочисленным просьбам - Donate:
+Donate:
 
 [Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=P38VCVDQMSMYQ) 
 
