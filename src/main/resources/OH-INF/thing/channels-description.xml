@@ -4,7 +4,13 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-
+	<channel-type id="i2cpar">
+		<item-type>Number</item-type>
+		<label>I2C parameter</label>
+		<description>Return value from i2c sensor selected parameter</description>
+		<state readOnly="true"/>
+		<config-description-ref uri="channel-type:megad:i2c-parameter"/>
+	</channel-type>
 	<channel-type id="in">
 		<item-type>Switch</item-type>
 		<label>Input</label>

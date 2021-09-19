@@ -182,6 +182,29 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                                 MegaDBindingConstants.CHANNEL_I2CRAW);
                     }
                 }
+                if (!channel.getConfiguration().getProperties().isEmpty()) {
+                    logger.debug("Channel {}... dynamically created", channel.getLabel());
+                    logger.debug("Channel {}... parameter is {} ", channel.getLabel(),
+                            channel.getConfiguration().get("i2cparameter"));
+
+                    String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
+                            + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                            + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
+                            + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                            + getThing().getConfiguration().get("sensortype").toString() + "&"
+                            + channel.getConfiguration().get("i2cparameter");
+                    String updateRequest = MegaHttpHelpers.sendRequest(result);
+
+                    if ("NA".equals(updateRequest)) {
+                        logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                    } else {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                        } catch (Exception ex) {
+                            logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                        }
+                    }
+                }
             }
         }
     }

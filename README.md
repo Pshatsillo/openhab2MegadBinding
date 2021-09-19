@@ -89,8 +89,9 @@ standard - обязательное поле, далее произвольно�
 Bridge megad:tcp:megadeviceincoming[port=8989]
 {
 	Bridge  device  mega1  "Mega 1 hardware"  [hostname="192.168.0.14", password="sec"] {
-		Bridge  1wirebus  busN1  "Bus 1 mega1"  [port="0", refresh="30"]
-			Thing 1wireaddress onewire "Датчик" [address="c6f479a20003"]
+		Bridge  1wirebus  busN1  "Bus 1 mega1"  [port="0", refresh="30"]{
+			   Thing 1wireaddress onewire "Датчик" [address="c6f479a20003"]
+			}
 	}
 }
 

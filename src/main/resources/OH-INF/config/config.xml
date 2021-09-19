@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:config-description="https://openhab.org/schemas/config-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/config-description/v1.0.0 https://openhab.org/schemas/config-description-1.0.0.xsd">
+	<config-description uri="channel-type:megad:i2c-parameter">
+		<parameter name="i2cparameter" type="text" required="true">
+			<default>i2c_par=</default>
+			<label>I2C parameter value</label>
+			<description>For example "i2c_par=2" (See Megad user manual)</description>
+		</parameter>
+	</config-description>
+</config-description:config-descriptions>

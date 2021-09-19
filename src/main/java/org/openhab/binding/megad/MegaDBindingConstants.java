@@ -14,6 +14,7 @@ package org.openhab.binding.megad;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.type.ChannelTypeUID;
 
 /**
  * The {@link MegaDBindingConstants} class defines common constants, which are
@@ -121,4 +122,6 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_ENCODERDIGITS = "encoderdigits";
     // group
     public static final String CHANNEL_GROUP = "groupswitch";
+    // Dynamic channels
+    public static final ChannelTypeUID CHANNEL_DYNAMIC_I2C = new ChannelTypeUID(BINDING_ID, "i2cpar");
 }
