@@ -459,6 +459,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 .valueOf(Integer.toString((int) Math.round(Integer.parseInt(getCommands[2]) / 2.55))));
                     } catch (Exception ignored) {
                     }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
+                    try {
+                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                    } catch (Exception ignored) {
+                    }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(getCommands[3]));
