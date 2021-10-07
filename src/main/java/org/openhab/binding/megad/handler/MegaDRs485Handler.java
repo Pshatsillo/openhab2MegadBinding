@@ -68,7 +68,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         }
         rsi.setValuesToRS485(getBridgeHandler(), address, channelUID.getId(), command.toString().split(" ")[0]);
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException ignored) {
         }
         updateData();

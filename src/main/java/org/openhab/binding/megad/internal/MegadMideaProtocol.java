@@ -83,7 +83,7 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
         answer = new String[] { "" };
         request(bridgeHandler, address);
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException ignored) {
         }
         String cmd = "AAC3" + String.format("%02X", Integer.parseInt(address)) + "008000";
@@ -182,7 +182,7 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
             MegaHttpHelpers.sendRequest(result);
             logger.debug("Sending command: {}", result);
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (InterruptedException ignored) {
             }
             result = "http://"
