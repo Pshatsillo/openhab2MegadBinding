@@ -33,12 +33,16 @@
 			<channel id="maxcurrentdmd" typeId="maxcurrentdmd"/>
 			<channel id="totalactnrg" typeId="totalactnrg"/>
 			<channel id="totalreactnrg" typeId="totalreactnrg"/>
+			<channel id="opermode" typeId="opermode"/>
+			<channel id="fanmode" typeId="fanmode"/>
+			<channel id="mideatemperature" typeId="mideatemperature"/>
 		</channels>
 
 		<config-description>
 			<parameter name="type" type="text" required="true">
 				<options>
 					<option value="sdm120">Eastron SDM 120 energy meter</option>
+					<option value="midea">Midea protocol</option>
 				</options>
 			</parameter>
 			<parameter name="address" type="text" required="true">

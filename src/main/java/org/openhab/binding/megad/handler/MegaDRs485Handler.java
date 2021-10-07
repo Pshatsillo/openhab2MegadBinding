@@ -19,8 +19,11 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.internal.MegaDRS485Interface;
+import org.openhab.binding.megad.internal.MegadMideaProtocol;
 import org.openhab.binding.megad.internal.Sdm120;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -46,6 +49,8 @@ public class MegaDRs485Handler extends BaseThingHandler {
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     protected long lastRefresh = 0;
+    @Nullable
+    MegaDRS485Interface rsi;
 
     public MegaDRs485Handler(Thing thing) {
         super(thing);
@@ -55,6 +60,18 @@ public class MegaDRs485Handler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        String address = "";
+        if (getThing().getConfiguration().get("address").toString().length() == 1) {
+            address = "0" + getThing().getConfiguration().get("address").toString();
+        } else {
+            address = getThing().getConfiguration().get("address").toString();
+        }
+        rsi.setValuesToRS485(getBridgeHandler(), address, channelUID.getId(), command.toString().split(" ")[0]);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ignored) {
+        }
+        updateData();
     }
 
     @SuppressWarnings("null")
@@ -62,7 +79,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
-
+        rsi = new MegadMideaProtocol();
         String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
         logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
         float msec = Float.parseFloat(rr[0]);
@@ -340,6 +357,73 @@ public class MegaDRs485Handler extends BaseThingHandler {
                     if (value != null) {
                         logger.debug("sdm 120 power factor is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEAOPERMODE)) {
+                    String[] answer = rsi.getValueFromRS485(getBridgeHandler(), address);
+                    if (answer.length == 32) {
+                        String mode = "";
+                        switch (answer[8]) {
+                            case "00":
+                                mode = "OFF";
+                                break;
+                            case "98":
+                                mode = "AUTO";
+                                break;
+                            case "88":
+                                mode = "COOL";
+                                break;
+                            case "82":
+                                mode = "DRY";
+                                break;
+                            case "84":
+                                mode = "HEAT";
+                                break;
+                            case "81":
+                                mode = "FAN";
+                                break;
+                        }
+                        logger.debug("Midea mode is : {}", mode);
+                        updateState(channel.getUID().getId(), StringType.valueOf(mode));
+                    } else {
+                        logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEAFANMODE)) {
+                    String[] answer = rsi.getValueFromRS485(getBridgeHandler(), address);
+                    if (answer.length == 32) {
+                        String mode = "";
+                        switch (answer[9]) {
+                            case "00":
+                                mode = "OFF";
+                                break;
+                            case "84":
+                                mode = "AUTO";
+                                break;
+                            case "01":
+                                mode = "HIGH";
+                                break;
+                            case "02":
+                                mode = "MEDIUM";
+                                break;
+                            case "04":
+                                mode = "LOW";
+                                break;
+                        }
+                        logger.debug("Midea fan mode is : {}", mode);
+                        updateState(channel.getUID().getId(), StringType.valueOf(mode));
+                    } else {
+                        logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEATEMP)) {
+                    String[] answer = rsi.getValueFromRS485(getBridgeHandler(), address);
+                    if (answer.length == 32) {
+                        try {
+                            int n = (int) Long.parseLong(answer[10], 16);
+                            logger.debug("Midea temperature is : {}, hex {}", n, answer[10]);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
+                        } catch (Exception ignored) {
+                        }
+                    } else {
+                        logger.debug("Answer != 32 bytes <{}>", (Object) answer);
                     }
                 }
             }

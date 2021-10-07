@@ -124,4 +124,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_GROUP = "groupswitch";
     // Dynamic channels
     public static final ChannelTypeUID CHANNEL_DYNAMIC_I2C = new ChannelTypeUID(BINDING_ID, "i2cpar");
+    public static final String CHANNEL_MIDEAOPERMODE = "opermode";
+    public static final String CHANNEL_MIDEAFANMODE = "fanmode";
+    public static final String CHANNEL_MIDEATEMP = "mideatemperature";
 }
