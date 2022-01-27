@@ -66,7 +66,11 @@ public class MegaDRs485Handler extends BaseThingHandler {
         } else {
             address = getThing().getConfiguration().get("address").toString();
         }
-        rsi.setValuesToRS485(getBridgeHandler(), address, channelUID.getId(), command.toString().split(" ")[0]);
+        if (getBridgeHandler() != null) {
+            if (rsi != null) {
+                rsi.setValuesToRS485(getBridgeHandler(), address, channelUID.getId(), command.toString().split(" ")[0]);
+            }
+        }
         try {
             Thread.sleep(200);
         } catch (InterruptedException ignored) {
@@ -431,18 +435,23 @@ public class MegaDRs485Handler extends BaseThingHandler {
     }
 
     // ----------------------------------------------------------
-    private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler() {
-        Bridge bridge = Objects.requireNonNull(getBridge());
-        return getBridgeHandler(bridge);
+    private synchronized MegaDBridgeDeviceHandler getBridgeHandler() {
+        if (getBridge() != null) {
+            @Nullable
+            Bridge bridge = getBridge();
+            return getBridgeHandler(bridge);
+        } else {
+            return getBridgeHandler();
+        }
     }
 
-    private synchronized @Nullable MegaDBridgeDeviceHandler getBridgeHandler(Bridge bridge) {
+    private synchronized MegaDBridgeDeviceHandler getBridgeHandler(@Nullable Bridge bridge) {
         ThingHandler handler = Objects.requireNonNull(bridge.getHandler());
         if (handler instanceof MegaDBridgeDeviceHandler) {
             return (MegaDBridgeDeviceHandler) handler;
         } else {
             logger.debug("No available bridge handler found yet. Bridge: {} .", bridge.getUID());
-            return null;
+            return (MegaDBridgeDeviceHandler) handler;
         }
     }
 

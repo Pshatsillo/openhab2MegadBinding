@@ -103,6 +103,10 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
                             + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                             + getThing().getConfiguration().get("sensortype").toString();
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {
+                    }
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     if ("NA".equals(updateRequest)) {
@@ -123,6 +127,10 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
                             + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                             + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=1";
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {
+                    }
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     if ("NA".equals(updateRequest)) {
@@ -143,6 +151,10 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
                             + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                             + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=2";
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {
+                    }
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     if ("NA".equals(updateRequest)) {
@@ -173,6 +185,10 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                                 + getThing().getConfiguration().get("sensortype").toString();
                     }
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {
+                    }
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     try {
@@ -193,6 +209,10 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                             + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
                             + getThing().getConfiguration().get("sensortype").toString() + "&"
                             + channel.getConfiguration().get("i2cparameter");
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {
+                    }
                     String updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     if ("NA".equals(updateRequest)) {

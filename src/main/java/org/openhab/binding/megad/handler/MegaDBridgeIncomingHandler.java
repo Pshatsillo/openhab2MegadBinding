@@ -108,7 +108,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         logger.debug("incoming from Megad: {} {}", remoteHost, s);
     }
 
-    @SuppressWarnings({ "unused", "null" })
     public void registerMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
         logger.debug("Register Device with ip {}", ip);
@@ -121,7 +120,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         }
     }
 
-    @SuppressWarnings("null")
     public void unregisterMegaDeviceListener(MegaDBridgeDeviceHandler megaDBridgeDeviceHandler) {
         String ip = megaDBridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString();
         if (devicesHandlerMap.get(ip) != null) {
@@ -139,12 +137,6 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
         thingHandler.updateStatus(status);
     }
 
-    @SuppressWarnings("unused")
-    private void updateThingHandlerStatus(MegaDBridge1WireBusHandler thingHandler, ThingStatus status) {
-        thingHandler.updateStatus(status);
-    }
-
-    @SuppressWarnings("null")
     @Override
     public void dispose() {
         try {

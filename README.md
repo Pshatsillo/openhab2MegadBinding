@@ -30,13 +30,11 @@ OpenHAB 3 MegaD binding создан для интеграции многофу�
 		- **Bridge for Megad PCA9685 extenders** реализует поддержку  [PCA9685](https://www.ab-log.ru/smart-house/ethernet/megad-2561#conf-exp-pca), а **MegaD PCA9685 extender port selector Thing** реализует управление портом расширителя.
 	1. С типами всех каналов можно ознакомиться на вкладке **Channels** веб-интерфейса **каждого из Things**
 1. Текстовые файлы
-	1. Текстовые файлы
 
 Список ID для работы с текстовыми файлами things:
 
 |Thing     |Thing ID|Parameters | Channels|
 |:--:|:--:|:--:|:--:|
-| Bridge for incoming connections  |tcp  | port |
 | Bridge for incoming connections  |tcp  | port |
 | Bridge Megad hardware  | device  | hostname, password |
 | Bridge Megad 1 wire bus port  | 1wirebus  |port, refresh|
@@ -60,6 +58,7 @@ OpenHAB 3 MegaD binding создан для интеграции многофу�
 `Bridge megad:tcp:megadeviceincoming [port=8989] {}`
 megad:tcp: - обязятельное поле, после двоеточия - произвольное название.
 - Добавляем определение адреса меги внутрь фигурных скобок
+
 ```
 Bridge megad:tcp:megadeviceincoming [port=8989]
 {
@@ -67,6 +66,7 @@ Bridge megad:tcp:megadeviceincoming [port=8989]
 	}
 }
 ```
+
 device - обязательное поле, далее произвольное название
 
 Это базовая настройка, далее сюда мы добавляем или bridge или thing
@@ -82,9 +82,11 @@ Bridge megad:tcp:megadeviceincoming[port=8989]
 }
 
 ```
+
 standard - обязательное поле, далее произвольное название
 
 вариант с bridge:
+
 ```
 Bridge megad:tcp:megadeviceincoming[port=8989]
 {

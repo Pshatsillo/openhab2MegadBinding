@@ -14,6 +14,7 @@ package org.openhab.binding.megad.internal;
 
 import java.util.Objects;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +24,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Petr Shatsillo - Initial contribution
  */
-
+@NonNullByDefault
 public class MegadMideaProtocol implements MegaDRS485Interface {
     String[] answer = { "" };
     final Logger logger = LoggerFactory.getLogger(MegadMideaProtocol.class);
 
     private void request(MegaDBridgeDeviceHandler bridgeHandler, String address) {
-        assert bridgeHandler != null;
         logger.debug("Requesting...");
         int crc = (int) Long.parseLong("C0", 16);
         crc += (int) Long.parseLong(address, 16);
@@ -90,7 +90,7 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
         int crc = (int) Long.parseLong("C3", 16);
         crc += (int) Long.parseLong(String.format("%02X", Integer.parseInt(address)), 16);
         crc += (int) Long.parseLong("80", 16);
-        if (channelUID.equals("opermode")) {
+        if ("opermode".equals(channelUID)) {
             switch (command) {
                 case "OFF":
                     cmd += "00";
@@ -126,7 +126,7 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
             }
         }
 
-        if (channelUID.equals("fanmode")) {
+        if ("fanmode".equals(channelUID)) {
             switch (command) {
                 case "OFF":
                     cmd += "00";
@@ -158,7 +158,7 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
             }
 
         }
-        if (channelUID.equals("mideatemperature")) {
+        if ("mideatemperature".equals(channelUID)) {
             cmd += String.format("%02X", Integer.parseInt(command));
             crc += Integer.parseInt(command);
         } else {

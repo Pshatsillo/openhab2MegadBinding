@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.megad.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
 
 /**
@@ -19,6 +20,7 @@ import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
  *
  * @author Petr Shatsillo - Initial contribution
  */
+@NonNullByDefault
 public interface MegaDRS485Interface {
     String[] getValueFromRS485(MegaDBridgeDeviceHandler bridgeHandler, String address);
 

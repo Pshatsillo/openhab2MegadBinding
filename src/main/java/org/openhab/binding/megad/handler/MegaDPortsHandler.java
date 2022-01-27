@@ -514,9 +514,9 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CONTACT)) {
                     if (OnOff != null) {
-                        if (OnOff.name() == "ON") {
+                        if (OnOff.name().equals("ON")) {
                             updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
-                        } else if (OnOff.name() == "OFF") {
+                        } else if (OnOff.name().equals("OFF")) {
                             updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                         }
                     }
