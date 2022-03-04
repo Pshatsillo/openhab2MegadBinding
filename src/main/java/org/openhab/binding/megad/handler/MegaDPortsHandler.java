@@ -99,11 +99,22 @@ public class MegaDPortsHandler extends BaseThingHandler {
             if (!command.toString().equals("REFRESH")) {
                 try {
                     int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                    int resultInt = (int) Math.round(uivalue * 2.55);
-                    if (uivalue == 1) {
-                        resultInt = uivalue;
-                    } else if (resultInt != 0) {
-                        dimmervalue = resultInt;
+                    int resultInt = 0;
+                    if (uivalue != 0) {
+                        int minval = Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                        double getDiff = (255.0 - minval) / 100.0;
+                        int corrVal = (int) Math.round(uivalue * getDiff);
+                        resultInt = corrVal + minval;
+
+                        if (uivalue == 1) {
+                            if (minval != 0) {
+                                resultInt = minval;
+                            } else {
+                                resultInt = uivalue;
+                            }
+                        } else if (resultInt != 0) {
+                            dimmervalue = resultInt;
+                        }
                     }
                     assert bridgeDeviceHandler != null;
                     result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
@@ -316,11 +327,21 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     if ("0".equals(updateRequest)) {
                         logger.debug("dimmer value is 0, do not save dimmer value");
                     } else {
-                        dimmervalue = Integer.parseInt(updateRequest);
+                        try {
+                            dimmervalue = Integer.parseInt(updateRequest);
+                        } catch (Exception ignored) {
+                        }
                     }
                     int percent = 0;
                     try {
-                        percent = (int) Math.round(Integer.parseInt(updateRequest) / 2.55);
+                        int minval = Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                        if (minval != 0) {
+                            int realval = (Integer.parseInt(updateRequest) - minval);// * 0.01;
+                            double divVal = (255 - minval) * 0.01;
+                            percent = (int) Math.round(realval / divVal);
+                        } else {
+                            percent = (int) Math.round(Integer.parseInt(updateRequest) / 2.55);
+                        }
                     } catch (Exception ex) {
                         logger.debug("Cannot convert to dimmer values string: '{}'", updateRequest);
                     }
@@ -455,6 +476,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     } catch (Exception ignored) {
                     }
                     try {
+                        int minval = Integer
+                                .parseInt(getBridgeHandler().getThing().getConfiguration().get("min_pwm").toString());
                         updateState(channel.getUID().getId(), PercentType
                                 .valueOf(Integer.toString((int) Math.round(Integer.parseInt(getCommands[2]) / 2.55))));
                     } catch (Exception ignored) {

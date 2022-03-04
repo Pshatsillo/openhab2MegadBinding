@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaDRS485Interface;
+import org.openhab.binding.megad.internal.MegadDD238;
 import org.openhab.binding.megad.internal.MegadMideaProtocol;
 import org.openhab.binding.megad.internal.Sdm120;
 import org.openhab.core.library.types.DecimalType;
@@ -117,41 +118,64 @@ public class MegaDRs485Handler extends BaseThingHandler {
         } else {
             address = getThing().getConfiguration().get("address").toString();
         }
+        String[] values = {};
+        if (getThing().getConfiguration().get("type").equals("dds238")) {
+            if (!MegadDD238.getValueFromDD238(getBridgeHandler(), address)[0].equals("ERROR")) {
+                values = MegadDD238.getValueFromDD238(getBridgeHandler(), address);
+            }
+        }
+        logger.debug("Accept values {}...", values);
+
         logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
                 if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_VOLTAGE)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0000");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 voltage is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0000");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((double) Integer.parseInt(values[27] + values[28], 16) / 10);
+                        }
+                        if (value != null) {
+                            logger.debug("Voltage is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CURRENT)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0006");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 current is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0006");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((double) Integer.parseInt(values[29] + values[30], 16) / 100);
+                        }
+                        if (value != null) {
+                            logger.debug("Current is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ACTIVEPOWER)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "000C");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 active power is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "000C");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((short) Integer.parseInt(values[31] + values[32], 16));
+                        }
+                        if (value != null) {
+                            logger.debug("Active power is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_APPARENTPOWER)) {
                     @Nullable
@@ -167,24 +191,34 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_REACTIVEPOWER)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0018");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 reactive power is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0018");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((double) Integer.parseInt(values[33] + values[34], 16));
+                        }
+                        if (value != null) {
+                            logger.debug("Reactive power is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_POWERFACTOR)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "001E");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "001E");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((double) Integer.parseInt(values[35] + values[36], 16) / 1000);
+                        }
+                        if (value != null) {
+                            logger.debug("Power factor is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PHASEANGLE)) {
                     @Nullable
@@ -200,13 +234,18 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_FREQUENCY)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0046");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 Frequency is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0046");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf((double) Integer.parseInt(values[37] + values[38], 16) / 100);
+                        }
+                        if (value != null) {
+                            logger.debug("Frequency is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTACTNRG)) {
                     @Nullable
@@ -216,7 +255,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0048");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(": {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTACTNRG)) {
@@ -227,7 +266,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "004A");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTREACTNRG)) {
@@ -238,7 +277,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "004C");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTREACTNRG)) {
@@ -249,7 +288,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "004E");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALSYSPWRDMD)) {
@@ -260,7 +299,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0054");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXTOTALSYSPWRDMD)) {
@@ -271,7 +310,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0056");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTSYSPWRDMD)) {
@@ -282,7 +321,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0058");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXIMPORTSYSPWRDMD)) {
@@ -293,7 +332,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "005A");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTSYSPWRDMD)) {
@@ -304,7 +343,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "005C");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXEXPORTSYSPWRDMD)) {
@@ -315,7 +354,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "005E");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug(" is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CURRENTDMD)) {
@@ -326,7 +365,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0102");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug("Current demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXCURRENTDMD)) {
@@ -337,19 +376,25 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0108");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug("Max Current demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALACTNRG)) {
                     @Nullable
                     String value = null;
-
-                    if (getThing().getConfiguration().get("type").equals("sdm120")) {
-                        value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0156");
-                    }
-                    if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                    try {
+                        if (getThing().getConfiguration().get("type").equals("sdm120")) {
+                            value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0156");
+                        }
+                        if (getThing().getConfiguration().get("type").equals("dds238")) {
+                            value = String.valueOf(
+                                    (double) Integer.parseInt(values[3] + values[4] + values[5] + values[6], 16) / 100);
+                        }
+                        if (value != null) {
+                            logger.debug("Total active energy : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALREACTNRG)) {
                     @Nullable
@@ -359,7 +404,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         value = Sdm120.getValueFromSDM120(getBridgeHandler(), address, "0158");
                     }
                     if (value != null) {
-                        logger.debug("sdm 120 power factor is : {}", value);
+                        logger.debug("Total react energy is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEAOPERMODE)) {

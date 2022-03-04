@@ -100,6 +100,11 @@
 				<label>DS2413 channel name</label>
 				<description>Only for DS2413</description>
 			</parameter>
+			<parameter name="min_pwm" type="text">
+				<label>Minimal pwm value for dimmer channel</label>
+				<description>Only for Dimmer channel</description>
+				<default>0</default>
+			</parameter>
 			<parameter name="correction" type="boolean" required="true">
 				<label>Mega-328 correction</label>
 				<description>Set to true only if you send P-R value to server, else set to false</description>

@@ -234,3 +234,4 @@ org.openhab.binding.megad.iml
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
+/.idea/
