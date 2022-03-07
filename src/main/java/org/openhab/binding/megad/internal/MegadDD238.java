@@ -35,7 +35,7 @@ public class MegadDD238 {
         String result = "http://"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("hostname").toString() + "/"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
-                + "/?uart_tx=" + address + "00000012&mode=rs485";
+                + "/?uart_tx=" + address + "0300000012&mode=rs485";
         MegaHttpHelpers.sendRequest(result);
         try {
             Thread.sleep(100);

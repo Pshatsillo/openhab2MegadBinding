@@ -84,6 +84,13 @@ public class MegaDRs485Handler extends BaseThingHandler {
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
+
+        if (bridgeDeviceHandler != null) {
+            registerMegaRs485Listener(bridgeDeviceHandler);
+        } else {
+            logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
+        }
+
         rsi = new MegadMideaProtocol();
         String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
         logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
@@ -93,7 +100,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
             refreshPollingJob = scheduler.scheduleWithFixedDelay(new Runnable() {
                 @Override
                 public void run() {
-                    refresh(pollingPeriod);
+                    // refresh(pollingPeriod);
                 }
             }, 0, 100, TimeUnit.MILLISECONDS);
         }
@@ -120,8 +127,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
         }
         String[] values = {};
         if (getThing().getConfiguration().get("type").equals("dds238")) {
-            if (!MegadDD238.getValueFromDD238(getBridgeHandler(), address)[0].equals("ERROR")) {
-                values = MegadDD238.getValueFromDD238(getBridgeHandler(), address);
+            String[] isanswer = MegadDD238.getValueFromDD238(getBridgeHandler(), address);
+            if (!isanswer[0].equals("ERROR")) {
+                values = isanswer;
             }
         }
         logger.debug("Accept values {}...", values);
@@ -507,6 +515,23 @@ public class MegaDRs485Handler extends BaseThingHandler {
             refreshPollingJob.cancel(true);
             refreshPollingJob = null;
         }
+        if (bridgeDeviceHandler != null) {
+            bridgeDeviceHandler.unregisterMegadRs485Listener(this);
+        }
         super.dispose();
+    }
+
+    private void registerMegaRs485Listener(@Nullable MegaDBridgeDeviceHandler bridgeHandler) {
+        if (bridgeHandler != null) {
+            bridgeHandler.registerMegaRs485Listener(this);
+        }
+    }
+
+    public void lastrefreshAdd(long lastRefresh) {
+        this.lastRefresh = lastRefresh;
+    }
+
+    public long getLastRefresh() {
+        return this.lastRefresh;
     }
 }
