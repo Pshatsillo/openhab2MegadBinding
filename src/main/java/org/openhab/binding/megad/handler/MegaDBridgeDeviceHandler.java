@@ -109,22 +109,25 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
         }
 
         long now = System.currentTimeMillis();
-        if (megaDRs485HandlerMap != null) {
-            for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
-                String address = handler.getThing().getConfiguration().get("address").toString();
-                logger.debug("address: {}", address);
-                int interval = Integer.parseInt(handler.getThing().getConfiguration().get("refresh").toString());
-                if (interval != 0) {
-                    if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
-                        handler.updateData();
-                        handler.lastrefreshAdd(now);
-                        try {
-                            Thread.sleep(200);
-                        } catch (InterruptedException e) {
-                        }
+        if (megaDRs485HandlerMap != null && !megaDRs485HandlerMap.isEmpty()) {
+            try {
+                for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
+                    String address = handler.getThing().getConfiguration().get("address").toString();
+                    // logger.debug("address: {}", address);
+                    int interval = Integer.parseInt(handler.getThing().getConfiguration().get("refresh").toString());
+                    if (interval != 0) {
+                        if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
+                            handler.updateData();
+                            handler.lastrefreshAdd(now);
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException ignored) {
+                            }
 
+                        }
                     }
                 }
+            } catch (Exception ignored) {
             }
         }
     }
@@ -556,14 +559,16 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
     public void registerMegaRs485Listener(MegaDRs485Handler megaDrs485Handler) {
         String rs485Address = megaDrs485Handler.getThing().getConfiguration().get("address").toString();
 
-        if (megaDRs485HandlerMap != null && megaDRs485HandlerMap.size() != 0) {
+        if (megaDRs485HandlerMap != null && !megaDRs485HandlerMap.isEmpty()) {
+            boolean isexist = false;
             for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
                 if (rs485Address.equals(handler.getThing().getConfiguration().get("address").toString())) {
                     logger.debug("Device already exist");
-                } else {
-                    megaDRs485HandlerMap.add(megaDrs485Handler);
-                    return;
+                    isexist = true;
                 }
+            }
+            if (!isexist) {
+                megaDRs485HandlerMap.add(megaDrs485Handler);
             }
         } else {
             megaDRs485HandlerMap.add(megaDrs485Handler);

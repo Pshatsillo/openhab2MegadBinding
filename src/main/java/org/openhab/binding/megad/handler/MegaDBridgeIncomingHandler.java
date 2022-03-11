@@ -94,7 +94,7 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
     public void parseInput(@Nullable String s, @Nullable String remoteHost) {
         assert remoteHost != null;
         assert devicesHandlerMap != null;
-        if ("0:0:0:0:0:0:0:1".equals(remoteHost)) {
+        if ("[0:0:0:0:0:0:0:1]".equals(remoteHost)) {
             deviceHandler = devicesHandlerMap.get("localhost");
         } else {
             deviceHandler = devicesHandlerMap.get(remoteHost);
@@ -139,15 +139,19 @@ public class MegaDBridgeIncomingHandler extends BaseBridgeHandler {
 
     @Override
     public void dispose() {
-        try {
-            s.stop();
-        } catch (Exception e) {
-            logger.error("Dispose ERROR: {}", e.getLocalizedMessage());
+        if (s != null) {
+            try {
+                s.stop();
+            } catch (Exception e) {
+                logger.error("Dispose ERROR: {}", e.getLocalizedMessage());
+            }
         }
-        int index = MegaDDiscoveryService.incomingBusList.indexOf(this);
-        MegaDDiscoveryService.incomingBusList.remove(index);
-        logger.debug("{}", index);
-        updateStatus(ThingStatus.OFFLINE); // Set all State to offline
+        if (MegaDDiscoveryService.incomingBusList != null) {
+            int index = MegaDDiscoveryService.incomingBusList.indexOf(this);
+            MegaDDiscoveryService.incomingBusList.remove(index);
+            logger.debug("{}", index);
+            updateStatus(ThingStatus.OFFLINE); // Set all State to offline
+        }
         super.dispose();
     }
 }

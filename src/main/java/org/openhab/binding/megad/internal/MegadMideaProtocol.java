@@ -12,10 +12,15 @@
  */
 package org.openhab.binding.megad.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +33,13 @@ import org.slf4j.LoggerFactory;
 public class MegadMideaProtocol implements MegaDRS485Interface {
     String[] answer = { "" };
     final Logger logger = LoggerFactory.getLogger(MegadMideaProtocol.class);
+    String address;
 
-    private void request(MegaDBridgeDeviceHandler bridgeHandler, String address) {
+    public MegadMideaProtocol(String address) {
+        this.address = address;
+    }
+
+    private void request(MegaDBridgeDeviceHandler bridgeHandler) {
         logger.debug("Requesting...");
         int crc = (int) Long.parseLong("C0", 16);
         crc += (int) Long.parseLong(address, 16);
@@ -71,17 +81,16 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
     }
 
     @Override
-    public String[] getValueFromRS485(MegaDBridgeDeviceHandler bridgeHandler, String address) {
+    public String[] getValueFromRS485(MegaDBridgeDeviceHandler bridgeHandler) {
         answer = new String[] { "" };
-        request(bridgeHandler, address);
+        request(bridgeHandler);
         return answer;
     }
 
     @Override
-    public void setValuesToRS485(MegaDBridgeDeviceHandler bridgeHandler, String address, String channelUID,
-            String command) {
+    public void setValuesToRS485(MegaDBridgeDeviceHandler bridgeHandler, String channelUID, String command) {
         answer = new String[] { "" };
-        request(bridgeHandler, address);
+        request(bridgeHandler);
         try {
             Thread.sleep(200);
         } catch (InterruptedException ignored) {
@@ -195,5 +204,14 @@ public class MegadMideaProtocol implements MegaDRS485Interface {
         } else {
             logger.error("Response from rs485 contains errors: <{}>", (Object) answer);
         }
+    }
+
+    @Override
+    public List<Channel> getChannelsList(Thing thing) {
+        List<Channel> channelList = new ArrayList<>();
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MIDEAFANMODE)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MIDEAOPERMODE)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MIDEATEMP)));
+        return channelList;
     }
 }

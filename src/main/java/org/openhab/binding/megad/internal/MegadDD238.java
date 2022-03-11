@@ -12,11 +12,15 @@
  */
 package org.openhab.binding.megad.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,39 +30,158 @@ import org.slf4j.LoggerFactory;
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegadDD238 {
+public class MegadDD238 implements ModbusPowermeterInterface {
+    final Logger logger = LoggerFactory.getLogger(MegadDD238.class);
+    String[] answer = {};
+    String address;
+    MegaDBridgeDeviceHandler bridgeHandler;
 
-    @Nullable
-    public static String[] getValueFromDD238(@Nullable MegaDBridgeDeviceHandler bridgeHandler, String address) {
-        final Logger logger = LoggerFactory.getLogger(MegadDD238.class);
-        assert bridgeHandler != null;
-        String result = "http://"
-                + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("hostname").toString() + "/"
-                + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
-                + "/?uart_tx=" + address + "0300000012&mode=rs485";
+    public MegadDD238(MegaDBridgeDeviceHandler bridgeHandler, String address) {
+        this.address = address;
+        this.bridgeHandler = bridgeHandler;
+    }
+
+    @Override
+    public String getVoltage() {
+        return String.valueOf((double) Integer.parseInt(answer[27] + answer[28], 16) / 10);
+    }
+
+    @Override
+    public void updateValues() {
+        String result = "http://" + bridgeHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                + bridgeHandler.getThing().getConfiguration().get("password").toString() + "/?uart_tx=" + address
+                + "0300000012&mode=rs485";
         MegaHttpHelpers.sendRequest(result);
         try {
             Thread.sleep(100);
         } catch (InterruptedException ignored) {
         }
-        result = "http://"
-                + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("hostname").toString() + "/"
-                + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
-                + "/?uart_rx=1&mode=rs485";
+        result = "http://" + bridgeHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                + bridgeHandler.getThing().getConfiguration().get("password").toString() + "/?uart_rx=1&mode=rs485";
         String updateRequest = MegaHttpHelpers.sendRequest(result);
         logger.debug("DD238 answer: {}", updateRequest);
         try {
-            String[] answer = updateRequest.split("[|]");
-            if (answer[0].equals(address)) {
-                return answer;
-            } else {
-                String[] error = { "ERROR" };
-                return error;
-            }
+            answer = updateRequest.split("[|]");
         } catch (Exception ignored) {
-            String[] answer = { "ERROR" };
-            return answer;
-
+            answer = new String[] { "ERROR" };
         }
+    }
+
+    @Override
+    public String getCurrent() {
+        return String.valueOf((double) Integer.parseInt(answer[29] + answer[30], 16) / 100);
+    }
+
+    @Override
+    public String getActivePower() {
+        return String.valueOf((short) Integer.parseInt(answer[31] + answer[32], 16));
+    }
+
+    @Override
+    public String getApparentPower() {
+        return String.valueOf((double) Integer.parseInt(answer[33] + answer[34], 16));
+    }
+
+    @Override
+    public String getReactivePower() {
+        return "null";
+    }
+
+    @Override
+    public String getPowerFactor() {
+        return String.valueOf((double) Integer.parseInt(answer[35] + answer[36], 16) / 1000);
+    }
+
+    @Override
+    public String getPhaseAngle() {
+        return "null";
+    }
+
+    @Override
+    public String getFrequency() {
+        return String.valueOf((double) Integer.parseInt(answer[37] + answer[38], 16) / 100);
+    }
+
+    @Override
+    public String getImportActiveEnergy() {
+        return "null";
+    }
+
+    @Override
+    public String getExportActiveEnergy() {
+        return "null";
+    }
+
+    @Override
+    public String getImportReactiveEnergy() {
+        return "null";
+    }
+
+    @Override
+    public String getExportReactiveEnergy() {
+        return "null";
+    }
+
+    @Override
+    public String getTotalSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getMaxTotalSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getImportSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getMaxImportSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getExportSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getMaxExportSystemPowerDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getCurrentDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getMaxCurrentDemand() {
+        return "null";
+    }
+
+    @Override
+    public String getTotalActiveEnergy() {
+        return String.valueOf((double) Integer.parseInt(answer[3] + answer[4] + answer[5] + answer[6], 16) / 100);
+    }
+
+    @Override
+    public String getTotalReactiveActiveEnergy() {
+        return "null";
+    }
+
+    @Override
+    public List<Channel> getChannelsList(Thing thing) {
+        List<Channel> channelList = new ArrayList<>();
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_VOLTAGE)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_CURRENT)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_FREQUENCY)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_ACTIVEPOWER)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_POWERFACTOR)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_APPARENTPOWER)));
+        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_TOTALACTNRG)));
+        return channelList;
     }
 }

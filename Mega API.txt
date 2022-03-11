@@ -12,3 +12,12 @@ http://192.168.0.1/megad.php?pt=30&wg=ec532f Wiegand
 http://192.168.0.1/megad.php?pt=22&ext0=1 I2C Port Extener ext0 port of extender =1 type of message  pt=22 = INT line connection
 http://192.168.0.1/megad.php?pt=22&ext0=1&ext1=1 I2C multiple Port Extener
 http://192.168.0.1/megad.php?sms_phone=+79000001234&sms_text=hello SMS
+
+
+ BigDecimal minv = (BigDecimal) th.getConfiguration().get("min_pwm");
+                            int minval = minv.intValue();
+
+                             Channel th = getThing().getChannel(MegaDBindingConstants.CHANNEL_DIMMER);
+                                                    if (th != null) {
+                                                        BigDecimal minv = (BigDecimal) th.getConfiguration().get("min_pwm");
+                                                        int minval = minv.intValue();

@@ -12,8 +12,12 @@
  */
 package org.openhab.binding.megad.internal;
 
+import java.util.List;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.Thing;
 
 /**
  * The {@link MegaDRS485Interface} is responsible for Midea modbus protocol feature for megad
@@ -22,7 +26,9 @@ import org.openhab.binding.megad.handler.MegaDBridgeDeviceHandler;
  */
 @NonNullByDefault
 public interface MegaDRS485Interface {
-    String[] getValueFromRS485(MegaDBridgeDeviceHandler bridgeHandler, String address);
+    String[] getValueFromRS485(MegaDBridgeDeviceHandler bridgeHandler);
 
-    void setValuesToRS485(MegaDBridgeDeviceHandler bridgeHandler, String address, String channelUID, String command);
+    void setValuesToRS485(MegaDBridgeDeviceHandler bridgeHandler, String channelUID, String command);
+
+    List<Channel> getChannelsList(Thing thing);
 }

@@ -52,7 +52,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
     private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
 
     private @Nullable ScheduledFuture<?> refreshPollingJob;
-
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
     protected long lastRefresh = 0;
@@ -155,7 +154,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
             if (!command.toString().equals("REFRESH")) {
                 try {
                     int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                    // int resultInt = (int) Math.round(uivalue * 2.55);
                     if (uivalue != 0) {
                         dimmervalue = uivalue;
                     }
@@ -172,11 +170,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
                     logger.info("PWM restored to previous value: {}", result);
                     sendCommand(result);
-                    // int percent = 0;
-                    // try {
-                    // percent = (int) Math.round(dimmervalue / 2.55);
-                    // } catch (Exception ex) {
-                    // }
                     updateState(channelUID.getId(), DecimalType.valueOf(Integer.toString(dimmervalue)));
                 }
             }
@@ -192,7 +185,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
         } else {
             logger.debug("Can't register {} at bridge. BridgeHandler is null.", this.getThing().getUID());
         }
-
         String[] rr = { getThing().getConfiguration().get("refresh").toString() };// .split("[.]");
         logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID().toString(), rr[0]);
         float msec = Float.parseFloat(rr[0]);
@@ -475,13 +467,24 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     } catch (Exception ignored) {
                     }
+                    int percent = 0;
                     try {
-                        int minval = Integer
-                                .parseInt(getBridgeHandler().getThing().getConfiguration().get("min_pwm").toString());
-                        updateState(channel.getUID().getId(), PercentType
-                                .valueOf(Integer.toString((int) Math.round(Integer.parseInt(getCommands[2]) / 2.55))));
-                    } catch (Exception ignored) {
+                        int minval = Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                        if (minval != 0) {
+                            if (minval == dimmervalue) {
+                                percent = 1;
+                            } else {
+                                int realval = (dimmervalue - minval);// * 0.01;
+                                double divVal = (255 - minval) * 0.01;
+                                percent = (int) Math.round(realval / divVal);
+                            }
+                        } else {
+                            percent = (int) Math.round(dimmervalue / 2.55);
+                        }
+                    } catch (Exception ex) {
+                        logger.debug("Cannot convert to dimmer values. Error: '{}'", ex.toString());
                     }
+                    updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
                     try {
                         updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
