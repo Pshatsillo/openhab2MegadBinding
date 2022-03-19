@@ -74,7 +74,7 @@ public class MegadDD238 implements ModbusPowermeterInterface {
 
     @Override
     public String getActivePower() {
-        return String.valueOf((short) Integer.parseInt(answer[31] + answer[32], 16));
+        return String.valueOf(Math.abs((short) Integer.parseInt(answer[31] + answer[32], 16)));
     }
 
     @Override
