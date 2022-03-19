@@ -210,7 +210,12 @@ public class MegaDBridgeDeviceHandler extends BaseBridgeHandler {
                             }
                         }
                     } else {
-                        String[] parsedStatus = getCommands[2].split("[;]");
+                        String[] parsedStatus = {};
+                        try {
+                            parsedStatus = getCommands[2].split("[;]");
+                        } catch (Exception ex) {
+                            parsedStatus = getCommands[1].split("[;]");
+                        }
                         for (int i = 0; parsedStatus.length > i; i++) {
                             megaportsHandler = portsHandlerMap.get(String.valueOf(i));
                             String[] mode = parsedStatus[i].split("[/]");
