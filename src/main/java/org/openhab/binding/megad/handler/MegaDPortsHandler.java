@@ -318,6 +318,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                     if ("0".equals(updateRequest)) {
                         logger.debug("dimmer value is 0, do not save dimmer value");
+                        updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(0)));
+                        return;
                     } else {
                         try {
                             dimmervalue = Integer.parseInt(updateRequest);
@@ -459,36 +461,43 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         logger.debug(" Cannot update click {}", ex.getLocalizedMessage());
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
-                    try {
-                        if (getCommands[2].equals("0")) {
-                            logger.debug("dimmer value is 0, do not save dimmer value");
-                        } else {
-                            dimmervalue = Integer.parseInt(getCommands[2]);
-                        }
-                    } catch (Exception ignored) {
-                    }
-                    int percent = 0;
-                    try {
-                        int minval = Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
-                        if (minval != 0) {
-                            if (minval == dimmervalue) {
-                                percent = 1;
+                    if (!getCommands[0].equals("st")) {
+                        try {
+                            if (getCommands[2].equals("0")) {
+                                logger.debug("dimmer value is 0, do not save dimmer value");
+                                updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(0)));
+                                return;
                             } else {
-                                int realval = (dimmervalue - minval);// * 0.01;
-                                double divVal = (255 - minval) * 0.01;
-                                percent = (int) Math.round(realval / divVal);
+                                dimmervalue = Integer.parseInt(getCommands[2]);
                             }
-                        } else {
-                            percent = (int) Math.round(dimmervalue / 2.55);
+                        } catch (Exception ignored) {
                         }
-                    } catch (Exception ex) {
-                        logger.debug("Cannot convert to dimmer values. Error: '{}'", ex.toString());
+
+                        int percent = 0;
+                        try {
+                            int minval = Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                            if (minval != 0) {
+                                if (minval == dimmervalue) {
+                                    percent = 1;
+                                } else {
+                                    int realval = (dimmervalue - minval);// * 0.01;
+                                    double divVal = (255 - minval) * 0.01;
+                                    percent = (int) Math.round(realval / divVal);
+                                }
+                            } else {
+                                percent = (int) Math.round(dimmervalue / 2.55);
+                            }
+                        } catch (Exception ex) {
+                            logger.debug("Cannot convert to dimmer values. Error: '{}'", ex.toString());
+                        }
+                        updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                     }
-                    updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
-                    try {
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
-                    } catch (Exception ignored) {
+                    if (!getCommands[0].equals("st")) {
+                        try {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(getCommands[2]));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IB)) {
                     try {
