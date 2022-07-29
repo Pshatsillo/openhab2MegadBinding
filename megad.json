@@ -1,12 +1,14 @@
-[{
-  "id": "org-openhab-binding-megad",
-  "type": "binding",
-  "version": "3.3.0.2",
-  "author": "Petr Shatsillo",
-  "maturity": "stable",
-  "content_type": "application/vnd.openhab.bundle;type=jarfile",
-  "link": "https://docs.smarthomej.org/3.2.13/org.smarthomej.binding.amazonechocontrol.html",
-  "url": "https://github.com/Pshatsillo/openhab2MegadBinding/releases/download/3.3.0.2/org.openhab.binding.megad-3.3.0-SNAPSHOT.jar",
-  "title": "Ab-log.ru MegaD Binding",
-  "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB"
-}]
+[
+  {
+    "id": "org-smarthome-transform-math",
+    "type": "transformation",
+    "version": "3.2.13",
+    "author": "SmartHome/J",
+    "maturity": "stable",
+    "content_type": "application/vnd.openhab.feature;type=karfile",
+    "link": "https://docs.smarthomej.org/3.2.13/org.smarthomej.transform.math.html",
+    "url": "https://repo1.maven.org/maven2/org/smarthomej/addons/bundles/org.smarthomej.transform.math/3.2.13/org.smarthomej.transform.math-3.2.13.kar",
+    "title": "SmartHome/J Math Transformation",
+    "description": "Transforms the input by applying simple math on it. "
+  }
+]
