@@ -83,6 +83,7 @@
 			<channel id="i2cdisplay" typeId="i2cdisplay"/>
 			<channel id="smsphone" typeId="smsphone"/>
 			<channel id="smstext" typeId="smstext"/>
+			<channel id="smoothtime" typeId="smooth_time"/>
 		</channels>
 
 		<config-description>

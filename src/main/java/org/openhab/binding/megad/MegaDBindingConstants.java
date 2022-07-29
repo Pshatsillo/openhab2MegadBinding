@@ -69,6 +69,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_CONTACT = "contact";
     public static final String CHANNEL_SMS_PHONE = "smsphone";
     public static final String CHANNEL_SMS_TEXT = "smstext";
+    public static final String CHANNEL_SMOOTH = "smoothtime";
 
     // i2c
     public static final String CHANNEL_I2C_TEMP = "temp";

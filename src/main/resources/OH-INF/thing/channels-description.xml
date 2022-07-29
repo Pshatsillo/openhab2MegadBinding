@@ -412,4 +412,11 @@
 		<label>Group switch</label>
 	</channel-type>
 
+	<channel-type id="smooth_time" advanced="true">
+		<item-type>Number</item-type>
+		<label>Smooth</label>
+		<description>smooth</description>
+		<state pattern="%d"/>
+	</channel-type>
+
 </thing:thing-descriptions>

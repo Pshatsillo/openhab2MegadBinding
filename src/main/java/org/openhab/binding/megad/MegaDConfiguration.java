@@ -26,4 +26,5 @@ public class MegaDConfiguration {
      * Sample configuration parameter. Replace with your own.
      */
     public Integer port = 0;
+    public boolean discovery = true;
 }

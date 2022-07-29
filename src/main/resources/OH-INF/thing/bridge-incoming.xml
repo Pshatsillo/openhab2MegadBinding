@@ -16,6 +16,11 @@
 				<description>Port of the LAN gateway</description>
 				<default>0</default>
 			</parameter>
+			<parameter name="discovery" type="boolean" required="true">
+				<label>Discovery</label>
+				<description>Set to true only if you send P-R value to server, else set to false</description>
+				<default>true</default>
+			</parameter>
 		</config-description>
 	</bridge-type>
 </thing:thing-descriptions>

@@ -57,6 +57,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     protected long lastRefresh = 0;
     boolean startup = true;
     protected int dimmervalue = 150;
+    int smooth;
 
     public MegaDPortsHandler(Thing thing) {
         super(thing);
@@ -115,7 +116,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             dimmervalue = resultInt;
                         }
                     }
-                    assert bridgeDeviceHandler != null;
+                    if (isLinked(getThing().getChannel(MegaDBindingConstants.CHANNEL_SMOOTH).getUID().getId())) {
+                        logger.debug("Smooth linked");
+                    } else {
+                        logger.debug("Smooth unlinked");
+                    }
+
                     result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                             + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                             + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + resultInt;

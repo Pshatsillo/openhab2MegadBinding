@@ -1,0 +1,12 @@
+[{
+  "id": "org-openhab-binding-megad",
+  "type": "binding",
+  "version": "3.3.0.2",
+  "author": "Petr Shatsillo",
+  "maturity": "stable",
+  "content_type": "application/vnd.openhab.bundle;type=jarfile",
+  "link": "https://github.com/Pshatsillo/openhab2MegadBinding/blob/v3/README.md",
+  "url": "https://github.com/Pshatsillo/openhab2MegadBinding/releases/download/3.3.0.2/org.openhab.binding.megad-3.3.0-SNAPSHOT.jar",
+  "title": "Ab-log.ru MegaD Binding",
+  "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB"
+}]
