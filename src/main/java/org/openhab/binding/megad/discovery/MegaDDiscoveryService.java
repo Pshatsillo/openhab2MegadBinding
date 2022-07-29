@@ -12,8 +12,6 @@
  */
 package org.openhab.binding.megad.discovery;
 
-import static java.lang.Thread.sleep;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -24,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -55,7 +52,8 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
-    private final Runnable scanner;
+    @Nullable
+    private Runnable scanner;
     private @Nullable ScheduledFuture<?> backgroundFuture;
     public static @Nullable List<MegaDBridge1WireBusHandler> oneWireBusList = new ArrayList<>();
     public static @Nullable List<MegaDBridgeIncomingHandler> incomingBusList = new ArrayList<>();
@@ -63,39 +61,91 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     public MegaDDiscoveryService() {
         super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE), 30, true);
-        try {
-            socket = new DatagramSocket(42000);
-        } catch (SocketException e) {
-            logger.debug("{}", e.getMessage());
+    }
+
+    @Override
+    public synchronized void abortScan() {
+        super.abortScan();
+    }
+
+    @Override
+    protected synchronized void stopScan() {
+        if (socket != null) {
+            socket.close();
+            socket = null;
         }
-        scanner = createScanner();
+
+        ScheduledFuture<?> scan = backgroundFuture;
+        if (scan != null) {
+            scan.cancel(true);
+            backgroundFuture = null;
+        }
+        super.stopScan();
     }
 
     @Override
     protected void startScan() {
+        try {
+            socket = new DatagramSocket(42000);
+            socket.setSoTimeout(50000);
+        } catch (SocketException e) {
+            logger.debug("{}", e.getMessage());
+        }
+        Thread server = new Thread(new Runnable() {
+            final byte[] buffer = new byte[5];
+
+            public void run() {
+                while (true) {
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                    try {
+                        if (socket != null) {
+                            socket.receive(packet);
+                        }
+                    } catch (IOException e) {
+                        logger.error("Scan socket closed: {}", e.getLocalizedMessage());
+                        break;
+                    }
+                    byte[] received = packet.getData();
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        logger.error("{}", e.getLocalizedMessage());
+                    }
+                    receivePacketAndDiscover(received);
+                }
+            }
+        });
+
+        server.start();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // e.printStackTrace();
+        }
+        scanner = createScanner();
+        scanner.run();
+
         oneWireBusScan();
         iToCBusScan();
         logger.debug("StartScan");
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ignored) {
+        }
+        server.interrupt();
     }
 
     @Override
     protected void startBackgroundDiscovery() {
         logger.debug("startBackgroundDiscovery");
-        server.start();
-        backgroundFuture = scheduler.scheduleWithFixedDelay(scanner, 0, 60, TimeUnit.SECONDS);
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
         logger.debug("stopBackgroundDiscovery");
-        socket.close();
-        server.interrupt();
-        ScheduledFuture<?> scan = backgroundFuture;
 
-        if (scan != null) {
-            scan.cancel(true);
-            backgroundFuture = null;
-        }
         super.stopBackgroundDiscovery();
     }
 
@@ -104,7 +154,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             long timestampOfLastScan = getTimestampOfLastScan();
             try {
                 DatagramSocket socket = new DatagramSocket();
-                byte[] buf = { (byte) 170, 0, 12 };
+                byte[] buf = { (byte) 170, 0, 12, (byte) 218, (byte) 202 };
                 for (InetAddress broadcastAddress : getBroadcastAddresses()) {
                     logger.trace("Broadcast address is {}", broadcastAddress.toString());
                     DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
@@ -135,29 +185,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
         logger.trace("Found MegaD at: {}", ips);
     }
-
-    Thread server = new Thread(new Runnable() {
-        final byte[] buffer = new byte[5];
-
-        public void run() {
-            while (true) {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                try {
-                    socket.receive(packet);
-                } catch (IOException ignored) {
-                }
-                byte[] received = packet.getData();
-
-                try {
-                    sleep(100);
-                } catch (InterruptedException e) {
-                    break;
-                }
-                receivePacketAndDiscover(received);
-            }
-            socket.close();
-        }
-    });
 
     private List<InetAddress> getBroadcastAddresses() {
         ArrayList<InetAddress> addresses = new ArrayList<>();
@@ -216,17 +243,21 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 String[] sensorsList = updateRequest.split("<br>");
                 logger.debug("scanner request: {}", request);
                 for (int i = 1; i < sensorsList.length; i++) {
-                    String[] sensorUrl = sensorsList[i].split("href=");
-                    sensorUrl = sensorUrl[1].split("[>]");
-                    String[] sensorType = sensorUrl[0].split("[=]");
-                    logger.debug("sensor is {}", sensorType[3]);
-                    ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_I2CBUSSENSOR,
-                            i2cBridge.getThing().getUID(), "I2CbusSensor_" + sensorType[3]);
-                    DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
-                            .withProperty("sensortype", sensorType[3]).withRepresentationProperty("sensortype")
-                            .withLabel("I2CSensor " + sensorType[3] + " at bus " + i2cBridge.getThing().getLabel())
-                            .withBridge(i2cBridge.getThing().getUID()).build();
-                    thingDiscovered(resultS);
+                    try {
+                        String[] sensorUrl = sensorsList[i].split("href=");
+                        sensorUrl = sensorUrl[1].split("[>]");
+                        String[] sensorType = sensorUrl[0].split("[=]");
+                        logger.debug("sensor is {}", sensorType[3]);
+                        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_I2CBUSSENSOR,
+                                i2cBridge.getThing().getUID(), "I2CbusSensor_" + sensorType[3]);
+                        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
+                                .withProperty("sensortype", sensorType[3]).withRepresentationProperty("sensortype")
+                                .withLabel("I2CSensor " + sensorType[3] + " at bus " + i2cBridge.getThing().getLabel())
+                                .withBridge(i2cBridge.getThing().getUID()).build();
+                        thingDiscovered(resultS);
+                    } catch (Exception e) {
+                        logger.debug("SDA port is not defined");
+                    }
                 }
             }
         }

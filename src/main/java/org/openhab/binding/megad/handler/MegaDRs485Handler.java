@@ -187,7 +187,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                     String value = null;
                     if (modbus != null) {
                         value = modbus.getApparentPower();
-                        logger.debug("sdm 120 apparent power is : {}", value);
+                        logger.debug("Apparent power is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_REACTIVEPOWER)) {
@@ -217,7 +217,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                     String value = null;
                     if (modbus != null) {
                         value = modbus.getPhaseAngle();
-                        logger.debug("sdm 120 Phase angle is : {}", value);
+                        logger.debug("Phase angle is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_FREQUENCY)) {
