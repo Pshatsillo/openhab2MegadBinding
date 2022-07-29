@@ -1,7 +1,7 @@
 [{
   "id": "org-openhab-binding-megad",
   "type": "binding",
-  "version": "3.3.0.2",
+  "version": "3.3.0.2.1",
   "author": "Petr Shatsillo",
   "maturity": "stable",
   "content_type": "application/vnd.openhab.bundle",
