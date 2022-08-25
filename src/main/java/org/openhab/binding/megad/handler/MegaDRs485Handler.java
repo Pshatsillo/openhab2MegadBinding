@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.internal.MegaDRS485Interface;
 import org.openhab.binding.megad.internal.MegaDSdm120;
+import org.openhab.binding.megad.internal.MegaDWBMAP6S;
 import org.openhab.binding.megad.internal.MegadDD238;
 import org.openhab.binding.megad.internal.MegadMideaProtocol;
 import org.openhab.binding.megad.internal.ModbusPowermeterInterface;
@@ -108,6 +109,13 @@ public class MegaDRs485Handler extends BaseThingHandler {
         }
         if (getThing().getConfiguration().get("type").toString().equals("sdm120")) {
             modbus = new MegaDSdm120(getBridgeHandler(), address);
+            ThingBuilder thingBuilder = editThing();
+            thingBuilder.withChannels(modbus.getChannelsList(getThing()));
+            updateThing(thingBuilder.build());
+        }
+
+        if (getThing().getConfiguration().get("type").toString().equals("wbmap6s")) {
+            modbus = new MegaDWBMAP6S(getBridgeHandler(), address);
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withChannels(modbus.getChannelsList(getThing()));
             updateThing(thingBuilder.build());

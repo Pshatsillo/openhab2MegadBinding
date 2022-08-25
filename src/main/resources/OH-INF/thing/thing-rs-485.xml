@@ -43,6 +43,7 @@
 				<options>
 					<option value="sdm120">Eastron SDM 120 energy meter</option>
 					<option value="dds238">DDS238-1 ZN energy meter</option>
+					<option value="wbmap6s">WirenBoard MAP-6S</option>
 					<option value="midea">Midea protocol</option>
 				</options>
 			</parameter>
