@@ -342,12 +342,15 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         logger.debug("Max current demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALACTNRG)) {
+                } else if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALACTNRG))
+                        || (channel.getUID().getId().equals(
+                                channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_ACTIVEENERGY))) {
                     @Nullable
                     String value = null;
                     try {
                         if (modbus != null) {
-                            value = modbus.getTotalActiveEnergy();
+                            value = modbus
+                                    .getTotalActiveEnergy(Integer.parseInt(channel.getUID().getGroupId().substring(4)));
                             logger.debug("Total active energy: {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                         }

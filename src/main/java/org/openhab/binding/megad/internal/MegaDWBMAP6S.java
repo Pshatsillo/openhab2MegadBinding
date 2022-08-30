@@ -58,8 +58,12 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
             String[] answer = updateRequest.split("[|]");
             String parse = "";
             int bytesCnt = Integer.parseInt(answer[2]);
-            for (int i = 1; i <= bytesCnt; i++) {
-                parse = parse + answer[i + 2];
+            if (registersCount != 4) {
+                for (int i = 1; i <= bytesCnt; i++) {
+                    parse = parse + answer[i + 2];
+                }
+            } else {
+                parse = answer[9] + answer[10] + answer[7] + answer[8] + answer[5] + answer[6] + answer[3] + answer[4];
             }
             logger.debug("WB-MAP6S hex answer: {}", parse);
 
@@ -209,8 +213,21 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalActiveEnergy() {
-        return " ";
+    public String getTotalActiveEnergy(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("120C", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("1208", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("1204", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override

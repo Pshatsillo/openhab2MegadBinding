@@ -67,7 +67,7 @@ public interface ModbusPowermeterInterface {
 
     String getMaxCurrentDemand();
 
-    String getTotalActiveEnergy();
+    String getTotalActiveEnergy(int line);
 
     String getTotalReactiveActiveEnergy();
 

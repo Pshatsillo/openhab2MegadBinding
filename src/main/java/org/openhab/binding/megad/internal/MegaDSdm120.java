@@ -167,7 +167,7 @@ public class MegaDSdm120 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalActiveEnergy() {
+    public String getTotalActiveEnergy(int i) {
         return getValueFromSDM120("0156");
     }
 

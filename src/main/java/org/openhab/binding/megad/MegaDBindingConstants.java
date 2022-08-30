@@ -95,8 +95,10 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_VOLTAGE = "voltage";
     public static final String CHANNEL_CURRENT = "current";
     public static final String CHANNEL_ACTIVEPOWER = "activepower";
+    public static final String CHANNEL_ACTIVEENERGY = "actnrg";
     public static final String CHANNEL_APPARENTPOWER = "apparentpower";
     public static final String CHANNEL_REACTIVEPOWER = "reactivepower";
+    public static final String CHANNEL_REACTIVEENERGY = "reactnrg";
     public static final String CHANNEL_POWERFACTOR = "powerfactor";
     public static final String CHANNEL_PHASEANGLE = "phaseangle";
     public static final String CHANNEL_FREQUENCY = "frequency";
