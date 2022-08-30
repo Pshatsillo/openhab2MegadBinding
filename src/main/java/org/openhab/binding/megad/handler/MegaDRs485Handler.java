@@ -56,6 +56,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
     MegaDRS485Interface rsi;
     @Nullable
     ModbusPowermeterInterface modbus;
+    int powerLines;
 
     public MegaDRs485Handler(Thing thing) {
         super(thing);
@@ -113,8 +114,8 @@ public class MegaDRs485Handler extends BaseThingHandler {
             thingBuilder.withChannels(modbus.getChannelsList(getThing()));
             updateThing(thingBuilder.build());
         }
-
         if (getThing().getConfiguration().get("type").toString().equals("wbmap6s")) {
+            powerLines = 6;
             modbus = new MegaDWBMAP6S(getBridgeHandler(), address);
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withChannels(modbus.getChannelsList(getThing()));
@@ -157,7 +158,22 @@ public class MegaDRs485Handler extends BaseThingHandler {
         logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
-                if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_VOLTAGE)) {
+                String grp = channel.getUID().getGroupId();
+                if (channel.getUID().getId()
+                        .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_CURRENT)) {
+                    @Nullable
+                    String value = null;
+                    try {
+                        if (modbus != null) {
+                            value = modbus.getCurrent(Integer.parseInt(channel.getUID().getGroupId().substring(4)));
+                            logger.debug("Current is {} A at line {}", value, channel.getUID().getId());
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                if (channel.getUID().getId()
+                        .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_VOLTAGE)) {
                     @Nullable
                     String value = null;
                     try {
@@ -168,23 +184,13 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         }
                     } catch (Exception ignored) {
                     }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CURRENT)) {
+                } else if (channel.getUID().getId()
+                        .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_ACTIVEPOWER)) {
                     @Nullable
                     String value = null;
                     try {
                         if (modbus != null) {
-                            value = modbus.getCurrent();
-                            logger.debug("Current is : {}", value);
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
-                        }
-                    } catch (Exception ignored) {
-                    }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_ACTIVEPOWER)) {
-                    @Nullable
-                    String value = null;
-                    try {
-                        if (modbus != null) {
-                            value = modbus.getActivePower();
+                            value = modbus.getActivePower(Integer.parseInt(channel.getUID().getGroupId().substring(4)));
                             logger.debug("Active power is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                         }
@@ -228,7 +234,8 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         logger.debug("Phase angle is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_FREQUENCY)) {
+                } else if (channel.getUID().getId()
+                        .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_FREQUENCY)) {
                     @Nullable
                     String value = null;
                     try {

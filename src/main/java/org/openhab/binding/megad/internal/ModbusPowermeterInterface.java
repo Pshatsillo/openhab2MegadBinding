@@ -29,9 +29,9 @@ public interface ModbusPowermeterInterface {
 
     void updateValues();
 
-    String getCurrent();
+    String getCurrent(int line);
 
-    String getActivePower();
+    String getActivePower(int line);
 
     String getApparentPower();
 

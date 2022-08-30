@@ -280,7 +280,19 @@
 	<channel-type id="exportreactnrg">
 		<item-type>Number</item-type>
 		<label>Export reactive energy</label>
-		<description>export reactive energy</description>
+		<description>export active energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="reactnrg">
+		<item-type>Number</item-type>
+		<label>Reactive energy</label>
+		<description>Reactive energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="actnrg">
+		<item-type>Number</item-type>
+		<label>Active energy</label>
+		<description>Active energy</description>
 		<state readOnly="true" pattern="%.2f"/>
 	</channel-type>
 	<channel-type id="totalsyspwrdmd">

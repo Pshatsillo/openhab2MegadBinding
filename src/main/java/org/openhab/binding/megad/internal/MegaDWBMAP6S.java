@@ -14,7 +14,6 @@ package org.openhab.binding.megad.internal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
@@ -83,19 +82,44 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getCurrent() {
-        String value = getValueFromWBMAP6S("141A", 2);
-        int n = (int) Long.parseLong(value, 16);
-        float voltage = (float) (n * 2.44141E-07);
-        return String.format("%.2f", voltage).replace(",", ".");
+    public String getCurrent(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("141A", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("1418", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("1416", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
-    public String getActivePower() {
-        String value = getValueFromWBMAP6S("1306", 2);
-        int n = (int) Long.parseLong(value, 16);
-        float voltage = (float) (n * 2.44141E-07);
-        return String.format("%.2f", voltage).replace(",", ".");
+    public String getActivePower(int line) {
+        // String value = getValueFromWBMAP6S("1306", 2);
+        // int n = (int) Long.parseLong(value, 16);
+        // float voltage = (float) (n * 2.44141E-07);
+        // return String.format("%.2f", voltage).replace(",", ".");
+
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("1306", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("1304", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("1302", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
@@ -120,7 +144,8 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
 
     @Override
     public String getFrequency() {
-        return " ";
+        String value = getValueFromWBMAP6S("10F8", 1);
+        return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.01)).replace(",", ".");
     }
 
     @Override
@@ -196,28 +221,18 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     @Override
     public List<Channel> getChannelsList(Thing thing) {
         List<Channel> channelList = new ArrayList<>();
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_VOLTAGE)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_CURRENT)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_ACTIVEPOWER)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_APPARENTPOWER)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_REACTIVEPOWER)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_POWERFACTOR)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_PHASEANGLE)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_FREQUENCY)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_IMPORTACTNRG)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_EXPORTACTNRG)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_IMPORTREACTNRG)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_EXPORTREACTNRG)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_TOTALSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MAXTOTALSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_IMPORTSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MAXIMPORTSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_EXPORTSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MAXEXPORTSYSPWRDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_CURRENTDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_MAXCURRENTDMD)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_TOTALACTNRG)));
-        channelList.add(Objects.requireNonNull(thing.getChannel(MegaDBindingConstants.CHANNEL_TOTALREACTNRG)));
+        for (int i = 1; i <= 6; i++) {
+            List<Channel> lineList = thing.getChannelsOfGroup("line" + i);
+            channelList.addAll(lineList);
+        }
+        List<Channel> cmn = new ArrayList<>();
+        for (Channel chn : thing.getChannelsOfGroup("cmn")) {
+            if (chn.getUID().getId().contains(MegaDBindingConstants.CHANNEL_VOLTAGE)
+                    || chn.getUID().getId().contains(MegaDBindingConstants.CHANNEL_FREQUENCY)) {
+                cmn.add(chn);
+            }
+        }
+        channelList.addAll(cmn);
         return channelList;
     }
 }
