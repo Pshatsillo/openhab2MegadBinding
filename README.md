@@ -252,7 +252,6 @@ Bridge megad:tcp:incoming [port=8989]{
 }
 ```
 
-#
 Donate: [Ю.Money](https://yoomoney.ru/to/410011024847033)
 
 Спасибо!
