@@ -78,22 +78,22 @@ public class MegadDD238 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getApparentPower() {
+    public String getApparentPower(int line) {
         return String.valueOf((double) Integer.parseInt(answer[33] + answer[34], 16));
     }
 
     @Override
-    public String getReactivePower() {
+    public String getReactivePower(int line) {
         return "null";
     }
 
     @Override
-    public String getPowerFactor() {
+    public String getPowerFactor(int line) {
         return String.valueOf((double) Integer.parseInt(answer[35] + answer[36], 16) / 1000);
     }
 
     @Override
-    public String getPhaseAngle() {
+    public String getPhaseAngle(int line) {
         return "null";
     }
 
@@ -168,7 +168,7 @@ public class MegadDD238 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalReactiveActiveEnergy() {
+    public String getTotalReactiveActiveEnergy(int line) {
         return "null";
     }
 

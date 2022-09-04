@@ -82,22 +82,22 @@ public class MegaDSdm120 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getApparentPower() {
+    public String getApparentPower(int line) {
         return getValueFromSDM120("0012");
     }
 
     @Override
-    public String getReactivePower() {
+    public String getReactivePower(int line) {
         return getValueFromSDM120("0018");
     }
 
     @Override
-    public String getPowerFactor() {
+    public String getPowerFactor(int line) {
         return getValueFromSDM120("001E");
     }
 
     @Override
-    public String getPhaseAngle() {
+    public String getPhaseAngle(int line) {
         return getValueFromSDM120("0024");
     }
 
@@ -172,7 +172,7 @@ public class MegaDSdm120 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalReactiveActiveEnergy() {
+    public String getTotalReactiveActiveEnergy(int line) {
         return getValueFromSDM120("0158");
     }
 

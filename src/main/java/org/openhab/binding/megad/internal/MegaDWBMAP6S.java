@@ -105,11 +105,6 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
 
     @Override
     public String getActivePower(int line) {
-        // String value = getValueFromWBMAP6S("1306", 2);
-        // int n = (int) Long.parseLong(value, 16);
-        // float voltage = (float) (n * 2.44141E-07);
-        // return String.format("%.2f", voltage).replace(",", ".");
-
         String value;
         switch (line) {
             case 1:
@@ -127,23 +122,75 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getApparentPower() {
-        return " ";
+    public String getApparentPower(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("1316", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("1314", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("1312", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
-    public String getReactivePower() {
-        return " ";
+    public String getReactivePower(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("130E", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("130C", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("130A", 2);
+                return String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
-    public String getPowerFactor() {
-        return " ";
+    public String getPowerFactor(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("10BF", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("10BE", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("10BD", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
-    public String getPhaseAngle() {
-        return " ";
+    public String getPhaseAngle(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("10FB", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("10FA", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("10F9", 1);
+                return String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
@@ -231,8 +278,21 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalReactiveActiveEnergy() {
-        return " ";
+    public String getTotalReactiveActiveEnergy(int line) {
+        String value;
+        switch (line) {
+            case 1:
+                value = getValueFromWBMAP6S("122C", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            case 2:
+                value = getValueFromWBMAP6S("1228", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            case 3:
+                value = getValueFromWBMAP6S("1224", 4);
+                return String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            default:
+                return "ERR";
+        }
     }
 
     @Override
