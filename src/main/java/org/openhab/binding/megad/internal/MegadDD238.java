@@ -163,7 +163,7 @@ public class MegadDD238 implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalActiveEnergy(int i) {
+    public String getTotalActiveEnergy() {
         return String.valueOf((double) Integer.parseInt(answer[3] + answer[4] + answer[5] + answer[6], 16) / 100);
     }
 
@@ -184,5 +184,10 @@ public class MegadDD238 implements ModbusPowermeterInterface {
                 .add(Objects.requireNonNull(thing.getChannel("line1#" + MegaDBindingConstants.CHANNEL_APPARENTPOWER)));
         channelList.add(Objects.requireNonNull(thing.getChannel("cmn#" + MegaDBindingConstants.CHANNEL_TOTALACTNRG)));
         return channelList;
+    }
+
+    @Override
+    public String getActiveEnergy(int line) {
+        return " ";
     }
 }

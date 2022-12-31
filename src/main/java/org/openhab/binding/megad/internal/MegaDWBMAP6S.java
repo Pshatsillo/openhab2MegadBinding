@@ -260,7 +260,12 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
     }
 
     @Override
-    public String getTotalActiveEnergy(int line) {
+    public String getTotalActiveEnergy() {
+        return " ";
+    }
+
+    @Override
+    public String getActiveEnergy(int line) {
         String value;
         switch (line) {
             case 1:
