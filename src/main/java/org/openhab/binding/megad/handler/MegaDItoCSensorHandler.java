@@ -94,83 +94,129 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
     @SuppressWarnings("null")
     protected void updateData() {
         logger.debug("Updating Megadevice thing {}...", getThing().getUID().toString());
+        String result = "http://" + getBridgeHandler().getHostPassword()[0] + "/"
+                + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&cmd=get";
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException ignored) {
+        }
+        String updateRequest = MegaHttpHelpers.sendRequest(result);
+        String[] values = updateRequest.split("/");
+
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
                 if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PAR0)) {
-                    assert bridgeDeviceHandler != null;
-                    String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
-                            + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
-                            + getThing().getConfiguration().get("sensortype").toString();
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {
-                    }
-                    String updateRequest = MegaHttpHelpers.sendRequest(result);
-
-                    if ("NA".equals(updateRequest)) {
-                        logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    String[] par = values[0].split(":");
+                    if (par[1].equals("NA")) {
+                        logger.debug("Value {} is incorrect for channel {}", par[1],
                                 MegaDBindingConstants.CHANNEL_PAR0);
                     } else {
                         try {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(par[1]));
                         } catch (Exception ex) {
-                            logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                            logger.debug("Value {} is incorrect for channel {}", par[1],
                                     MegaDBindingConstants.CHANNEL_PAR0);
                         }
                     }
+                    // assert bridgeDeviceHandler != null;
+                    // String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
+                    // + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    // + getThing().getConfiguration().get("sensortype").toString();
+                    // try {
+                    // Thread.sleep(200);
+                    // } catch (InterruptedException ignored) {
+                    // }
+                    // String updateRequest = MegaHttpHelpers.sendRequest(result);
+                    //
+                    // if ("NA".equals(updateRequest)) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR0);
+                    // } else {
+                    // try {
+                    // updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    // } catch (Exception ex) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR0);
+                    // }
+                    // }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PAR1)) {
-                    assert bridgeDeviceHandler != null;
-                    String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
-                            + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
-                            + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=1";
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {
-                    }
-                    String updateRequest = MegaHttpHelpers.sendRequest(result);
-
-                    if ("NA".equals(updateRequest)) {
-                        logger.debug("Value {} is incorrect for channel {}", updateRequest,
-                                MegaDBindingConstants.CHANNEL_PAR0);
+                    String[] par = values[1].split(":");
+                    if (par[1].equals("NA")) {
+                        logger.debug("Value {} is incorrect for channel {}", par[1],
+                                MegaDBindingConstants.CHANNEL_PAR1);
                     } else {
                         try {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(par[1]));
                         } catch (Exception ex) {
-                            logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                            logger.debug("Value {} is incorrect for channel {}", par[1],
                                     MegaDBindingConstants.CHANNEL_PAR1);
                         }
                     }
+                    // assert bridgeDeviceHandler != null;
+                    // String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
+                    // + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    // + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=1";
+                    // try {
+                    // Thread.sleep(200);
+                    // } catch (InterruptedException ignored) {
+                    // }
+                    // String updateRequest = MegaHttpHelpers.sendRequest(result);
+                    //
+                    // if ("NA".equals(updateRequest)) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR0);
+                    // } else {
+                    // try {
+                    // updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    // } catch (Exception ex) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR1);
+                    // }
+                    // }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_PAR2)) {
-                    assert bridgeDeviceHandler != null;
-                    String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
-                            + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
-                            + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=2";
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {
-                    }
-                    String updateRequest = MegaHttpHelpers.sendRequest(result);
-
-                    if ("NA".equals(updateRequest)) {
-                        logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    String[] par = values[2].split(":");
+                    if (par[1].equals("NA")) {
+                        logger.debug("Value {} is incorrect for channel {}", par[1],
                                 MegaDBindingConstants.CHANNEL_PAR2);
                     } else {
                         try {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(par[1]));
                         } catch (Exception ex) {
-                            logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                            logger.debug("Value {} is incorrect for channel {}", par[1],
                                     MegaDBindingConstants.CHANNEL_PAR2);
                         }
                     }
+                    // assert bridgeDeviceHandler != null;
+                    // String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
+                    // + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    // + getThing().getConfiguration().get("sensortype").toString() + "&i2c_par=2";
+                    // try {
+                    // Thread.sleep(200);
+                    // } catch (InterruptedException ignored) {
+                    // }
+                    // String updateRequest = MegaHttpHelpers.sendRequest(result);
+                    //
+                    // if ("NA".equals(updateRequest)) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR2);
+                    // } else {
+                    // try {
+                    // updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    // } catch (Exception ex) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest,
+                    // MegaDBindingConstants.CHANNEL_PAR2);
+                    // }
+                    // }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_I2CRAW)) {
                     assert bridgeDeviceHandler != null;
-                    String result = "";
+                    // String result = "";
                     if (getThing().getConfiguration().get("rawparam") != null) {
                         result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
                                 + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
@@ -189,7 +235,7 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                         Thread.sleep(200);
                     } catch (InterruptedException ignored) {
                     }
-                    String updateRequest = MegaHttpHelpers.sendRequest(result);
+                    updateRequest = MegaHttpHelpers.sendRequest(result);
 
                     try {
                         updateState(channel.getUID().getId(), StringType.valueOf(updateRequest));
@@ -203,27 +249,38 @@ public class MegaDItoCSensorHandler extends BaseThingHandler {
                     logger.debug("Channel {}... parameter is {} ", channel.getLabel(),
                             channel.getConfiguration().get("i2cparameter"));
 
-                    String result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
-                            + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
-                            + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
-                            + getThing().getConfiguration().get("sensortype").toString() + "&"
-                            + channel.getConfiguration().get("i2cparameter");
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {
-                    }
-                    String updateRequest = MegaHttpHelpers.sendRequest(result);
-
-                    if ("NA".equals(updateRequest)) {
-                        logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                    String[] par = values[Integer.parseInt(channel.getConfiguration().get("i2cparameter").toString())]
+                            .split(":");
+                    if (par[1].equals("NA")) {
+                        logger.debug("Value {} is incorrect for channel {}", par[1], channel.getLabel());
                     } else {
                         try {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(par[1]));
                         } catch (Exception ex) {
-                            logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                            logger.debug("Value {} is incorrect for channel {}", par[1], channel.getLabel());
                         }
                     }
+                    // result = "http://" + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[0] + "/"
+                    // + Objects.requireNonNull(getBridgeHandler()).getHostPassword()[1] + "/?pt="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("port").toString() + "&scl="
+                    // + bridgeDeviceHandler.getThing().getConfiguration().get("scl").toString() + "&i2c_dev="
+                    // + getThing().getConfiguration().get("sensortype").toString() + "&"
+                    // + channel.getConfiguration().get("i2cparameter");
+                    // try {
+                    // Thread.sleep(200);
+                    // } catch (InterruptedException ignored) {
+                    // }
+                    // updateRequest = MegaHttpHelpers.sendRequest(result);
+                    //
+                    // if ("NA".equals(updateRequest)) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                    // } else {
+                    // try {
+                    // updateState(channel.getUID().getId(), DecimalType.valueOf(updateRequest));
+                    // } catch (Exception ex) {
+                    // logger.debug("Value {} is incorrect for channel {}", updateRequest, channel.getLabel());
+                    // }
+                    // }
                 }
             }
         }

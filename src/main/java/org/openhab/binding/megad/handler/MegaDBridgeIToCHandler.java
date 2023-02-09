@@ -18,6 +18,7 @@ import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
-    private Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(MegaDBridgeIToCHandler.class);
     @Nullable
     MegaDBridgeDeviceHandler bridgeDeviceHandler;
 
@@ -48,8 +49,13 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
     public void initialize() {
         bridgeDeviceHandler = getBridgeHandler();
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
+        assert MegaDDiscoveryService.i2cBusList != null;
         MegaDDiscoveryService.i2cBusList.add(this);
-        updateStatus(ThingStatus.ONLINE);
+        if (bridgeDeviceHandler != null) {
+            updateStatus(ThingStatus.ONLINE);
+        } else {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE, "Please select select bridge");
+        }
     }
 
     /**
@@ -57,9 +63,11 @@ public class MegaDBridgeIToCHandler extends BaseBridgeHandler {
      */
     @SuppressWarnings("null")
     public String[] getHostPassword() {
-        String[] result = new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
-                bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
-        return result;
+        if (bridgeDeviceHandler != null) {
+            return new String[] { bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString(),
+                    bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() };
+        }
+        return new String[0];
     }
 
     // -------------------------------------------------------------------
