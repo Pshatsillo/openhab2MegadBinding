@@ -18,8 +18,8 @@
 			</parameter>
 			<parameter name="discovery" type="boolean" required="true">
 				<label>Discovery</label>
-				<description>Set to true only if you send P-R value to server, else set to false</description>
-				<default>true</default>
+				<description></description>
+				<default>false</default>
 			</parameter>
 		</config-description>
 	</bridge-type>
