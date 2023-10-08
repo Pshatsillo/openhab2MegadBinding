@@ -39,7 +39,7 @@ public class MegaDHTTPCallback extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        logger.debug("get {}", req.getQueryString());
+        logger.debug("request from {} is: {}", req.getRemoteAddr(), req.getQueryString());
         resp.setContentType(MediaType.TEXT_PLAIN);
         resp.setCharacterEncoding("utf-8");
         resp.setStatus(HttpServletResponse.SC_OK);
