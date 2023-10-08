@@ -21,15 +21,12 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
-import org.openhab.binding.megad.handler.MegaDBridge1WireBusHandler;
-import org.openhab.binding.megad.handler.MegaDBridgeIToCHandler;
-import org.openhab.binding.megad.handler.MegaDBridgeIncomingHandler;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -55,12 +52,9 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Nullable
     private Runnable scanner;
     private @Nullable ScheduledFuture<?> backgroundFuture;
-    public static @Nullable List<MegaDBridge1WireBusHandler> oneWireBusList = new ArrayList<>();
-    public static @Nullable List<MegaDBridgeIncomingHandler> incomingBusList = new ArrayList<>();
-    public static @Nullable List<MegaDBridgeIToCHandler> i2cBusList = new ArrayList<>();
 
     public MegaDDiscoveryService() {
-        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE), 30, true);
+        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE), 30, false);
     }
 
     @Override
@@ -70,11 +64,12 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected synchronized void stopScan() {
+        final DatagramSocket socket = this.socket;
         if (socket != null) {
-            socket.close();
-            socket = null;
+            if (!socket.isClosed()) {
+                socket.close();
+            }
         }
-
         ScheduledFuture<?> scan = backgroundFuture;
         if (scan != null) {
             scan.cancel(true);
@@ -87,20 +82,44 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     protected void startScan() {
         try {
             socket = new DatagramSocket(42000);
-            socket.setSoTimeout(50000);
+            final DatagramSocket socket = this.socket;
+            if (socket != null) {
+                socket.setSoTimeout(50000);
+            }
         } catch (SocketException e) {
             logger.debug("{}", e.getMessage());
         }
+        Thread server = getThread();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // e.printStackTrace();
+        }
+        scanner = createScanner();
+        final Runnable scanner = this.scanner;
+        if (scanner != null) {
+            scanner.run();
+            logger.debug("StartScan");
+        }
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ignored) {
+        }
+        server.interrupt();
+    }
+
+    private Thread getThread() {
         Thread server = new Thread(new Runnable() {
             final byte[] buffer = new byte[5];
+            final DatagramSocket loSock = Objects.requireNonNull(socket);
 
             public void run() {
                 while (true) {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
                     try {
-                        if (socket != null) {
-                            socket.receive(packet);
-                        }
+                        loSock.receive(packet);
                     } catch (IOException e) {
                         logger.error("Scan socket closed: {}", e.getLocalizedMessage());
                         break;
@@ -118,23 +137,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         });
 
         server.start();
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            // e.printStackTrace();
-        }
-        scanner = createScanner();
-        scanner.run();
-
-        oneWireBusScan();
-        iToCBusScan();
-        logger.debug("StartScan");
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ignored) {
-        }
-        server.interrupt();
+        return server;
     }
 
     @Override
@@ -156,7 +159,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 DatagramSocket socket = new DatagramSocket();
                 byte[] buf = { (byte) 170, 0, 12, (byte) 218, (byte) 202 };
                 for (InetAddress broadcastAddress : getBroadcastAddresses()) {
-                    logger.trace("Broadcast address is {}", broadcastAddress.toString());
+                    logger.debug("Broadcast address is {}", broadcastAddress.toString());
                     DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
                     socket.send(packet);
                 }
@@ -164,8 +167,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             } catch (IOException e) {
                 logger.warn("{}", e.getMessage());
             }
-            oneWireBusScan();
-            iToCBusScan();
             removeOlderResults(timestampOfLastScan);
         };
     }
@@ -173,15 +174,10 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private void receivePacketAndDiscover(byte[] result) {
         String ips = String.format("%d.%d.%d.%d", result[1] & 0xFF, result[2] & 0xFF, result[3] & 0xFF,
                 result[4] & 0xFF);
-        for (MegaDBridgeIncomingHandler incoming : incomingBusList) {
-            ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE,
-                    incoming.getThing().getUID(), ips.replace('.', '_'));
-            DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("hostname", ips)
-                    .withRepresentationProperty("hostname")
-                    .withLabel("megad " + ips + " at " + incoming.getThing().getLabel())
-                    .withBridge(incoming.getThing().getUID()).build();
-            thingDiscovered(resultS);
-        }
+        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE, ips.replace('.', '_'));
+        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("hostname", ips)
+                .withRepresentationProperty("hostname").withLabel("megad " + ips).build();
+        thingDiscovered(resultS);
 
         logger.trace("Found MegaD at: {}", ips);
     }
@@ -198,68 +194,5 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         }
 
         return addresses;
-    }
-
-    private void oneWireBusScan() {
-        if (!oneWireBusList.isEmpty()) {
-            logger.debug("scanning onewire bus");
-            for (MegaDBridge1WireBusHandler onewireBus : oneWireBusList) {
-                logger.debug("scanning {} port and {} host", onewireBus.getThing().getConfiguration().get("port"),
-                        onewireBus.getHostPassword()[0]);
-                String request = "http://" + onewireBus.getHostPassword()[0] + "/" + onewireBus.getHostPassword()[1]
-                        + "/?pt=" + onewireBus.getThing().getConfiguration().get("port").toString() + "?cmd=list";
-                String updateRequest = MegaHttpHelpers.sendRequest(request);
-                String[] getAddress = updateRequest.split("[;]");
-                logger.debug("scanner request: {}", request);
-                for (String address : getAddress) {
-                    String[] getValues = address.split("[:]");
-                    logger.debug("{}", getValues[0]);
-                    try {
-                        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_1WIREADDRESS,
-                                onewireBus.getThing().getUID(), "1wbusSensor_" + getValues[0]);
-                        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
-                                .withProperty("address", getValues[0]).withRepresentationProperty("address")
-                                .withLabel(
-                                        "onwireSensor " + getValues[0] + " at bus " + onewireBus.getThing().getLabel())
-                                .withBridge(onewireBus.getThing().getUID()).build();
-                        thingDiscovered(resultS);
-                    } catch (Exception e) {
-                        logger.debug("Cannot create discover thing");
-                    }
-                }
-            }
-        }
-    }
-
-    private void iToCBusScan() {
-        if (!i2cBusList.isEmpty()) {
-            logger.debug("scanning i2c bus");
-            for (MegaDBridgeIToCHandler i2cBridge : i2cBusList) {
-                logger.debug("scanning {} port and {} host", i2cBridge.getThing().getConfiguration().get("port"),
-                        i2cBridge.getHostPassword()[0]);
-                String request = "http://" + i2cBridge.getHostPassword()[0] + "/" + i2cBridge.getHostPassword()[1]
-                        + "/?pt=" + i2cBridge.getThing().getConfiguration().get("port").toString() + "&cmd=scan";
-                String updateRequest = MegaHttpHelpers.sendRequest(request);
-                String[] sensorsList = updateRequest.split("<br>");
-                logger.debug("scanner request: {}", request);
-                for (int i = 1; i < sensorsList.length; i++) {
-                    try {
-                        String[] sensorUrl = sensorsList[i].split("href=");
-                        sensorUrl = sensorUrl[1].split("[>]");
-                        String[] sensorType = sensorUrl[0].split("[=]");
-                        logger.debug("sensor is {}", sensorType[3]);
-                        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_I2CBUSSENSOR,
-                                i2cBridge.getThing().getUID(), "I2CbusSensor_" + sensorType[3]);
-                        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
-                                .withProperty("sensortype", sensorType[3]).withRepresentationProperty("sensortype")
-                                .withLabel("I2CSensor " + sensorType[3] + " at bus " + i2cBridge.getThing().getLabel())
-                                .withBridge(i2cBridge.getThing().getUID()).build();
-                        thingDiscovered(resultS);
-                    } catch (Exception e) {
-                        logger.debug("SDA port is not defined");
-                    }
-                }
-            }
-        }
     }
 }

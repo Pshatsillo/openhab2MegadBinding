@@ -5,11 +5,6 @@
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
 	<bridge-type id="device">
-
-		<supported-bridge-type-refs>
-			<bridge-type-ref id="tcp"/>
-		</supported-bridge-type-refs>
-
 		<label>Bridge Megad hardware</label>
 		<description> Create bridge for device </description>
 
@@ -25,6 +20,5 @@
 				<default>sec</default>
 			</parameter>
 		</config-description>
-
 	</bridge-type>
 </thing:thing-descriptions>
