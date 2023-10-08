@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
@@ -123,6 +124,22 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                         updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
                     }
                     break;
+                case MegaDBindingConstants.CHANNEL_OUT:
+                    switch (strCommand) {
+                        case "OFF":
+                            result += "0";
+                            logger.debug("Value set to OFF");
+                            sendCommand(result);
+                            break;
+                        case "ON":
+                            result += "1";
+                            logger.debug("Value set to ON");
+                            sendCommand(result);
+                            break;
+                        default:
+                            logger.error("Value must be ON OR OFF. Value is: {}", command);
+                            break;
+                    }
                 default:
                     logger.warn("Channel {} for ExtenderPCA9685(handleCommand) not found", idChannel);
                     break;
@@ -194,6 +211,15 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
                         } catch (Exception ignored) {
                         }
                         break;
+                    case MegaDBindingConstants.CHANNEL_OUT:
+                        try {
+                            if ("0".equals(action)) {
+                                updateState(idChannel, OnOffType.OFF);
+                            } else if ("1".equals(action)) {
+                                updateState(idChannel, OnOffType.ON);
+                            }
+                        } catch (Exception ignored) {
+                        }
                     default:
                         logger.warn("Channel {} for ExtenderPCA9685(updateValues) not found", idChannel);
                         break;
@@ -237,40 +263,50 @@ public class MegaDExtenderPCA9685Handler extends BaseThingHandler {
         String portValue = bridge.getPortsvalues(extport);
         for (Channel channel : getThing().getChannels()) {
             String idChannel = channel.getUID().getId();
-            switch (idChannel) {
-                case MegaDBindingConstants.CHANNEL_DIMMER:
-                    if ("0".equals(portValue)) {
-                        logger.debug("dimmer value is 0, do not save dimmer value");
-                    } else {
-                        dimmervalue = Integer.parseInt(portValue);
-                    }
-                    int percent = 0;
-                    try {
-                        percent = Math.round(Integer.parseInt(portValue) * 100 / pwmMaxValue);
-                    } catch (Exception e) {
-                        logger.debug("Cannot convert to dimmer values string: '{}'", portValue);
-                    }
-                    updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
-                    break;
-                case MegaDBindingConstants.CHANNEL_PWM:
-                    int currentValue = 0;
-                    try {
+            if (isLinked(channel.getUID().getId())) {
+                switch (idChannel) {
+                    case MegaDBindingConstants.CHANNEL_DIMMER:
                         if ("0".equals(portValue)) {
-                            logger.debug("pwm value is 0, do not save pwm value");
+                            logger.debug("dimmer value is 0, do not save dimmer value");
                         } else {
-                            currentValue = Integer.parseInt(portValue);
+                            dimmervalue = Integer.parseInt(portValue);
                         }
-                        if (currentValue > pwmMaxValue) {
-                            currentValue = pwmMaxValue;
+                        int percent = 0;
+                        try {
+                            percent = Math.round(Integer.parseInt(portValue) * 100 / pwmMaxValue);
+                        } catch (Exception e) {
+                            logger.debug("Cannot convert to dimmer values string: '{}'", portValue);
                         }
-                        updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
-                    } catch (Exception e) {
-                        logger.debug("Cannot update PWM value");
-                    }
-                    break;
-                default:
-                    logger.warn("Channel {} for ExtenderPCA9685(updateData) not found", idChannel);
-                    break;
+                        updateState(idChannel, PercentType.valueOf(Integer.toString(percent)));
+                        break;
+                    case MegaDBindingConstants.CHANNEL_PWM:
+                        int currentValue = 0;
+                        try {
+                            if ("0".equals(portValue)) {
+                                logger.debug("pwm value is 0, do not save pwm value");
+                            } else {
+                                currentValue = Integer.parseInt(portValue);
+                            }
+                            if (currentValue > pwmMaxValue) {
+                                currentValue = pwmMaxValue;
+                            }
+                            updateState(idChannel, DecimalType.valueOf(Integer.toString(currentValue)));
+                        } catch (Exception e) {
+                            logger.debug("Cannot update PWM value");
+                        }
+                        break;
+                    case MegaDBindingConstants.CHANNEL_OUT:
+                        try {
+                            updateState(idChannel, OnOffType.valueOf(portValue));
+
+                        } catch (Exception e) {
+                            logger.error("Incoming value does not OnOFF type. Value is {}", portValue);
+                        }
+                        break;
+                    default:
+                        logger.warn("Channel {} for ExtenderPCA9685(updateData) not found", idChannel);
+                        break;
+                }
             }
         }
     }

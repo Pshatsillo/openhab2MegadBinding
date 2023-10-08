@@ -14,6 +14,7 @@
 		<channels>
 			<channel id="dimmer" typeId="dimmer"/>
 			<channel id="pwm" typeId="pwm"/>
+			<channel id="out" typeId="out"/>
 		</channels>
 
 		<config-description>
