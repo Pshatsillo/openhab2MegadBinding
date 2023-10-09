@@ -10,4 +10,11 @@
 			<description>For example "i2c_par=2" (See Megad user manual)</description>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:in">
+		<parameter name="port" type="integer" required="true">
+			<default>0</default>
+			<label>Poty</label>
+			<description></description>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>

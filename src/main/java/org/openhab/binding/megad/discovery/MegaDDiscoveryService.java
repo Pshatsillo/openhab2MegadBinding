@@ -54,7 +54,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ScheduledFuture<?> backgroundFuture;
 
     public MegaDDiscoveryService() {
-        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE), 30, false);
+        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private void receivePacketAndDiscover(byte[] result) {
         String ips = String.format("%d.%d.%d.%d", result[1] & 0xFF, result[2] & 0xFF, result[3] & 0xFF,
                 result[4] & 0xFF);
-        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_DEVICE_BRIDGE, ips.replace('.', '_'));
+        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_DEVICE, ips.replace('.', '_'));
         DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("hostname", ips)
                 .withRepresentationProperty("hostname").withLabel("megad " + ips).build();
         thingDiscovered(resultS);

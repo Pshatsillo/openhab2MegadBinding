@@ -4,9 +4,9 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<bridge-type id="device">
-		<label>Bridge Megad hardware</label>
-		<description> Create bridge for device </description>
+	<bridge-type id="device" extensible="i2cpar,in">
+		<label>Megad hardware</label>
+		<description> Create device </description>
 
 		<config-description>
 			<parameter name="hostname" type="text" required="true">
