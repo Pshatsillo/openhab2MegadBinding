@@ -17,7 +17,7 @@
 		</channels>
 
 		<config-description>
-			<parameter name="extport" type="text">
+			<parameter name="extport" type="integer">
 				<label>Port number of extender</label>
 			</parameter>
 		</config-description>
