@@ -62,7 +62,7 @@ public class MegaDService implements EventSubscriber {
     private final HttpService httpService;
     protected static @Nullable EventPublisher eventPublisher;
     public static List<InetAddress> interfacesAddresses = new ArrayList<>();
-    static int port = 0;
+    public static int port = 0;
 
     @Activate
     public MegaDService(final @Reference HttpClientFactory httpClientFactory,
