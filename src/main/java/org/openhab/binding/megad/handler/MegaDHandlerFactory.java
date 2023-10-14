@@ -45,6 +45,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_RS485);
     }
 
     @Override
@@ -57,6 +58,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_DEVICE)) {
             return new MegaDDeviceHandler((Bridge) thing);
+        } else if (thingTypeUID.equals(THING_TYPE_RS485)) {
+            return new MegaDRs485Handler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

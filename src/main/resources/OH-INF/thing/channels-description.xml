@@ -14,8 +14,421 @@
 	<channel-type id="in">
 		<item-type>Switch</item-type>
 		<label>Input</label>
-		<description></description>
-		<state readOnly="true"/>
-		<config-description-ref uri="channel-type:megad:in"/>
+		<description>Port set as input signal for switch using</description>
 	</channel-type>
+	<channel-type id="incount">
+		<item-type>Number</item-type>
+		<label>Input counter</label>
+		<description>Incoming press counter</description>
+	</channel-type>
+	<channel-type id="out">
+		<item-type>Switch</item-type>
+		<label>Output</label>
+		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="ds2413">
+		<item-type>Switch</item-type>
+		<label>DS2413 Output</label>
+		<description>Two-port ds2413 as output for switch using</description>
+	</channel-type>
+	<channel-type id="dimmer">
+		<item-type>Dimmer</item-type>
+		<label>Dimmer</label>
+		<description>Dimmer used as output</description>
+		<!-- <config-description> -->
+		<!-- <parameter name="min_pwm" type="integer"> -->
+		<!-- <label>Minimal value of PWM</label> -->
+		<!-- <default>0</default> -->
+		<!-- </parameter> -->
+		<!-- </config-description> -->
+	</channel-type>
+	<channel-type id="pwm">
+		<item-type>Number</item-type>
+		<label>PWM</label>
+		<description>Pure PWM without any adaptations. You can send values to megad directly from rules</description>
+	</channel-type>
+	<channel-type id="m2signal">
+		<item-type>Switch</item-type>
+		<label>Long press switch</label>
+		<description>React if long press from mega detected</description>
+	</channel-type>
+	<channel-type id="click">
+		<item-type>Number</item-type>
+		<label>Click</label>
+		<description>Counter, reacts if click mode enabled in megad</description>
+	</channel-type>
+	<channel-type id="temp">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature</label>
+		<description>Temperature from sensor</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="1wtemp">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature</label>
+		<description>Temperature from 1-wire sensor</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="humidity">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Humidity</label>
+		<description>Humidity from sensor</description>
+		<state readOnly="true" pattern="%.1f %%"/>
+	</channel-type>
+	<channel-type id="pressure">
+		<item-type>Number:Pressure</item-type>
+		<label>Pressure</label>
+		<description>Pressure</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="gas">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Gas</label>
+		<description>Gas</description>
+		<state readOnly="true" pattern="%.1f"/>
+	</channel-type>
+	<channel-type id="other">
+		<item-type>Number</item-type>
+		<label>Other values</label>
+		<description>Other values</description>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="i2c">
+		<item-type>String</item-type>
+		<label>I2C</label>
+		<description>I2C</description>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="onewire">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature Onewire</label>
+		<description>Temperature from Onewire sensor</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="adc">
+		<item-type>Number</item-type>
+		<label>ADC value</label>
+		<description>ADC value</description>
+		<state readOnly="true" pattern="%d"/>
+	</channel-type>
+	<channel-type id="at">
+		<item-type>Number:Temperature</item-type>
+		<label>Alarm temp</label>
+		<description>Alarm if temperature too high</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="st">
+		<item-type>Number</item-type>
+		<label>Starting Mega</label>
+		<description>Flag, that Mega started</description>
+		<state readOnly="true" pattern="%d"/>
+	</channel-type>
+	<channel-type id="ib">
+		<item-type>Text</item-type>
+		<label>Ibutton</label>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+	<channel-type id="wiegand">
+		<item-type>Text</item-type>
+		<label>Wiegand</label>
+		<description>Wiegand-26 protocol input </description>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+	<channel-type id="tget">
+		<item-type>Number:Temperature</item-type>
+		<label>Megad temp</label>
+		<description>Temperature of MegaDevice</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="contact">
+		<item-type>Contact</item-type>
+		<label>Closed OR Open</label>
+		<description>Indicates input as contact/ Closed when ON Open when OFF</description>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+	<channel-type id="i2cdisplay">
+		<item-type>Text</item-type>
+		<label>i2cdisplay</label>
+		<description>i2cdisplay </description>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+	<channel-type id="smsphone">
+		<item-type>String</item-type>
+		<label>sms_phone</label>
+		<description>sms_phone</description>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="smstext">
+		<item-type>String</item-type>
+		<label>sms_text</label>
+		<description>sms_text</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+
+	<channel-type id="extin">
+		<item-type>Switch</item-type>
+		<label>Input</label>
+		<description>Port set as input signal for switch using extender</description>
+	</channel-type>
+	<channel-type id="extout">
+		<item-type>Switch</item-type>
+		<label>Output</label>
+		<description>Port set as output for switch using extender</description>
+	</channel-type>
+	<channel-type id="a">
+		<item-type>Switch</item-type>
+		<label>Output A</label>
+		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="b">
+		<item-type>Switch</item-type>
+		<label>Output B</label>
+		<description>Port set as output for switch using</description>
+	</channel-type>
+	<channel-type id="par0">
+		<item-type>Number</item-type>
+		<label>Parameter 0</label>
+		<description>Value without par= option</description>
+		<state readOnly="true" pattern="%.1f"/>
+	</channel-type>
+	<channel-type id="par1">
+		<item-type>Number</item-type>
+		<label>Parameter 1</label>
+		<description>Value with par=1 option</description>
+		<state readOnly="true" pattern="%.1f"/>
+	</channel-type>
+	<channel-type id="par2">
+		<item-type>Number</item-type>
+		<label>Parameter 2</label>
+		<description>Value with par=2 option</description>
+		<state readOnly="true" pattern="%.1f"/>
+	</channel-type>
+	<channel-type id="i2craw">
+		<item-type>String</item-type>
+		<label>RAW data from i2c</label>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+
+
+	<channel-type id="voltage">
+		<item-type>Number:ElectricPotential</item-type>
+		<label>Voltage</label>
+		<description>Voltage</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="current">
+		<item-type>Number:ElectricCurrent</item-type>
+		<label>Current</label>
+		<description>Current</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="activepower">
+		<item-type>Number:Power</item-type>
+		<label>Active power</label>
+		<description>Active power</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="apparentpower">
+		<item-type>Number</item-type>
+		<label>Apparent power</label>
+		<description>apparent power</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="reactivepower">
+		<item-type>Number</item-type>
+		<label>Reactive power</label>
+		<description>reactive power</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="powerfactor">
+		<item-type>Number</item-type>
+		<label>Power factor</label>
+		<description>power factor</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="phaseangle">
+		<item-type>Number</item-type>
+		<label>Phase angle</label>
+		<description>frequency</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="frequency">
+		<item-type>Number:Frequency</item-type>
+		<label>Frequency</label>
+		<description>frequency</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="importactnrg">
+		<item-type>Number:Energy</item-type>
+		<label>Import active energy</label>
+		<description>importactive energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="exportactnrg">
+		<item-type>Number</item-type>
+		<label>Export active energy</label>
+		<description>export active energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="importreactnrg">
+		<item-type>Number</item-type>
+		<label>Import reactive energy</label>
+		<description>import reactive energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="exportreactnrg">
+		<item-type>Number</item-type>
+		<label>Export reactive energy</label>
+		<description>export active energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="reactnrg">
+		<item-type>Number</item-type>
+		<label>Reactive energy</label>
+		<description>Reactive energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="actnrg">
+		<item-type>Number</item-type>
+		<label>Active energy</label>
+		<description>Active energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="totalsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Total system power demand</label>
+		<description>total system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="maxtotalsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Maximum total system power demand</label>
+		<description>maximum total system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="importsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Import system power demand</label>
+		<description>import system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="maximportsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Maximum import system power demand</label>
+		<description>maximum import system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="exportsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Export system power demand</label>
+		<description>export system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="maxexportsyspwrdmd">
+		<item-type>Number</item-type>
+		<label>Maximum export system power demand</label>
+		<description>maximum export system power demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="currentdmd">
+		<item-type>Number</item-type>
+		<label>Current demand</label>
+		<description>current demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="maxcurrentdmd">
+		<item-type>Number</item-type>
+		<label>Maximum current demand</label>
+		<description>maximum current demand</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="totalactnrg">
+		<item-type>Number</item-type>
+		<label>Total active energy</label>
+		<description>total active energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="totalreactnrg">
+		<item-type>Number</item-type>
+		<label>Total reactive energy</label>
+		<description>total reactive energy</description>
+		<state readOnly="true" pattern="%.2f"/>
+	</channel-type>
+	<channel-type id="opermode">
+		<item-type>String</item-type>
+		<label>Operational mode</label>
+		<description>Operational mode</description>
+		<state>
+			<options>
+				<option value="OFF">OFF</option>
+				<option value="AUTO">AUTO</option>
+				<option value="COOL">COOL</option>
+				<option value="DRY">DRY</option>
+				<option value="HEAT">HEAT</option>
+				<option value="FAN">FAN</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="fanmode">
+		<item-type>String</item-type>
+		<label>Fan mode</label>
+		<description>Fan mode</description>
+		<state>
+			<options>
+				<option value="OFF">OFF</option>
+				<option value="AUTO">AUTO</option>
+				<option value="HIGH">HIGH</option>
+				<option value="MEDIUM">MEDIUM</option>
+				<option value="LOW">LOW</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="mideatemperature">
+		<item-type>Number</item-type>
+		<label>temperature</label>
+		<description>temperature</description>
+		<state pattern="%d"/>
+	</channel-type>
+
+
+	<channel-type id="line1">
+		<item-type>String</item-type>
+		<label>Line 1</label>
+		<state pattern="%s"/>
+	</channel-type>
+	<channel-type id="line2">
+		<item-type>String</item-type>
+		<label>Line 2</label>
+		<state pattern="%s"/>
+	</channel-type>
+
+
+	<channel-type id="direction">
+		<item-type>Rollershutter</item-type>
+		<label>Direction</label>
+		<state pattern="%s"/>
+	</channel-type>
+	<channel-type id="button">
+		<item-type>Switch</item-type>
+		<label>Press encoder</label>
+	</channel-type>
+	<channel-type id="encoderdigits">
+		<item-type>Number</item-type>
+		<label>Digit value</label>
+		<state pattern="%d"/>
+	</channel-type>
+
+	<channel-type id="groupswitch">
+		<item-type>Switch</item-type>
+		<label>Group switch</label>
+	</channel-type>
+
+	<channel-type id="smooth_time" advanced="true">
+		<item-type>Number</item-type>
+		<label>Smooth</label>
+		<description>smooth</description>
+		<state pattern="%d"/>
+	</channel-type>
+
 </thing:thing-descriptions>

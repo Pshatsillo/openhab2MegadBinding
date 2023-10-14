@@ -23,10 +23,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.handler.MegaDDeviceHandler;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.megad")
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
+    public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
@@ -54,32 +57,30 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ScheduledFuture<?> backgroundFuture;
 
     public MegaDDiscoveryService() {
-        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
+        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, true);
     }
 
     @Override
     public synchronized void abortScan() {
+        logger.info("abortScan");
         super.abortScan();
     }
 
     @Override
     protected synchronized void stopScan() {
+        logger.info("stopScan");
         final DatagramSocket socket = this.socket;
         if (socket != null) {
             if (!socket.isClosed()) {
                 socket.close();
             }
         }
-        ScheduledFuture<?> scan = backgroundFuture;
-        if (scan != null) {
-            scan.cancel(true);
-            backgroundFuture = null;
-        }
         super.stopScan();
     }
 
     @Override
     protected void startScan() {
+        logger.info("StartScan");
         try {
             socket = new DatagramSocket(42000);
             final DatagramSocket socket = this.socket;
@@ -100,7 +101,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         final Runnable scanner = this.scanner;
         if (scanner != null) {
             scanner.run();
-            logger.debug("StartScan");
+            logger.error("StartScan");
         }
         try {
             Thread.sleep(10000);
@@ -142,13 +143,18 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startBackgroundDiscovery() {
-        logger.debug("startBackgroundDiscovery");
+        logger.error("startBackgroundDiscovery");
+        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
-        logger.debug("stopBackgroundDiscovery");
-
+        logger.error("stopBackgroundDiscovery");
+        ScheduledFuture<?> scan = backgroundFuture;
+        if (scan != null) {
+            scan.cancel(true);
+            backgroundFuture = null;
+        }
         super.stopBackgroundDiscovery();
     }
 
@@ -179,7 +185,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 .withRepresentationProperty("hostname").withLabel("megad " + ips).build();
         thingDiscovered(resultS);
 
-        logger.trace("Found MegaD at: {}", ips);
+        logger.error("Found MegaD at: {}", ips);
     }
 
     private List<InetAddress> getBroadcastAddresses() {
@@ -194,5 +200,17 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         }
 
         return addresses;
+    }
+
+    private synchronized void scan() {
+        logger.info("Scanning...");
+
+        // ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
+        // megaDDeviceHandlerList.get(0).getThing().getUID(), ips.replace('.', '_'));
+        // DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("hostname", ips)
+        // .withRepresentationProperty("hostname")
+        // .withLabel("megad " + ips + " at " + incoming.getThing().getLabel())
+        // .withBridge(incoming.getThing().getUID()).build();
+        // thingDiscovered(resultS);
     }
 }

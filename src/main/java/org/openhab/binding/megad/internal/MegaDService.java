@@ -107,10 +107,7 @@ public class MegaDService implements EventSubscriber {
                             iface.getName(), e.getMessage());
                 }
             }
-
             port = HttpServiceUtil.getHttpServicePort(context.getBundleContext());
-            logger.warn("ip address is {} port {}", interfacesAddresses.stream().findFirst().get().getHostAddress(),
-                    port);
         }
     }
 
