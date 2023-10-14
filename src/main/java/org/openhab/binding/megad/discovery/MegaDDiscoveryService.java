@@ -52,8 +52,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
-    @Nullable
-    private Runnable scanner;
     private @Nullable ScheduledFuture<?> backgroundFuture;
 
     public MegaDDiscoveryService() {
@@ -97,8 +95,8 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         } catch (InterruptedException e) {
             // e.printStackTrace();
         }
-        scanner = createScanner();
-        final Runnable scanner = this.scanner;
+        @Nullable Runnable scanner1 = createScanner();
+        final Runnable scanner = scanner1;
         if (scanner != null) {
             scanner.run();
             logger.error("StartScan");

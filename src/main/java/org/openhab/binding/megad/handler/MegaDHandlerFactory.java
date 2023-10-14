@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
-    private Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {

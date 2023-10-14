@@ -91,7 +91,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         }
 
         logger.debug("Thing Handler for {} started", getThing().getUID().getId());
-        String address = "";
+        String address;
         if (getThing().getConfiguration().get("address").toString().length() == 1) {
             address = "0" + getThing().getConfiguration().get("address").toString();
         } else {
@@ -369,27 +369,15 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         if (bridgeHandler != null) {
                             String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
                             if (answer.length == 32) {
-                                String mode = "";
-                                switch (answer[8]) {
-                                    case "00":
-                                        mode = "OFF";
-                                        break;
-                                    case "98":
-                                        mode = "AUTO";
-                                        break;
-                                    case "88":
-                                        mode = "COOL";
-                                        break;
-                                    case "82":
-                                        mode = "DRY";
-                                        break;
-                                    case "84":
-                                        mode = "HEAT";
-                                        break;
-                                    case "81":
-                                        mode = "FAN";
-                                        break;
-                                }
+                                String mode = switch (answer[8]) {
+                                    case "00" -> "OFF";
+                                    case "98" -> "AUTO";
+                                    case "88" -> "COOL";
+                                    case "82" -> "DRY";
+                                    case "84" -> "HEAT";
+                                    case "81" -> "FAN";
+                                    default -> "";
+                                };
                                 logger.debug("Midea mode is : {}", mode);
                                 updateState(channel.getUID().getId(), StringType.valueOf(mode));
                             } else {
@@ -404,24 +392,14 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         if (bridgeHandler != null) {
                             String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
                             if (answer.length == 32) {
-                                String mode = "";
-                                switch (answer[9]) {
-                                    case "00":
-                                        mode = "OFF";
-                                        break;
-                                    case "84":
-                                        mode = "AUTO";
-                                        break;
-                                    case "01":
-                                        mode = "HIGH";
-                                        break;
-                                    case "02":
-                                        mode = "MEDIUM";
-                                        break;
-                                    case "04":
-                                        mode = "LOW";
-                                        break;
-                                }
+                                String mode = switch (answer[9]) {
+                                    case "00" -> "OFF";
+                                    case "84" -> "AUTO";
+                                    case "01" -> "HIGH";
+                                    case "02" -> "MEDIUM";
+                                    case "04" -> "LOW";
+                                    default -> "";
+                                };
                                 logger.debug("Midea fan mode is : {}", mode);
                                 updateState(channel.getUID().getId(), StringType.valueOf(mode));
                             } else {

@@ -66,21 +66,15 @@ public class MegaDHardware {
     public String getType() {
         return type;
     }
-
     public String getFirmware() {
         return firmware;
     }
-
-    public void config(String megaConfig) {
-    }
-
-    public String getMdid() {
-        return mdid;
-    }
-
-    public boolean isSrvloop() {
-        return srvloop;
-    }
+//    public String getMdid() {
+//        return mdid;
+//    }
+//    public boolean isSrvloop() {
+//        return srvloop;
+//    }
 
     private MegaHTTPResponse request(String urlString) {
         MegaHTTPResponse megaHTTPResponse = new MegaHTTPResponse();

@@ -46,12 +46,10 @@ import org.openhab.core.types.Command;
  */
 @NonNullByDefault
 public class MegaDDeviceHandler extends BaseBridgeHandler {
-    // private final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
-    private @Nullable MegaDConfiguration config;
     private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
-    protected long lastRefresh = 0;
+    //protected long lastRefresh = 0;
 
     public MegaDDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -59,8 +57,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     @Override
     public void initialize() {
-        config = getConfigAs(MegaDConfiguration.class);
-        final MegaDConfiguration config = this.config;
+        // private final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
+        @Nullable MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
         if (config != null) {
             MegaDHardware mega = new MegaDHardware(config.hostname, config.password);
             MegaHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
@@ -76,9 +74,11 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
                 for (InetAddress address : MegaDService.interfacesAddresses) {
                     if (address.getHostAddress().startsWith(ip)) {
-                        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress() + "%3A"
-                                + MegaDService.port + "&sct=megad&srvt=0");
+                        if(MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
+                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
+                                    + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress() + "%3A"
+                                    + MegaDService.port + "&sct=megad&srvt=0");
+                        }
                     }
                 }
                 updateStatus(ThingStatus.ONLINE);

@@ -57,34 +57,31 @@ import org.slf4j.LoggerFactory;
         EventSubscriber.class }, configurationPid = "org.openhab.megad", property = Constants.SERVICE_PID
                 + "=org.openhab.megad")
 public class MegaDService implements EventSubscriber {
-    private final Logger logger = LoggerFactory.getLogger(MegaDService.class);
-    private final HttpClient httpClient;
-    private final HttpService httpService;
     protected static @Nullable EventPublisher eventPublisher;
     public static List<InetAddress> interfacesAddresses = new ArrayList<>();
     public static int port = 0;
 
     @Activate
     public MegaDService(final @Reference HttpClientFactory httpClientFactory,
-            final @Reference ItemRegistry itemRegistry, final @Reference EventPublisher eventPublisher,
-            final @Reference HttpService httpService, final @Reference ThingRegistry things,
-            final @Reference ItemChannelLinkRegistry link, ComponentContext context) {
-        this.httpClient = httpClientFactory.createHttpClient("megad");
-        this.httpService = httpService;
-        this.httpClient.setStopTimeout(0);
-        this.httpClient.setMaxConnectionsPerDestination(200);
-        this.httpClient.setConnectTimeout(30000);
-        this.httpClient.setFollowRedirects(false);
+            /*final @Reference ItemRegistry itemRegistry, */final @Reference EventPublisher eventPublisher,
+            final @Reference HttpService httpService, /*final @Reference ThingRegistry things,*/
+            /*final @Reference ItemChannelLinkRegistry link,*/ ComponentContext context) {
+        HttpClient httpClient = httpClientFactory.createHttpClient("megad");
+        httpClient.setStopTimeout(0);
+        httpClient.setMaxConnectionsPerDestination(200);
+        httpClient.setConnectTimeout(30000);
+        httpClient.setFollowRedirects(false);
 
         MegaDService.eventPublisher = eventPublisher;
         MegaDHTTPCallback megaDHTTPCallback = new MegaDHTTPCallback();
         try {
-            this.httpService.registerServlet("/megad", megaDHTTPCallback, null,
-                    this.httpService.createDefaultHttpContext());
+            httpService.registerServlet("/megad", megaDHTTPCallback, null,
+                    httpService.createDefaultHttpContext());
         } catch (ServletException | NamespaceException ignored) {
         }
 
         Enumeration<NetworkInterface> networkInterfaces = null;
+        Logger logger = LoggerFactory.getLogger(MegaDService.class);
         try {
             networkInterfaces = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
