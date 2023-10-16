@@ -31,11 +31,8 @@ import org.openhab.core.events.Event;
 import org.openhab.core.events.EventPublisher;
 import org.openhab.core.events.EventSubscriber;
 import org.openhab.core.io.net.http.HttpClientFactory;
-import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.items.events.ItemStateEvent;
 import org.openhab.core.net.HttpServiceUtil;
-import org.openhab.core.thing.ThingRegistry;
-import org.openhab.core.thing.link.ItemChannelLinkRegistry;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -63,9 +60,9 @@ public class MegaDService implements EventSubscriber {
 
     @Activate
     public MegaDService(final @Reference HttpClientFactory httpClientFactory,
-            /*final @Reference ItemRegistry itemRegistry, */final @Reference EventPublisher eventPublisher,
-            final @Reference HttpService httpService, /*final @Reference ThingRegistry things,*/
-            /*final @Reference ItemChannelLinkRegistry link,*/ ComponentContext context) {
+            /* final @Reference ItemRegistry itemRegistry, */final @Reference EventPublisher eventPublisher,
+            final @Reference HttpService httpService, /* final @Reference ThingRegistry things, */
+            /* final @Reference ItemChannelLinkRegistry link, */ ComponentContext context) {
         HttpClient httpClient = httpClientFactory.createHttpClient("megad");
         httpClient.setStopTimeout(0);
         httpClient.setMaxConnectionsPerDestination(200);
@@ -75,8 +72,7 @@ public class MegaDService implements EventSubscriber {
         MegaDService.eventPublisher = eventPublisher;
         MegaDHTTPCallback megaDHTTPCallback = new MegaDHTTPCallback();
         try {
-            httpService.registerServlet("/megad", megaDHTTPCallback, null,
-                    httpService.createDefaultHttpContext());
+            httpService.registerServlet("/megad", megaDHTTPCallback, null, httpService.createDefaultHttpContext());
         } catch (ServletException | NamespaceException ignored) {
         }
 

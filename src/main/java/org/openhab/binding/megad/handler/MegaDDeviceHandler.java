@@ -37,6 +37,8 @@ import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.types.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDDeviceHandler} is responsible for creating things and thing
@@ -49,7 +51,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
-    //protected long lastRefresh = 0;
+    // protected long lastRefresh = 0;
+    public MegaDHardware megaDHardware = new MegaDHardware();
 
     public MegaDDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -57,34 +60,38 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     @Override
     public void initialize() {
-        // private final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
-        @Nullable MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
-        if (config != null) {
-            MegaDHardware mega = new MegaDHardware(config.hostname, config.password);
-            MegaHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
-            if (response.getResponseCode() >= 400) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
+        final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
+        @Nullable
+        MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
+        megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
+        MegaHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
+        if (response.getResponseCode() >= 400) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
+        } else {
+            if (response.getResponseResult().contains("[44,")) {
+                logger.debug("Mega has 45 ports");
+                megaDHardware.setPortsCount(45);
             } else {
-                mega.parse(response.getResponseResult());
-                Map<String, String> properties = new HashMap<>();
-                properties.put("Type:", mega.getType());
-                properties.put("Firmware:", mega.getFirmware());
-                properties.put("Actual Firmware:", mega.getActualFirmware());
-                updateProperties(properties);
-                String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
-                for (InetAddress address : MegaDService.interfacesAddresses) {
-                    if (address.getHostAddress().startsWith(ip)) {
-                        if(MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
-                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                    + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress() + "%3A"
-                                    + MegaDService.port + "&sct=megad&srvt=0");
-                        }
+                logger.debug("Mega has 37 ports");
+                megaDHardware.setPortsCount(37);
+            }
+            megaDHardware.parse(response.getResponseResult());
+            Map<String, String> properties = new HashMap<>();
+            properties.put("Type:", megaDHardware.getType());
+            properties.put("Firmware:", megaDHardware.getFirmware());
+            properties.put("Actual Firmware:", megaDHardware.getActualFirmware());
+            updateProperties(properties);
+            String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
+            for (InetAddress address : MegaDService.interfacesAddresses) {
+                if (address.getHostAddress().startsWith(ip)) {
+                    if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
+                        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
+                                + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress() + "%3A"
+                                + MegaDService.port + "&sct=megad&srvt=0");
                     }
                 }
-                updateStatus(ThingStatus.ONLINE);
             }
-        } else {
-            updateStatus(ThingStatus.UNINITIALIZED, ThingStatusDetail.CONFIGURATION_ERROR, "Config is null");
+            updateStatus(ThingStatus.ONLINE);
         }
         Objects.requireNonNull(megaDDeviceHandlerList).add(this);
         final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;

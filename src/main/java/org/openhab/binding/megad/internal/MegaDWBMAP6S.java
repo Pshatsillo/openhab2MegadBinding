@@ -64,9 +64,10 @@ public class MegaDWBMAP6S implements ModbusPowermeterInterface {
                     parse.append(answer[i + 2]);
                 }
             } else {
-                parse = new StringBuilder(answer[9] + answer[10] + answer[7] + answer[8] + answer[5] + answer[6] + answer[3] + answer[4]);
+                parse = new StringBuilder(
+                        answer[9] + answer[10] + answer[7] + answer[8] + answer[5] + answer[6] + answer[3] + answer[4]);
             }
-            logger.debug("WB-MAP6S hex answer: {}", parse.toString());
+            logger.debug("WB-MAP6S hex answer: {}", parse);
 
             return parse.toString();
         } catch (Exception ignored) {

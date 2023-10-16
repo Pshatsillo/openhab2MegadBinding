@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.binding.megad.internal.MegaDModesEnum;
+import org.openhab.binding.megad.internal.MegaHttpHelpers;
+import org.openhab.core.config.core.Configuration;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -95,12 +99,10 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         } catch (InterruptedException e) {
             // e.printStackTrace();
         }
-        @Nullable Runnable scanner1 = createScanner();
-        final Runnable scanner = scanner1;
-        if (scanner != null) {
-            scanner.run();
-            logger.error("StartScan");
-        }
+        @Nullable
+        Runnable scanner1 = createScanner();
+        scanner1.run();
+        logger.error("StartScan");
         try {
             Thread.sleep(10000);
         } catch (InterruptedException ignored) {
@@ -202,7 +204,36 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private synchronized void scan() {
         logger.info("Scanning...");
+        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+        List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
+        if (megaDDeviceHandlerList != null) {
+            for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
+                for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
+                    Configuration config = mega.getThing().getConfiguration();
+                    String response = httpRequest
+                            .request("http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i)
+                            .getResponseResult();
+                    response = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
+                            response.indexOf("</select><br>"));
+                    String[] respSplit = response.split("<option");
+                    for (String mode : respSplit) {
+                        if (mode.contains("selected")) {
+                            if (!mode.contains("value=255")) {
+                                if (mode.contains("IN")) {
+                                    logger.info("port mode is {}", MegaDModesEnum.IN);
+                                } else if (mode.contains("OUT")) {
+                                    logger.info("port mode is {}", MegaDModesEnum.OUT);
+                                }
 
+                            }
+                        }
+                    }
+                    response = String.valueOf(Arrays.stream(response.split("<option")).filter("selected"::contains)
+                            .findFirst().orElse(null));
+                    logger.info("get port {} answer {}", i, response);
+                }
+            }
+        }
         // ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
         // megaDDeviceHandlerList.get(0).getThing().getUID(), ips.replace('.', '_'));
         // DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("hostname", ips)
