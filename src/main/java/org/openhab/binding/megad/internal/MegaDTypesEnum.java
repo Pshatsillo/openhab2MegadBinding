@@ -12,13 +12,15 @@
  */
 package org.openhab.binding.megad.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
- * The {@link MegaDModesEnum} is responsible for http request to megad
+ * The {@link MegaDTypesEnum} is responsible for http request to megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
-public enum MegaDModesEnum {
-
+@NonNullByDefault
+public enum MegaDTypesEnum {
     NC(255),
     IN(0),
     OUT(1),
@@ -26,9 +28,9 @@ public enum MegaDModesEnum {
     I2C(4),
     ADC(5);
 
-    private int id;
+    private final int id;
 
-    MegaDModesEnum(int id) {
+    MegaDTypesEnum(int id) {
         this.id = id;
     }
 

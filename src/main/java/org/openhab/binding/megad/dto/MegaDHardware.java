@@ -12,11 +12,13 @@
  */
 package org.openhab.binding.megad.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHTTPResponse;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -26,13 +28,14 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDHardware {
-    private final Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
+    // private final Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     private String firmware = "";
     private String actualFirmware = "";
     private String type = "";
     private String mdid = "";
     private boolean srvloop = false;
-    private int ports;
+    private int portsCount;
+    private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
 
     public MegaDHardware(String hostname, String password) {
         MegaHttpHelpers http = new MegaHttpHelpers();
@@ -70,22 +73,31 @@ public class MegaDHardware {
     public String getFirmware() {
         return firmware;
     }
+
     // public String getMdid() {
     // return mdid;
     // }
-    // public boolean isSrvloop() {
-    // return srvloop;
-    // }
+    public boolean isSrvloop() {
+        return srvloop;
+    }
 
     public String getActualFirmware() {
         return actualFirmware;
     }
 
     public void setPortsCount(int ports) {
-        this.ports = ports;
+        this.portsCount = ports;
     }
 
     public int getPortsCount() {
-        return this.ports;
+        return this.portsCount;
     }
+
+    public void setPortType(int portNum, MegaDTypesEnum megaDTypesEnum) {
+        portsType.put(portNum, megaDTypesEnum);
+    }
+
+    // public Map<Integer, MegaDTypesEnum> getPortsType() {
+    // return portsType;
+    // }
 }

@@ -49,7 +49,7 @@ public class MegaHttpHelpers {
                 }
                 in.close();
                 megaHTTPResponse.setResponseResult(response.toString().trim());
-                logger.debug("input string from {} -> {}", url, megaHTTPResponse.getResponseResult());
+                // logger.debug("input string from {} -> {}", url, megaHTTPResponse.getResponseResult());
             }
             con.disconnect();
         } catch (IOException e) {

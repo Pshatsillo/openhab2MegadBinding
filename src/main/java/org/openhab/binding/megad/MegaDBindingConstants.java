@@ -32,7 +32,7 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
     public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
     public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
-    public static final ThingTypeUID THING_TYPE_MEGAPORTS = new ThingTypeUID(BINDING_ID, "standart");
+    public static final ThingTypeUID THING_TYPE_PORT = new ThingTypeUID(BINDING_ID, "port");
     public static final ThingTypeUID THING_TYPE_MEGAPORTS_STD = new ThingTypeUID(BINDING_ID, "standard");
     public static final ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");

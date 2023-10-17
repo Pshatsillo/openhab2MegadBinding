@@ -12,16 +12,18 @@
  */
 package org.openhab.binding.megad.internal;
 
-import java.io.IOException;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.megad.handler.MegaDPortsHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +38,43 @@ public class MegaDHTTPCallback extends HttpServlet {
     private final Logger logger = LoggerFactory.getLogger(MegaDHTTPCallback.class);
     @Serial
     private static final long serialVersionUID = -2725161358635927815L;
+    public static List<MegaDPortsHandler> portListener = new ArrayList<>();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         logger.debug("request from {} is: {}", req.getRemoteAddr(), req.getQueryString());
+        String query = req.getQueryString();
         resp.setContentType(MediaType.TEXT_PLAIN);
         resp.setCharacterEncoding("utf-8");
         resp.setStatus(HttpServletResponse.SC_OK);
+
+        List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
+        for (MegaDPortsHandler port : portListener) {
+            if (Objects.requireNonNull(port.bridgeDeviceHandler).getThing().getConfiguration().get("hostname")
+                    .toString().equals(req.getRemoteAddr())) {
+                if (query != null) {
+                    if (query.contains("all=")) {
+                        logger.debug("loop incoming");
+                        String[] prm = query.split("[&]");
+
+                    } else {
+                        String[] prm = query.split("[&]");
+                        for (String parameters : prm) {
+                            if (parameters.contains("pt")) {
+                                String portNumber = parameters.split("=")[1];
+                                if (port.getThing().getConfiguration().get("port").toString().equals(portNumber)) {
+                                    logger.debug("port is {} at device {}",
+                                            port.getThing().getConfiguration().get("port"),
+                                            Objects.requireNonNull(port.bridgeDeviceHandler).getThing()
+                                                    .getConfiguration().get("hostname").toString());
+                                    port.updatePort(portNumber);
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
     }
 }

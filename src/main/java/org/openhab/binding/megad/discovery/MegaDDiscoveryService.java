@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
-import org.openhab.binding.megad.internal.MegaDModesEnum;
+import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
@@ -144,7 +145,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startBackgroundDiscovery() {
         logger.error("startBackgroundDiscovery");
-        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
+        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 60, TimeUnit.SECONDS);
     }
 
     @Override
@@ -219,18 +220,42 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     for (String mode : respSplit) {
                         if (mode.contains("selected")) {
                             if (!mode.contains("value=255")) {
-                                if (mode.contains("IN")) {
-                                    logger.info("port mode is {}", MegaDModesEnum.IN);
-                                } else if (mode.contains("OUT")) {
-                                    logger.info("port mode is {}", MegaDModesEnum.OUT);
+                                if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
+                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
+                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.IN);
+                                } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
+                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
+                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.OUT);
+                                } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
+                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
+                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.DSEN);
+                                } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
+                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
+                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.I2C);
+                                } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
+                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
+                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.ADC);
                                 }
-
+                                String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString()
+                                        .substring(mega.getThing().getConfiguration().get("hostname").toString()
+                                                .lastIndexOf(".") + 1)
+                                        + "P" + i;
+                                ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
+                                        mega.getThing().getUID(), id);
+                                DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
+                                        .withProperty("port", i)
+                                        .withLabel("MD" + mega.getThing().getConfiguration().get("hostname") + "P" + i)
+                                        .withBridge(mega.getThing().getUID()).build();
+                                thingDiscovered(resultS);
+                            } else {
+                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
+                                // logger.info("port {} mode is {}", i, MegaDTypesEnum.NC);
                             }
                         }
                     }
                     response = String.valueOf(Arrays.stream(response.split("<option")).filter("selected"::contains)
                             .findFirst().orElse(null));
-                    logger.info("get port {} answer {}", i, response);
+                    // logger.info("get port {} answer {}", i, response);
                 }
             }
         }
