@@ -236,3 +236,4 @@ org.openhab.binding.megad.iml
 .idea/vcs.xml
 /.idea/
 src/main/history/dependencies.xml
+resp.html
