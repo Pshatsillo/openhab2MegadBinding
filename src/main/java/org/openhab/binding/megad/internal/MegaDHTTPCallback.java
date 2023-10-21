@@ -47,17 +47,34 @@ public class MegaDHTTPCallback extends HttpServlet {
         resp.setContentType(MediaType.TEXT_PLAIN);
         resp.setCharacterEncoding("utf-8");
         resp.setStatus(HttpServletResponse.SC_OK);
-
-        List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
-        for (MegaDPortsHandler port : portListener) {
-            if (Objects.requireNonNull(port.bridgeDeviceHandler).getThing().getConfiguration().get("hostname")
-                    .toString().equals(req.getRemoteAddr())) {
-                if (query != null) {
-                    if (query.contains("all=")) {
-                        logger.debug("loop incoming");
-                        String[] prm = query.split("[&]");
-
-                    } else {
+        if (query != null) {
+            if (query.contains("all=")) {
+                logger.debug("loop incoming");
+                String[] prm = query.split("[&]");
+                List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
+                for (MegaDPortsHandler port : portListener) {
+                    if (Objects.requireNonNull(port.bridgeDeviceHandler).getThing().getConfiguration().get("hostname")
+                            .toString().equals(req.getRemoteAddr())) {
+                        for (String parameters : prm) {
+                            if (parameters.contains("all")) {
+                                String portsStatus = parameters.split("=")[1];
+                                String[] ports = portsStatus.split(";");
+                                // logger.debug("split is {}", (Object) ports);
+                                for (int i = 0; i < ports.length; i++) {
+                                    if (port.getThing().getConfiguration().get("port").toString()
+                                            .equals(String.valueOf(i))) {
+                                        port.updatePort(ports[i]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
+                for (MegaDPortsHandler port : portListener) {
+                    if (Objects.requireNonNull(port.bridgeDeviceHandler).getThing().getConfiguration().get("hostname")
+                            .toString().equals(req.getRemoteAddr())) {
                         String[] prm = query.split("[&]");
                         for (String parameters : prm) {
                             if (parameters.contains("pt")) {
@@ -67,7 +84,7 @@ public class MegaDHTTPCallback extends HttpServlet {
                                             port.getThing().getConfiguration().get("port"),
                                             Objects.requireNonNull(port.bridgeDeviceHandler).getThing()
                                                     .getConfiguration().get("hostname").toString());
-                                    port.updatePort(portNumber);
+                                    port.updatePort(query);
                                 }
                             }
                         }

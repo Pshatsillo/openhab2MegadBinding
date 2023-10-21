@@ -204,7 +204,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private synchronized void scan() {
-        logger.info("Scanning...");
+        // logger.info("Scanning...");
         MegaHttpHelpers httpRequest = new MegaHttpHelpers();
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         if (megaDDeviceHandlerList != null) {
@@ -258,6 +258,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     // logger.info("get port {} answer {}", i, response);
                 }
             }
+            MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
         }
         // ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
         // megaDDeviceHandlerList.get(0).getThing().getUID(), ips.replace('.', '_'));

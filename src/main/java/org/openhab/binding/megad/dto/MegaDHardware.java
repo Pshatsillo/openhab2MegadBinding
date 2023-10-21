@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHTTPResponse;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
@@ -97,7 +98,7 @@ public class MegaDHardware {
         portsType.put(portNum, megaDTypesEnum);
     }
 
-    // public Map<Integer, MegaDTypesEnum> getPortsType() {
-    // return portsType;
-    // }
+    public @Nullable MegaDTypesEnum getPortsType(int port) {
+        return portsType.get(port);
+    }
 }

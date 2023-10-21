@@ -29,4 +29,5 @@ public class MegaDConfiguration {
     public boolean discovery = true;
     public String hostname = "";
     public String password = "";
+    public int refresh = 0;
 }

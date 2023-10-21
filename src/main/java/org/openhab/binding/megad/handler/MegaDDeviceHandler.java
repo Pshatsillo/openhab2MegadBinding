@@ -53,6 +53,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     // protected long lastRefresh = 0;
     public MegaDHardware megaDHardware = new MegaDHardware();
+    public MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
 
     public MegaDDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -61,8 +62,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Override
     public void initialize() {
         final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
-        @Nullable
-        MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
+        config = getConfigAs(MegaDConfiguration.class);
         megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
         MegaHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
         if (response.getResponseCode() >= 400) {
