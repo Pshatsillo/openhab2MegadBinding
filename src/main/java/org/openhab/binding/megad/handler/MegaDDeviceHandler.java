@@ -26,16 +26,22 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.internal.MegaDService;
 import org.openhab.binding.megad.internal.MegaHTTPResponse;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.builder.ChannelBuilder;
+import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.type.ChannelKind;
+import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +91,24 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             for (InetAddress address : MegaDService.interfacesAddresses) {
                 if (address.getHostAddress().startsWith(ip)) {
                     if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
-                        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress() + "%3A"
-                                + MegaDService.port + "&sct=megad&srvt=0");
+                        if ((!megaDHardware.getIp()
+                                .equals(MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
+                                        + ":" + MegaDService.port))
+                                || (!megaDHardware.getSct().equals("megad"))) {
+                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
+                                    + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
+                                    + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
+                        }
                     }
                 }
             }
+            ChannelUID startUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_ST);
+            Channel start = ChannelBuilder.create(startUID)
+                    .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_ST))
+                    .withKind(ChannelKind.TRIGGER).withAcceptedItemType("String").build();
+            ThingBuilder thingBuilder = editThing();
+            thingBuilder.withChannels(start);
+            updateThing(thingBuilder.build());
             updateStatus(ThingStatus.ONLINE);
         }
         Objects.requireNonNull(megaDDeviceHandlerList).add(this);
@@ -115,7 +133,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         } catch (IOException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device not responding on ping");
             // logger.debug("proc error {}", e.getMessage());
-
         }
 
         long now = System.currentTimeMillis();
@@ -132,7 +149,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 Thread.sleep(200);
                             } catch (InterruptedException ignored) {
                             }
-
                         }
                     }
                 }
@@ -174,5 +190,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             this.refreshPollingJob = null;
         }
         super.dispose();
+    }
+
+    public void started() {
+        triggerChannel(MegaDBindingConstants.CHANNEL_ST, "START");
     }
 }

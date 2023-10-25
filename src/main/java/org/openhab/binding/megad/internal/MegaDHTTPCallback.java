@@ -49,7 +49,7 @@ public class MegaDHTTPCallback extends HttpServlet {
         resp.setStatus(HttpServletResponse.SC_OK);
         if (query != null) {
             if (query.contains("all=")) {
-                logger.debug("loop incoming");
+                // logger.debug("loop incoming");
                 String[] prm = query.split("[&]");
                 List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
                 for (MegaDPortsHandler port : portListener) {
@@ -72,23 +72,30 @@ public class MegaDHTTPCallback extends HttpServlet {
                 }
             } else {
                 List<MegaDPortsHandler> portListener = MegaDHTTPCallback.portListener;
+                boolean started = false;
                 for (MegaDPortsHandler port : portListener) {
                     if (Objects.requireNonNull(port.bridgeDeviceHandler).getThing().getConfiguration().get("hostname")
                             .toString().equals(req.getRemoteAddr())) {
-                        String[] prm = query.split("[&]");
-                        for (String parameters : prm) {
-                            if (parameters.contains("pt")) {
-                                String portNumber = parameters.split("=")[1];
-                                if (port.getThing().getConfiguration().get("port").toString().equals(portNumber)) {
-                                    logger.debug("port is {} at device {}",
-                                            port.getThing().getConfiguration().get("port"),
-                                            Objects.requireNonNull(port.bridgeDeviceHandler).getThing()
-                                                    .getConfiguration().get("hostname").toString());
-                                    port.updatePort(query);
+                        if (query.contains("st=1")) {
+                            if (!started) {
+                                Objects.requireNonNull(port.bridgeDeviceHandler).started();
+                                started = true;
+                            }
+                        } else {
+                            String[] prm = query.split("[&]");
+                            for (String parameters : prm) {
+                                if (parameters.contains("pt")) {
+                                    String portNumber = parameters.split("=")[1];
+                                    if (port.getThing().getConfiguration().get("port").toString().equals(portNumber)) {
+                                        logger.debug("port is {} at device {}",
+                                                port.getThing().getConfiguration().get("port"),
+                                                Objects.requireNonNull(port.bridgeDeviceHandler).getThing()
+                                                        .getConfiguration().get("hostname").toString());
+                                        port.updatePort(query);
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
             }

@@ -10,4 +10,10 @@
 			<description>For example "i2c_par=2" (See Megad user manual)</description>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:iwtemp">
+		<parameter name="address" type="text" required="true">
+			<label>Address</label>
+			<description>1w bus address</description>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>

@@ -47,15 +47,15 @@
 		<label>PWM</label>
 		<description>Pure PWM without any adaptations. You can send values to megad directly from rules</description>
 	</channel-type>
-	<channel-type id="m2signal">
-		<item-type>Switch</item-type>
-		<label>Long press switch</label>
+	<channel-type id="longpress">
+		<kind>trigger</kind>
+		<label>Long press trigger</label>
 		<description>React if long press from mega detected</description>
 	</channel-type>
 	<channel-type id="click">
-		<item-type>Number</item-type>
+		<kind>trigger</kind>
 		<label>Click</label>
-		<description>Counter, reacts if click mode enabled in megad</description>
+		<description>Trigger, reacts if click mode enabled in megad</description>
 	</channel-type>
 	<channel-type id="temp">
 		<item-type>Number:Temperature</item-type>
@@ -68,6 +68,7 @@
 		<label>Temperature</label>
 		<description>Temperature from 1-wire sensor</description>
 		<state readOnly="true" pattern="%.1f %unit%"/>
+		<config-description-ref uri="channel-type:megad:iwtemp"/>
 	</channel-type>
 	<channel-type id="humidity">
 		<item-type>Number:Dimensionless</item-type>
@@ -118,10 +119,10 @@
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
 	<channel-type id="st">
-		<item-type>Number</item-type>
-		<label>Starting Mega</label>
+		<kind>trigger</kind>
+		<label>Starting Mega trigger</label>
 		<description>Flag, that Mega started</description>
-		<state readOnly="true" pattern="%d"/>
+		<state readOnly="true" pattern="%s"/>
 	</channel-type>
 	<channel-type id="ib">
 		<item-type>Text</item-type>
@@ -405,7 +406,7 @@
 
 
 	<channel-type id="direction">
-		<item-type>Rollershutter</item-type>
+		<kind>trigger</kind>
 		<label>Direction</label>
 		<state pattern="%s"/>
 	</channel-type>

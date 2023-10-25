@@ -54,9 +54,11 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_INCOUNT = "incount";
     public static final String CHANNEL_OUT = "out";
     public static final String CHANNEL_DS2413 = "ds2413";
+    public static final String CHANNEL_DS2413_A = "ds2413a";
+    public static final String CHANNEL_DS2413_B = "ds2413b";
     public static final String CHANNEL_DIMMER = "dimmer";
     public static final String CHANNEL_PWM = "pwm";
-    public static final String CHANNEL_M2 = "m2signal";
+    public static final String CHANNEL_LONGPRESS = "longpress";
     public static final String CHANNEL_CLICK = "click";
     public static final String CHANNEL_1WTEMP = "1wtemp";
     public static final String CHANNEL_ONEWIRE = "onewire";
@@ -72,10 +74,10 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_SMOOTH = "smoothtime";
 
     // i2c
-    public static final String CHANNEL_I2C_TEMP = "temp";
-    public static final String CHANNEL_I2C_HUM = "humidity";
-    public static final String CHANNEL_I2C_PRESSURE = "pressure";
-    public static final String CHANNEL_I2C_GAS = "gas";
+    public static final String CHANNEL_TEMP = "temp";
+    public static final String CHANNEL_HUM = "humidity";
+    public static final String CHANNEL_PRESSURE = "pressure";
+    public static final String CHANNEL_GAS = "gas";
     public static final String CHANNEL_I2C_OTHER = "other";
 
     // extender

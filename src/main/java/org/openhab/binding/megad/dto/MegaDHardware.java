@@ -17,6 +17,8 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.internal.MegaDDsenEnum;
+import org.openhab.binding.megad.internal.MegaDModesEnum;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHTTPResponse;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
@@ -34,9 +36,17 @@ public class MegaDHardware {
     private String actualFirmware = "";
     private String type = "";
     private String mdid = "";
+    private String ip = "";
+    private String sct = "";
     private boolean srvloop = false;
     private int portsCount;
     private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
+    private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
+    private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
+
+    public String getSct() {
+        return sct;
+    }
 
     public MegaDHardware(String hostname, String password) {
         MegaHttpHelpers http = new MegaHttpHelpers();
@@ -51,12 +61,22 @@ public class MegaDHardware {
         if (srvloop.contains("checked")) {
             this.srvloop = true;
         }
+        megaHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=1");
+        ip = megaHTTPResponse.getResponseResult().substring(megaHTTPResponse.getResponseResult().indexOf("name=sip"));
+        ip = ip.substring(ip.indexOf("value=") + "value=".length(), ip.indexOf("><br>"));
+
+        sct = megaHTTPResponse.getResponseResult().substring(megaHTTPResponse.getResponseResult().indexOf("name=sct"));
+        sct = sct.substring(sct.indexOf("value=") + "value=".length(), sct.indexOf("><br>")).replace("\"", "");
 
         megaHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
         actualFirmware = megaHTTPResponse.getResponseResult().substring(
                 megaHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
                 megaHTTPResponse.getResponseResult().indexOf("</font><br>"));
         actualFirmware = actualFirmware.split("ver")[1].trim().strip();
+    }
+
+    public String getIp() {
+        return ip;
     }
 
     public MegaDHardware() {
@@ -100,5 +120,21 @@ public class MegaDHardware {
 
     public @Nullable MegaDTypesEnum getPortsType(int port) {
         return portsType.get(port);
+    }
+
+    public void setMode(int portNum, MegaDModesEnum megaDModesEnum) {
+        portsMode.put(portNum, megaDModesEnum);
+    }
+
+    public @Nullable MegaDModesEnum getMode(Integer port) {
+        return portsMode.get(port);
+    }
+
+    public void setDSensorType(int portNum, MegaDDsenEnum megaDDsenEnum) {
+        dSensorType.put(portNum, megaDDsenEnum);
+    }
+
+    public @Nullable MegaDDsenEnum getDSensorType(Integer port) {
+        return dSensorType.get(port);
     }
 }
