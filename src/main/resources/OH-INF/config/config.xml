@@ -16,4 +16,14 @@
 			<description>1w bus address</description>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:i2c">
+		<parameter name="type" type="text" required="true">
+			<label>Sensor type</label>
+			<description>Sensor, selected in mega</description>
+		</parameter>
+		<parameter name="path" type="text" required="true">
+			<label>Request get path</label>
+			<description>GET parameter to sensor</description>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>

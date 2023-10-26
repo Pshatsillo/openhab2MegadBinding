@@ -43,6 +43,7 @@ public class MegaDHardware {
     private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
     private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
     private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
+    private final Map<Integer, Integer> scl = new HashMap<>();
 
     public String getSct() {
         return sct;
@@ -136,5 +137,13 @@ public class MegaDHardware {
 
     public @Nullable MegaDDsenEnum getDSensorType(Integer port) {
         return dSensorType.get(port);
+    }
+
+    public @Nullable Integer getScl(Integer port) {
+        return scl.get(port);
+    }
+
+    public void setScl(int portNum, int scl) {
+        this.scl.put(portNum, scl);
     }
 }

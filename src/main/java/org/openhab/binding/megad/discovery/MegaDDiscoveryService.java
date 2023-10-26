@@ -12,16 +12,26 @@
  */
 package org.openhab.binding.megad.discovery;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -29,9 +39,11 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.dto.MegaDI2CSensors;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHttpHelpers;
+import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
@@ -43,6 +55,11 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
 /**
  * Discovery service for Megad
  *
@@ -53,6 +70,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
+    public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
@@ -203,7 +221,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private synchronized void scan() {
-        // logger.info("Scanning...");
+        logger.info("Scanning...");
         MegaHttpHelpers httpRequest = new MegaHttpHelpers();
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         if (megaDDeviceHandlerList != null) {
@@ -258,6 +276,57 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     }
                 }
                 MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
+            }
+        }
+
+        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
+        if (!file.exists()) {
+            boolean createOk = file.getParentFile().mkdirs();
+            if (createOk) {
+                logger.debug("Folders {} created", file.getAbsolutePath());
+            }
+            try {
+                // TODO Download file from ab-log.ru
+                URL url = new URL(
+                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException ignored) {
+            }
+        } else {
+            try {
+                // TODO Download file from ab-log.ru
+                URL url = new URL(
+                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                }
+                List<String> lines = null;
+                try {
+                    lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+                } catch (IOException ignored) {
+                }
+                if (lines != null) {
+                    JsonReader reader;
+                    try {
+                        reader = new JsonReader(new FileReader(file));
+                        JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
+                                .getAsJsonArray("sensors");
+                        reader.close();
+
+                        for (JsonElement sensor : sensorsList) {
+                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                            logger.debug("Json sensor read {} with label {} with address {}",
+                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                                    megaSensors.getSensorAddress());
+                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorAddress(),
+                                    megaSensors);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            } catch (IOException ignored) {
             }
         }
     }

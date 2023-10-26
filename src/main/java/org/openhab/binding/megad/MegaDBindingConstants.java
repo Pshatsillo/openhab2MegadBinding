@@ -78,7 +78,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_HUM = "humidity";
     public static final String CHANNEL_PRESSURE = "pressure";
     public static final String CHANNEL_GAS = "gas";
-    public static final String CHANNEL_I2C_OTHER = "other";
+    public static final String CHANNEL_I2C = "i2c";
 
     // extender
     public static final String CHANNEL_EXTENDER_IN = "extin";
