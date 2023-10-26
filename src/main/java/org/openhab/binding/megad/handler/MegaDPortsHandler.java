@@ -21,10 +21,12 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -81,6 +83,146 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        int state = 0;
+        String result = "";
+        final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
+        if (bridgeDeviceHandler != null) {
+            if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
+                if (!command.toString().equals("REFRESH")) {
+                    if (command.toString().equals("ON")) {
+                        state = 1;
+                    }
+                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                            + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                            + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + state;
+                    logger.debug("Switch: {}", result);
+                    MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                    int responseCode = httpRequest.request(result).getResponseCode();
+                    if (responseCode != 200) {
+                        logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                bridgeDeviceHandler.config.hostname);
+                    }
+                }
+            } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DS2413)) {
+                if (command.toString().equals("ON")) {
+                    state = 1;
+                }
+                result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                        + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
+                        + getThing().getConfiguration().get("port").toString()
+                        + getThing().getConfiguration().get("ds2413_ch") + ":" + state;
+                logger.info("Switch: {}", result);
+                MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                int responseCode = httpRequest.request(result).getResponseCode();
+                if (responseCode != 200) {
+                    logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                            bridgeDeviceHandler.config.hostname);
+                }
+            } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
+                if (!command.toString().equals("REFRESH")) {
+                    try {
+                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                        int resultInt = 0;
+                        if (uivalue != 0) {
+                            int minval = 0; // Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                            double getDiff = (255.0 - minval) / 100.0;
+                            int corrVal = (int) Math.round(uivalue * getDiff);
+                            resultInt = corrVal + minval;
+
+                            if (uivalue == 1) {
+                                if (minval != 0) {
+                                    resultInt = minval;
+                                } else {
+                                    resultInt = uivalue;
+                                }
+                            } else if (resultInt != 0) {
+                                dimmervalue = resultInt;
+                            }
+                        }
+                        result = "http://"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
+                        logger.info("Dimmer: {}", result);
+                        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                        int responseCode = httpRequest.request(result).getResponseCode();
+                        if (responseCode != 200) {
+                            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                    bridgeDeviceHandler.config.hostname);
+                        }
+                    } catch (Exception e) {
+                        if (command.toString().equals("OFF")) {
+                            result = "http://"
+                                    + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                    + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                    + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":0";
+                            logger.info("Dimmer set to OFF");
+                            MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                            int responseCode = httpRequest.request(result).getResponseCode();
+                            if (responseCode != 200) {
+                                logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                        bridgeDeviceHandler.config.hostname);
+                            }
+                            updateState(channelUID.getId(), PercentType.valueOf("0"));
+                        } else if (command.toString().equals("ON")) {
+                            result = "http://"
+                                    + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                    + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                    + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":"
+                                    + dimmervalue;
+                            logger.info("Dimmer restored to previous value: {}", result);
+                            MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                            int responseCode = httpRequest.request(result).getResponseCode();
+                            if (responseCode != 200) {
+                                logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                        bridgeDeviceHandler.config.hostname);
+                            }
+                            int percent = 0;
+                            try {
+                                percent = (int) Math.round(dimmervalue / 2.55);
+                            } catch (Exception ignored) {
+                            }
+                            updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
+                        } else {
+                            logger.debug("Illegal dimmer value: {}", result);
+                        }
+                    }
+                }
+            } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_PWM)) {
+                if (!command.toString().equals("REFRESH")) {
+                    try {
+                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                        if (uivalue != 0) {
+                            dimmervalue = uivalue;
+                        }
+                        result = "http://"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + uivalue;
+                        logger.info("PWM: {}", result);
+                        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                        int responseCode = httpRequest.request(result).getResponseCode();
+                        if (responseCode != 200) {
+                            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                    bridgeDeviceHandler.config.hostname);
+                        }
+                    } catch (Exception e) {
+                        result = "http://"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                        logger.info("PWM restored to previous value: {}", result);
+                        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                        int responseCode = httpRequest.request(result).getResponseCode();
+                        if (responseCode != 200) {
+                            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                    bridgeDeviceHandler.config.hostname);
+                        }
+                        updateState(channelUID.getId(), DecimalType.valueOf(Integer.toString(dimmervalue)));
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -455,12 +597,19 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     configuration.put("path", params.getPath());
                                     ChannelUID i2cUID = new ChannelUID(thing.getUID(),
                                             listSensor.getSensorType() + "_" + params.getId());
+                                    Set<String> tags = new HashSet<>();
+                                    tags.add("Point");
+                                    if (params.getId().equals("humidity")) {
+                                        tags.add("Humidity");
+                                    } else if (params.getId().equals("temperature")) {
+                                        tags.add("Temperature");
+                                    }
                                     Channel i2c = ChannelBuilder.create(i2cUID)
                                             .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                                     MegaDBindingConstants.CHANNEL_I2C))
                                             .withLabel(label + listSensor.getSensorLabel() + " " + params.getName())
                                             .withConfiguration(configuration).withAcceptedItemType(params.getOh())
-                                            .build();
+                                            .withDefaultTags(tags).build();
                                     channelList.add(i2c);
                                 }
                             }
@@ -841,7 +990,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
         ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
-            // refreshPollingJob = null;
         }
         this.refreshPollingJob = refreshPollingJob;
         this.refreshPollingJob = null;

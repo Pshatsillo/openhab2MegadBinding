@@ -162,6 +162,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startBackgroundDiscovery() {
         logger.error("startBackgroundDiscovery");
+        startScan();
         backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 60, TimeUnit.SECONDS);
     }
 
@@ -241,19 +242,14 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                                 if (!mode.contains("value=255")) {
                                     if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
-                                        // logger.info("port {} mode is {}", i, MegaDTypesEnum.IN);
                                     } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
-                                        // logger.info("port {} mode is {}", i, MegaDTypesEnum.OUT);
                                     } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
-                                        // logger.info("port {} mode is {}", i, MegaDTypesEnum.DSEN);
                                     } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
-                                        // logger.info("port {} mode is {}", i, MegaDTypesEnum.I2C);
                                     } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
-                                        // logger.info("port {} mode is {}", i, MegaDTypesEnum.ADC);
                                     }
                                     String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString()
                                             .substring(mega.getThing().getConfiguration().get("hostname").toString()
@@ -269,7 +265,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                                     thingDiscovered(resultS);
                                 } else {
                                     mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
-                                    // logger.info("port {} mode is {}", i, MegaDTypesEnum.NC);
                                 }
                             }
                         }
