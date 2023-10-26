@@ -1,0 +1,54 @@
+{
+  "sensors": [
+    {
+      "htu21d": {
+        "Label": "HTU21D",
+        "Address": "0x40",
+        "Parameters": {
+          "temperature": [
+            {
+              "name": "Температура",
+              "path": "i2c_par=1",
+              "OH": "Number:Temperature",
+              "HASS": "Temperature"
+            }
+          ],
+          "humidity": [
+            {
+              "name": "Влажность",
+              "path": "i2c_par=0",
+              "OH": "Number:Dimensionless",
+              "HASS": "Temperature"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bmx280": {
+        "Label": "BMP280/BME280",
+        "Address": "0x76",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+          "humidity": {
+            "name": "Влажность",
+            "path": "i2c_par=2",
+            "OH": "Number:Dimensionless",
+            "HASS": "Humidity"
+          },
+          "pressure": {
+            "name": "Давление",
+            "path": "i2c_par=0",
+            "OH": "Number:Pressure",
+            "HASS": "Pressure"
+          }
+        }
+      }
+    }
+  ]
+}
