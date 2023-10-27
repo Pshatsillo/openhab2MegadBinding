@@ -170,14 +170,19 @@
 
 	<channel-type id="extin">
 		<item-type>Switch</item-type>
-		<label>Input</label>
+		<label>Extender input</label>
 		<description>Port set as input signal for switch using extender</description>
+		<config-description-ref uri="channel-type:megad:ext"/>
 	</channel-type>
 	<channel-type id="extout">
 		<item-type>Switch</item-type>
-		<label>Output</label>
+		<label>Extender output</label>
 		<description>Port set as output for switch using extender</description>
+		<config-description-ref uri="channel-type:megad:ext"/>
 	</channel-type>
+
+
+
 	<channel-type id="a">
 		<item-type>Switch</item-type>
 		<label>Output A</label>

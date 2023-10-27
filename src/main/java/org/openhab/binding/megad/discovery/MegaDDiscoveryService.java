@@ -162,7 +162,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startBackgroundDiscovery() {
         logger.error("startBackgroundDiscovery");
-        startScan();
         backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 60, TimeUnit.SECONDS);
     }
 
@@ -225,104 +224,107 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         logger.info("Scanning...");
         MegaHttpHelpers httpRequest = new MegaHttpHelpers();
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
-        if (megaDDeviceHandlerList != null) {
-            if (!megaDDeviceHandlerList.isEmpty()) {
-                for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
-                    for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
-                        Configuration config = mega.getThing().getConfiguration();
-                        String response = httpRequest
-                                .request(
-                                        "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i)
-                                .getResponseResult();
-                        response = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
-                                response.indexOf("</select><br>"));
-                        String[] respSplit = response.split("<option");
-                        for (String mode : respSplit) {
-                            if (mode.contains("selected")) {
-                                if (!mode.contains("value=255")) {
-                                    if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
-                                    } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
-                                    } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
-                                    } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
-                                    } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
+        try {
+            if (megaDDeviceHandlerList != null) {
+                if (!megaDDeviceHandlerList.isEmpty()) {
+                    for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
+                        for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
+                            Configuration config = mega.getThing().getConfiguration();
+                            String response = httpRequest.request(
+                                    "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i)
+                                    .getResponseResult();
+                            response = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
+                                    response.indexOf("</select><br>"));
+                            String[] respSplit = response.split("<option");
+                            for (String mode : respSplit) {
+                                if (mode.contains("selected")) {
+                                    if (!mode.contains("value=255")) {
+                                        if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
+                                        } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
+                                        } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
+                                        } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
+                                        } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
+                                        }
+                                        String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString()
+                                                .substring(mega.getThing().getConfiguration().get("hostname").toString()
+                                                        .lastIndexOf(".") + 1)
+                                                + "P" + i;
+                                        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
+                                                mega.getThing().getUID(), id);
+                                        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
+                                                .withProperty("port", i).withLabel("MD"
+                                                        + mega.getThing().getConfiguration().get("hostname") + "P" + i)
+                                                .withBridge(mega.getThing().getUID()).build();
+                                        thingDiscovered(resultS);
+                                    } else {
+                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
                                     }
-                                    String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString()
-                                            .substring(mega.getThing().getConfiguration().get("hostname").toString()
-                                                    .lastIndexOf(".") + 1)
-                                            + "P" + i;
-                                    ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
-                                            mega.getThing().getUID(), id);
-                                    DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
-                                            .withProperty("port", i)
-                                            .withLabel(
-                                                    "MD" + mega.getThing().getConfiguration().get("hostname") + "P" + i)
-                                            .withBridge(mega.getThing().getUID()).build();
-                                    thingDiscovered(resultS);
-                                } else {
-                                    mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
                                 }
                             }
                         }
                     }
+                    MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
                 }
-                MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
             }
-        }
 
-        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
-        if (!file.exists()) {
-            boolean createOk = file.getParentFile().mkdirs();
-            if (createOk) {
-                logger.debug("Folders {} created", file.getAbsolutePath());
-            }
-            try {
-                // TODO Download file from ab-log.ru
-                URL url = new URL(
-                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                try (InputStream in = url.openStream()) {
-                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+            File file = new File(
+                    OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
+            if (!file.exists()) {
+                boolean createOk = file.getParentFile().mkdirs();
+                if (createOk) {
+                    logger.debug("Folders {} created", file.getAbsolutePath());
                 }
-            } catch (IOException ignored) {
-            }
-        } else {
-            try {
-                // TODO Download file from ab-log.ru
-                URL url = new URL(
-                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                try (InputStream in = url.openStream()) {
-                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-                }
-                List<String> lines = null;
                 try {
-                    lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+                    // TODO Download file from ab-log.ru
+                    URL url = new URL(
+                            "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                    try (InputStream in = url.openStream()) {
+                        Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                    }
                 } catch (IOException ignored) {
                 }
-                if (lines != null) {
-                    JsonReader reader;
-                    try {
-                        reader = new JsonReader(new FileReader(file));
-                        JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
-                                .getAsJsonArray("sensors");
-                        reader.close();
-
-                        for (JsonElement sensor : sensorsList) {
-                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
-                            logger.debug("Json sensor read {} with label {} with address {}",
-                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
-                                    megaSensors.getSensorAddress());
-                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorAddress(),
-                                    megaSensors);
-                        }
-                    } catch (Exception ignored) {
+            } else {
+                try {
+                    // TODO Download file from ab-log.ru
+                    URL url = new URL(
+                            "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                    try (InputStream in = url.openStream()) {
+                        Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                     }
+                    List<String> lines = null;
+                    try {
+                        lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+                    } catch (IOException ignored) {
+                    }
+                    if (lines != null) {
+                        JsonReader reader;
+                        try {
+                            reader = new JsonReader(new FileReader(file));
+                            JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
+                                    .getAsJsonArray("sensors");
+                            reader.close();
+
+                            for (JsonElement sensor : sensorsList) {
+                                MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                                logger.debug("Json sensor read {} with label {} with address {}",
+                                        megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                                        megaSensors.getSensorAddress());
+                                Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorAddress(),
+                                        megaSensors);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } catch (IOException ignored) {
                 }
-            } catch (IOException ignored) {
             }
+        } catch (Exception e) {
+            logger.error("Discovery service error {}", e.getLocalizedMessage());
         }
     }
 }

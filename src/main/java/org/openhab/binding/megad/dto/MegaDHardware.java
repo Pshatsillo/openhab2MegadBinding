@@ -18,6 +18,8 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaDDsenEnum;
+import org.openhab.binding.megad.internal.MegaDExtendedType;
+import org.openhab.binding.megad.internal.MegaDI2CSensorsEnum;
 import org.openhab.binding.megad.internal.MegaDModesEnum;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaHTTPResponse;
@@ -44,6 +46,8 @@ public class MegaDHardware {
     private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
     private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
     private final Map<Integer, Integer> scl = new HashMap<>();
+    private final Map<Integer, MegaDI2CSensorsEnum> dI2cType = new HashMap<>();
+    private final Map<Integer, MegaDExtendedType> etyType = new HashMap<>();
 
     public String getSct() {
         return sct;
@@ -145,5 +149,21 @@ public class MegaDHardware {
 
     public void setScl(int portNum, int scl) {
         this.scl.put(portNum, scl);
+    }
+
+    public void setDI2CType(Integer port, MegaDI2CSensorsEnum megaDI2CSensorsEnum) {
+        dI2cType.put(port, megaDI2CSensorsEnum);
+    }
+
+    public @Nullable MegaDI2CSensorsEnum getDI2cType(Integer port) {
+        return dI2cType.get(port);
+    }
+
+    public void setEtyType(Integer port, MegaDExtendedType megaDI2CSensorsEnum) {
+        etyType.put(port, megaDI2CSensorsEnum);
+    }
+
+    public @Nullable MegaDExtendedType getEtyType(Integer port) {
+        return etyType.get(port);
     }
 }
