@@ -233,34 +233,38 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                             String response = httpRequest.request(
                                     "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i)
                                     .getResponseResult();
-                            response = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
+                            String type = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
                                     response.indexOf("</select><br>"));
-                            String[] respSplit = response.split("<option");
+                            String[] respSplit = type.split("<option");
                             for (String mode : respSplit) {
                                 if (mode.contains("selected")) {
                                     if (!mode.contains("value=255")) {
                                         if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
                                             mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
+                                            addToDiscoverThing(mega, i);
                                         } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
                                             mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
+                                            addToDiscoverThing(mega, i);
                                         } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
                                             mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
+                                            addToDiscoverThing(mega, i);
                                         } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
                                             mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
+                                            int sclBeginIdx = response.indexOf("name=m>") + "name=m>".length();
+                                            int sclEndIdx = response.substring(sclBeginIdx).indexOf("</select><br>");
+                                            String scl = response.substring(sclBeginIdx, sclEndIdx + sclBeginIdx);
+                                            String[] mSplit = scl.split("<option");
+                                            for (String m : mSplit) {
+                                                if (m.contains("selected")) {
+                                                    if (m.toUpperCase(Locale.ROOT).contains("SDA")) {
+                                                        addToDiscoverThing(mega, i);
+                                                    }
+                                                }
+                                            }
                                         } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
                                             mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
+                                            addToDiscoverThing(mega, i);
                                         }
-                                        String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString()
-                                                .substring(mega.getThing().getConfiguration().get("hostname").toString()
-                                                        .lastIndexOf(".") + 1)
-                                                + "P" + i;
-                                        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT,
-                                                mega.getThing().getUID(), id);
-                                        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID)
-                                                .withProperty("port", i).withLabel("MD"
-                                                        + mega.getThing().getConfiguration().get("hostname") + "P" + i)
-                                                .withBridge(mega.getThing().getUID()).build();
-                                        thingDiscovered(resultS);
                                     } else {
                                         mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
                                     }
@@ -326,5 +330,15 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         } catch (Exception e) {
             logger.error("Discovery service error {}", e.getLocalizedMessage());
         }
+    }
+
+    private void addToDiscoverThing(MegaDDeviceHandler mega, int i) {
+        String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString().substring(
+                mega.getThing().getConfiguration().get("hostname").toString().lastIndexOf(".") + 1) + "P" + i;
+        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT, mega.getThing().getUID(), id);
+        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i)
+                .withLabel("MD" + mega.getThing().getConfiguration().get("hostname") + "P" + i)
+                .withBridge(mega.getThing().getUID()).build();
+        thingDiscovered(resultS);
     }
 }
