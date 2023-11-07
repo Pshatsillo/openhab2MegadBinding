@@ -17,9 +17,9 @@
             "OH": "Number:Dimensionless",
             "HASS": "Temperature"
           }
-        }
-      },
-      "Init": false
+        },
+        "Init": false
+      }
     },
     {
       "bmx280": {
