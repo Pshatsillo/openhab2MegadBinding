@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.megad.handler.MegaDDeviceHandler;
 import org.openhab.binding.megad.handler.MegaDPortsHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +87,14 @@ public class MegaDHTTPCallback extends HttpServlet {
                             for (String parameters : prm) {
                                 if (parameters.contains("pt")) {
                                     String portNumber = parameters.split("=")[1];
+                                    final MegaDDeviceHandler megaDDeviceHandler = port.bridgeDeviceHandler;
+                                    if (megaDDeviceHandler != null) {
+                                        int inta = megaDDeviceHandler.megaDHardware
+                                                .getInt(Integer.parseInt(portNumber));
+                                        if (inta != -1) {
+                                            portNumber = String.valueOf(inta);
+                                        }
+                                    }
                                     if (port.getThing().getConfiguration().get("port").toString().equals(portNumber)) {
                                         logger.debug("port is {} at device {}",
                                                 port.getThing().getConfiguration().get("port"),

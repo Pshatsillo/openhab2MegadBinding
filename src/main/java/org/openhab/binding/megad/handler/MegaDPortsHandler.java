@@ -574,144 +574,159 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                     case I2C -> {
-                        response = readLabel("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port);
-                        String label = response.substring(
-                                response.indexOf("name=emt size=25 value=") + "name=emt size=25 value=".length(),
-                                response.indexOf("><br><input type=submit")).replace("\"", "");
-                        int scl = Integer.parseInt(response.substring(
-                                response.indexOf("<input name=misc size=3 value=")
-                                        + "<input name=misc size=3 value=".length(),
-                                response.substring(response.indexOf("<input name=misc size=3 value=")
-                                        + "<input name=misc size=3 value=".length()).indexOf(">")
-                                        + response.indexOf("<input name=misc size=3 value=")
-                                        + "<input name=misc size=3 value=".length()));
-                        bridgeDeviceHandler.megaDHardware.setScl(configuration.port, scl);
-                        String d = response.substring(response.indexOf("name=d>") + "name=d>".length(),
-                                response.indexOf("name=d>") + "name=gr>".length()
-                                        + response.substring(response.indexOf("name=d>") + "name=d>".length())
-                                                .indexOf("</select>"));
-                        String[] sensorList = d.split("<option");
-                        for (String sensor : sensorList) {
-                            if (sensor.contains("selected")) {
-                                if (sensor.toUpperCase(Locale.ROOT).contains("MCP230XX")) {
-                                    for (int i = 0; i < 16; i++) {
-                                        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
-                                        response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname
-                                                + "/" + bridgeDeviceHandler.config.password + "/?pt="
-                                                + configuration.port + "&ext=" + i).getResponseResult();
-                                        int dStartIndex = response.indexOf("<select name=ety>")
-                                                + "<select name=ety>".length();
-                                        int dEndIndex = response.substring(dStartIndex).indexOf("</select>")
-                                                + dStartIndex;
-                                        String ety = response.substring(dStartIndex, dEndIndex);
-                                        String[] etyList = ety.split("<option");
-                                        for (String etyOption : etyList) {
-                                            if (etyOption.contains("selected")) {
-                                                if (etyOption.toUpperCase(Locale.ROOT).contains("IN")) {
-                                                    Configuration channelConfiguration = new Configuration();
-                                                    channelConfiguration.put("port", i);
-                                                    ChannelUID extInUID = new ChannelUID(thing.getUID(),
-                                                            MegaDBindingConstants.CHANNEL_EXTENDER_IN + "_" + i);
-                                                    Channel extIn = ChannelBuilder.create(extInUID)
-                                                            .withType(
-                                                                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                                                            MegaDBindingConstants.CHANNEL_EXTENDER_IN))
-                                                            .withLabel(label + "extender port " + i + " in")
-                                                            .withAcceptedItemType("Switch")
-                                                            .withConfiguration(channelConfiguration).build();
-                                                    channelList.add(extIn);
-                                                    bridgeDeviceHandler.megaDHardware.setEtyType(configuration.port,
-                                                            MegaDExtendedType.IN);
+                        try {
+                            response = readLabel("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port);
+                            String label = response.substring(
+                                    response.indexOf("name=emt size=25 value=") + "name=emt size=25 value=".length(),
+                                    response.indexOf("><br><input type=submit")).replace("\"", "");
+                            int scl = Integer.parseInt(response.substring(
+                                    response.indexOf("<input name=misc size=3 value=")
+                                            + "<input name=misc size=3 value=".length(),
+                                    response.substring(response.indexOf("<input name=misc size=3 value=")
+                                            + "<input name=misc size=3 value=".length()).indexOf(">")
+                                            + response.indexOf("<input name=misc size=3 value=")
+                                            + "<input name=misc size=3 value=".length()));
+                            bridgeDeviceHandler.megaDHardware.setScl(configuration.port, scl);
+                            String d = response.substring(response.indexOf("name=d>") + "name=d>".length(),
+                                    response.indexOf("name=d>") + "name=gr>".length()
+                                            + response.substring(response.indexOf("name=d>") + "name=d>".length())
+                                                    .indexOf("</select>"));
+                            String[] sensorList = d.split("<option");
+                            for (String sensor : sensorList) {
+                                if (sensor.contains("selected")) {
+                                    if (sensor.toUpperCase(Locale.ROOT).contains("MCP230XX")) {
+                                        int in = Integer.parseInt(response.substring(
+                                                response.indexOf("<input name=inta size=3 value=")
+                                                        + "<input name=inta size=3 value=".length(),
+                                                response.substring(response.indexOf("<input name=inta size=3 value=")
+                                                        + "<input name=inta size=3 value=".length()).indexOf(">")
+                                                        + response.indexOf("<input name=inta size=3 value=")
+                                                        + "<input name=inta size=3 value=".length()));
+                                        bridgeDeviceHandler.megaDHardware.setInt(configuration.port, in);
+                                        for (int i = 0; i < 16; i++) {
+                                            MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                                            response = httpRequest
+                                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                                            + bridgeDeviceHandler.config.password + "/?pt="
+                                                            + configuration.port + "&ext=" + i)
+                                                    .getResponseResult();
+                                            int dStartIndex = response.indexOf("<select name=ety>")
+                                                    + "<select name=ety>".length();
+                                            int dEndIndex = response.substring(dStartIndex).indexOf("</select>")
+                                                    + dStartIndex;
+                                            String ety = response.substring(dStartIndex, dEndIndex);
+                                            String[] etyList = ety.split("<option");
+                                            for (String etyOption : etyList) {
+                                                if (etyOption.contains("selected")) {
+                                                    if (etyOption.toUpperCase(Locale.ROOT).contains("IN")) {
+                                                        Configuration channelConfiguration = new Configuration();
+                                                        channelConfiguration.put("port", i);
+                                                        ChannelUID extInUID = new ChannelUID(thing.getUID(),
+                                                                MegaDBindingConstants.CHANNEL_EXTENDER_IN + "_" + i);
+                                                        Channel extIn = ChannelBuilder.create(extInUID)
+                                                                .withType(new ChannelTypeUID(
+                                                                        MegaDBindingConstants.BINDING_ID,
+                                                                        MegaDBindingConstants.CHANNEL_EXTENDER_IN))
+                                                                .withLabel(label + "extender port " + i + " in")
+                                                                .withAcceptedItemType("Switch")
+                                                                .withConfiguration(channelConfiguration).build();
+                                                        channelList.add(extIn);
+                                                        bridgeDeviceHandler.megaDHardware.setEtyType(configuration.port,
+                                                                MegaDExtendedType.IN);
 
-                                                } else if (etyOption.toUpperCase(Locale.ROOT).contains("OUT")) {
-                                                    Configuration channelConfiguration = new Configuration();
-                                                    channelConfiguration.put("port", i);
-                                                    ChannelUID extInUID = new ChannelUID(thing.getUID(),
-                                                            MegaDBindingConstants.CHANNEL_EXTENDER_OUT + "_" + i);
-                                                    Channel extIn = ChannelBuilder.create(extInUID)
-                                                            .withType(
-                                                                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                                                            MegaDBindingConstants.CHANNEL_EXTENDER_OUT))
-                                                            .withLabel(label + "extender port " + i + " out")
-                                                            .withAcceptedItemType("Switch")
-                                                            .withConfiguration(channelConfiguration).build();
-                                                    channelList.add(extIn);
-                                                    bridgeDeviceHandler.megaDHardware.setEtyType(configuration.port,
-                                                            MegaDExtendedType.OUT);
+                                                    } else if (etyOption.toUpperCase(Locale.ROOT).contains("OUT")) {
+                                                        Configuration channelConfiguration = new Configuration();
+                                                        channelConfiguration.put("port", i);
+                                                        ChannelUID extInUID = new ChannelUID(thing.getUID(),
+                                                                MegaDBindingConstants.CHANNEL_EXTENDER_OUT + "_" + i);
+                                                        Channel extIn = ChannelBuilder.create(extInUID)
+                                                                .withType(new ChannelTypeUID(
+                                                                        MegaDBindingConstants.BINDING_ID,
+                                                                        MegaDBindingConstants.CHANNEL_EXTENDER_OUT))
+                                                                .withLabel(label + "extender port " + i + " out")
+                                                                .withAcceptedItemType("Switch")
+                                                                .withConfiguration(channelConfiguration).build();
+                                                        channelList.add(extIn);
+                                                        bridgeDeviceHandler.megaDHardware.setEtyType(configuration.port,
+                                                                MegaDExtendedType.OUT);
+                                                    }
                                                 }
                                             }
+                                            properties.put("Mode:", "Extender MCP230XX");
                                         }
-                                        properties.put("Mode:", "Extender MCP230XX");
-                                    }
-                                    bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
-                                            MegaDI2CSensorsEnum.MCP230XX);
-                                } else if (sensor.toUpperCase(Locale.ROOT).contains("PCA9685")) {
-                                    for (int i = 0; i < 16; i++) {
+                                        bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
+                                                MegaDI2CSensorsEnum.MCP230XX);
+                                    } else if (sensor.toUpperCase(Locale.ROOT).contains("PCA9685")) {
+                                        for (int i = 0; i < 16; i++) {
 
-                                        // ChannelUID dhtTempUID = new ChannelUID(thing.getUID(),
-                                        // MegaDBindingConstants.CHANNEL_TEMP);
-                                        // Channel dhtTemp = ChannelBuilder.create(dhtTempUID)
-                                        // .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                        // MegaDBindingConstants.CHANNEL_TEMP))
-                                        // .withLabel(label + " DHT 11 Temperature")
-                                        // .withAcceptedItemType("Number:Temperature").build();
-                                        // channelList.add(dhtTemp);
-                                        // ChannelUID dhtHumUID = new ChannelUID(thing.getUID(),
-                                        // MegaDBindingConstants.CHANNEL_HUM);
-                                        // Channel dhtHum = ChannelBuilder.create(dhtHumUID)
-                                        // .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                        // MegaDBindingConstants.CHANNEL_HUM))
-                                        // .withLabel(label + " DHT 11 Humidity")
-                                        // .withAcceptedItemType("Number:Dimensionless").build();
-                                        // channelList.add(dhtHum);
-                                    }
-                                    properties.put("Mode:", "Extender PCA9685");
-                                    bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
-                                            MegaDI2CSensorsEnum.PCA9685);
-                                }
-                            }
-                        }
-                        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
-                        response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
-                                .getResponseResult();
-                        int dStartIndex = response.indexOf("<br>") + "<br>".length();
-                        String[] splittedSensors = response.substring(dStartIndex).split("<br>");
-                        for (String sensor : splittedSensors) {
-                            if (!sensor.isEmpty()) {
-                                sensor = sensor.substring(0, sensor.indexOf("-")).strip();
-                                if (bridgeDeviceHandler.megaDHardware.getDI2cType(configuration.port) == null) {
-                                    String finalSensor = sensor;
-                                    Objects.requireNonNull(megaDI2CSensorsList).forEach((k, v) -> {
-                                        if (v.getSensorAddress().equals(finalSensor)) {
-                                            for (MegaDI2CSensors.I2CSensorParams params : v.getParameters()) {
-                                                Configuration configuration = new Configuration();
-                                                configuration.put("type", v.getSensorType());
-                                                configuration.put("path", params.getPath());
-                                                ChannelUID i2cUID = new ChannelUID(thing.getUID(),
-                                                        v.getSensorType() + "_" + params.getId());
-                                                Set<String> tags = new HashSet<>();
-                                                tags.add("Point");
-                                                if (params.getId().equals("humidity")) {
-                                                    tags.add("Humidity");
-                                                } else if (params.getId().equals("temperature")) {
-                                                    tags.add("Temperature");
-                                                }
-                                                Channel i2c = ChannelBuilder.create(i2cUID)
-                                                        .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                                                MegaDBindingConstants.CHANNEL_I2C))
-                                                        .withLabel(label + " " + v.getSensorLabel() + " "
-                                                                + params.getName())
-                                                        .withConfiguration(configuration)
-                                                        .withAcceptedItemType(params.getOh()).withDefaultTags(tags)
-                                                        .build();
-                                                channelList.add(i2c);
-                                            }
+                                            // ChannelUID dhtTempUID = new ChannelUID(thing.getUID(),
+                                            // MegaDBindingConstants.CHANNEL_TEMP);
+                                            // Channel dhtTemp = ChannelBuilder.create(dhtTempUID)
+                                            // .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                            // MegaDBindingConstants.CHANNEL_TEMP))
+                                            // .withLabel(label + " DHT 11 Temperature")
+                                            // .withAcceptedItemType("Number:Temperature").build();
+                                            // channelList.add(dhtTemp);
+                                            // ChannelUID dhtHumUID = new ChannelUID(thing.getUID(),
+                                            // MegaDBindingConstants.CHANNEL_HUM);
+                                            // Channel dhtHum = ChannelBuilder.create(dhtHumUID)
+                                            // .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                            // MegaDBindingConstants.CHANNEL_HUM))
+                                            // .withLabel(label + " DHT 11 Humidity")
+                                            // .withAcceptedItemType("Number:Dimensionless").build();
+                                            // channelList.add(dhtHum);
                                         }
-                                    });
+                                        properties.put("Mode:", "Extender PCA9685");
+                                        bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
+                                                MegaDI2CSensorsEnum.PCA9685);
+                                    }
                                 }
                             }
+                            MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                            response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
+                                    .getResponseResult();
+                            int dStartIndex = response.indexOf("<br>") + "<br>".length();
+                            String[] splittedSensors = response.substring(dStartIndex).split("<br>");
+                            for (String sensor : splittedSensors) {
+                                if (!sensor.isEmpty()) {
+                                    sensor = sensor.substring(0, sensor.indexOf("-")).strip();
+                                    if (bridgeDeviceHandler.megaDHardware.getDI2cType(configuration.port) == null) {
+                                        String finalSensor = sensor;
+                                        Objects.requireNonNull(megaDI2CSensorsList).forEach((k, v) -> {
+                                            if (v.getSensorAddress().equals(finalSensor)) {
+                                                for (MegaDI2CSensors.I2CSensorParams params : v.getParameters()) {
+                                                    Configuration configuration = new Configuration();
+                                                    configuration.put("type", v.getSensorType());
+                                                    configuration.put("path", params.getPath());
+                                                    ChannelUID i2cUID = new ChannelUID(thing.getUID(),
+                                                            v.getSensorType() + "_" + params.getId());
+                                                    Set<String> tags = new HashSet<>();
+                                                    tags.add("Point");
+                                                    if (params.getId().equals("humidity")) {
+                                                        tags.add("Humidity");
+                                                    } else if (params.getId().equals("temperature")) {
+                                                        tags.add("Temperature");
+                                                    }
+                                                    Channel i2c = ChannelBuilder.create(i2cUID)
+                                                            .withType(
+                                                                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                                                            MegaDBindingConstants.CHANNEL_I2C))
+                                                            .withLabel(label + " " + v.getSensorLabel() + " "
+                                                                    + params.getName())
+                                                            .withConfiguration(configuration)
+                                                            .withAcceptedItemType(params.getOh()).withDefaultTags(tags)
+                                                            .build();
+                                                    channelList.add(i2c);
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            logger.error("I2C init exception {}", e.getLocalizedMessage());
                         }
                     }
                     case NC -> {

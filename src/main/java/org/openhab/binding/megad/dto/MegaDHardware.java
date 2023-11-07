@@ -48,6 +48,7 @@ public class MegaDHardware {
     private final Map<Integer, Integer> scl = new HashMap<>();
     private final Map<Integer, MegaDI2CSensorsEnum> dI2cType = new HashMap<>();
     private final Map<Integer, MegaDExtendedType> etyType = new HashMap<>();
+    private final Map<Integer, Integer> inta = new HashMap<>();
 
     public String getSct() {
         return sct;
@@ -165,5 +166,18 @@ public class MegaDHardware {
 
     public @Nullable MegaDExtendedType getEtyType(Integer port) {
         return etyType.get(port);
+    }
+
+    public void setInt(Integer port, int in) {
+        inta.put(in, port);
+    }
+
+    public Integer getInt(Integer port) {
+        int retn = -1;
+        Integer num = inta.get(port);
+        if (num != null) {
+            retn = num;
+        }
+        return retn;
     }
 }
