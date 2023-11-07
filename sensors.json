@@ -18,7 +18,8 @@
             "HASS": "Temperature"
           }
         }
-      }
+      },
+      "init": false
     },
     {
       "bmx280": {
@@ -43,7 +44,8 @@
             "OH": "Number:Pressure",
             "HASS": "Pressure"
           }
-        }
+        },
+        "init": false
       }
     },
     {
@@ -57,7 +59,8 @@
             "OH": "Number:Illuminance",
             "HASS": "Illuminance"
           }
-        }
+        },
+        "init": false
       }
     },
     {
@@ -83,7 +86,8 @@
             "OH": "Number:Intencity",
             "HASS": "Pressure"
           }
-        }
+        },
+        "init": false
       }
     },
     {
@@ -97,7 +101,8 @@
             "OH": "Number:Temperature",
             "HASS": "Temperature"
           }
-        }
+        },
+        "init": false
       }
     }
   ]
