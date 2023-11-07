@@ -45,6 +45,20 @@
           }
         }
       }
+    },
+    {
+      "max44009": {
+        "Label": "MAX44009",
+        "Address": "0x4a",
+        "Parameters": {
+          "light": {
+            "name": "Освещенность",
+            "path": "i2c_par=0",
+            "OH": "Number:Illuminance",
+            "HASS": "Illuminance"
+          }
+        }
+      }
     }
   ]
 }
