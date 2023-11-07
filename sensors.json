@@ -59,6 +59,32 @@
           }
         }
       }
+    },
+    {
+      "scd4x": {
+        "Label": "SCD4x",
+        "Address": "0x62",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=2",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+          "humidity": {
+            "name": "Влажность",
+            "path": "i2c_par=3",
+            "OH": "Number:Dimensionless",
+            "HASS": "Humidity"
+          },
+          "CO2": {
+            "name": "CO2",
+            "path": "i2c_par=1",
+            "OH": "Number:Intencity",
+            "HASS": "Pressure"
+          }
+        }
+      }
     }
   ]
 }
