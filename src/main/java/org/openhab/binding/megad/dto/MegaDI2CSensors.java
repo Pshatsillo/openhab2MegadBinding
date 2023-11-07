@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -32,24 +34,31 @@ public class MegaDI2CSensors {
     private String sensorAddress = "";
     private String sensorType = "";
     private final Set<I2CSensorParams> parameters = new HashSet<>();
+    boolean sensorInitRequired;
+    private Logger logger = LoggerFactory.getLogger(MegaDI2CSensors.class);
 
     public MegaDI2CSensors(JsonElement sensor) {
-        if (sensor.getAsJsonObject().keySet().stream().findFirst().isPresent()) {
-            sensorType = sensor.getAsJsonObject().keySet().stream().findFirst().get();
-        }
-        sensorLabel = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Label").getAsString();
-        sensorAddress = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Address").getAsString();
-        Set<String> sensorParameters = sensor.getAsJsonObject().getAsJsonObject(sensorType)
-                .getAsJsonObject("Parameters").keySet();
-        for (String parameter : sensorParameters) {
-            JsonObject paramObj = sensor.getAsJsonObject().getAsJsonObject(sensorType).getAsJsonObject("Parameters")
-                    .getAsJsonObject(parameter).getAsJsonObject();
-            I2CSensorParams paramClass = new I2CSensorParams();
-            paramClass.setId(parameter);
-            paramClass.setName(paramObj.get("name").getAsString());
-            paramClass.setPath(paramObj.get("path").getAsString());
-            paramClass.setOh(paramObj.get("OH").getAsString());
-            parameters.add(paramClass);
+        try {
+            if (sensor.getAsJsonObject().keySet().stream().findFirst().isPresent()) {
+                sensorType = sensor.getAsJsonObject().keySet().stream().findFirst().get();
+            }
+            sensorLabel = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Label").getAsString();
+            sensorAddress = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Address").getAsString();
+            sensorInitRequired = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Init").getAsBoolean();
+            Set<String> sensorParameters = sensor.getAsJsonObject().getAsJsonObject(sensorType)
+                    .getAsJsonObject("Parameters").keySet();
+            for (String parameter : sensorParameters) {
+                JsonObject paramObj = sensor.getAsJsonObject().getAsJsonObject(sensorType).getAsJsonObject("Parameters")
+                        .getAsJsonObject(parameter).getAsJsonObject();
+                I2CSensorParams paramClass = new I2CSensorParams();
+                paramClass.setId(parameter);
+                paramClass.setName(paramObj.get("name").getAsString());
+                paramClass.setPath(paramObj.get("path").getAsString());
+                paramClass.setOh(paramObj.get("OH").getAsString());
+                parameters.add(paramClass);
+            }
+        } catch (Exception e) {
+            logger.error("Json file parsing error, {}", e.getLocalizedMessage());
         }
     }
 
@@ -106,5 +115,9 @@ public class MegaDI2CSensors {
         public void setOh(String oh) {
             this.oh = oh;
         }
+    }
+
+    public boolean isSensorInitRequired() {
+        return sensorInitRequired;
     }
 }

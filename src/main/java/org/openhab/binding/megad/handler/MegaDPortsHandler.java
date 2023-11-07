@@ -34,6 +34,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
 import org.openhab.binding.megad.internal.MegaDDsenEnum;
 import org.openhab.binding.megad.internal.MegaDExtendedType;
@@ -239,6 +240,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
+        MegaDDiscoveryService.readSensorsFile();
         Map<String, String> properties = new HashMap<>();
         List<Channel> channelList = new ArrayList<>();
         configuration = getConfigAs(MegaDConfiguration.class);
@@ -679,34 +681,41 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         for (String sensor : splittedSensors) {
                             if (!sensor.isEmpty()) {
                                 sensor = sensor.substring(0, sensor.indexOf("-")).strip();
-                                MegaDI2CSensors listSensor = Objects.requireNonNull(megaDI2CSensorsList).get(sensor);
-                                if (listSensor != null) {
-                                    for (MegaDI2CSensors.I2CSensorParams params : listSensor.getParameters()) {
-                                        Configuration configuration = new Configuration();
-                                        configuration.put("type", listSensor.getSensorType());
-                                        configuration.put("path", params.getPath());
-                                        ChannelUID i2cUID = new ChannelUID(thing.getUID(),
-                                                listSensor.getSensorType() + "_" + params.getId());
-                                        Set<String> tags = new HashSet<>();
-                                        tags.add("Point");
-                                        if (params.getId().equals("humidity")) {
-                                            tags.add("Humidity");
-                                        } else if (params.getId().equals("temperature")) {
-                                            tags.add("Temperature");
+                                if (bridgeDeviceHandler.megaDHardware.getDI2cType(configuration.port) == null) {
+                                    String finalSensor = sensor;
+                                    Objects.requireNonNull(megaDI2CSensorsList).forEach((k, v) -> {
+                                        if (v.getSensorAddress().equals(finalSensor)) {
+                                            for (MegaDI2CSensors.I2CSensorParams params : v.getParameters()) {
+                                                Configuration configuration = new Configuration();
+                                                configuration.put("type", v.getSensorType());
+                                                configuration.put("path", params.getPath());
+                                                ChannelUID i2cUID = new ChannelUID(thing.getUID(),
+                                                        v.getSensorType() + "_" + params.getId());
+                                                Set<String> tags = new HashSet<>();
+                                                tags.add("Point");
+                                                if (params.getId().equals("humidity")) {
+                                                    tags.add("Humidity");
+                                                } else if (params.getId().equals("temperature")) {
+                                                    tags.add("Temperature");
+                                                }
+                                                Channel i2c = ChannelBuilder.create(i2cUID)
+                                                        .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                                                MegaDBindingConstants.CHANNEL_I2C))
+                                                        .withLabel(label + " " + v.getSensorLabel() + " "
+                                                                + params.getName())
+                                                        .withConfiguration(configuration)
+                                                        .withAcceptedItemType(params.getOh()).withDefaultTags(tags)
+                                                        .build();
+                                                channelList.add(i2c);
+                                            }
                                         }
-                                        Channel i2c = ChannelBuilder.create(i2cUID)
-                                                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
-                                                        MegaDBindingConstants.CHANNEL_I2C))
-                                                .withLabel(label + listSensor.getSensorLabel() + " " + params.getName())
-                                                .withConfiguration(configuration).withAcceptedItemType(params.getOh())
-                                                .withDefaultTags(tags).build();
-                                        channelList.add(i2c);
-                                    }
+                                    });
                                 }
                             }
                         }
                     }
                     case NC -> {
+                        bridgeDeviceHandler.megaDHardware.setPortType(configuration.port, MegaDTypesEnum.NC);
                     }
                 }
                 ThingBuilder thingBuilder = editThing();
@@ -914,8 +923,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         } catch (Exception ignored) {
                                         }
                                     }
+                                } else {
+                                    try {
+                                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                                    } catch (Exception ignored) {
+                                    }
                                 }
-
                             }
                         }
                     }

@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ import com.google.gson.stream.JsonReader;
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
     public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
-    private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
+    private static final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
     private @Nullable ScheduledFuture<?> backgroundFuture;
@@ -276,28 +277,38 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 }
             }
 
-            File file = new File(
-                    OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
-            if (!file.exists()) {
-                boolean createOk = file.getParentFile().mkdirs();
-                if (createOk) {
-                    logger.debug("Folders {} created", file.getAbsolutePath());
+            readSensorsFile();
+        } catch (Exception e) {
+            logger.error("Discovery service error {}", e.getLocalizedMessage());
+        }
+    }
+
+    public static void readSensorsFile() {
+        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
+        if (!file.exists()) {
+            boolean createOk = file.getParentFile().mkdirs();
+            if (createOk) {
+                logger.debug("Folders {} created", file.getAbsolutePath());
+            }
+            try {
+                // TODO Download file from ab-log.ru
+                URL url = new URL(
+                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                 }
-                try {
+            } catch (IOException ignored) {
+            }
+        } else {
+            try {
+                boolean isDel = file.delete();
+                if (isDel) {
+                    Files.createFile(Path.of(file.toURI()));
                     // TODO Download file from ab-log.ru
                     URL url = new URL(
                             "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
                     try (InputStream in = url.openStream()) {
-                        Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (IOException ignored) {
-                }
-            } else {
-                try {
-                    // TODO Download file from ab-log.ru
-                    URL url = new URL(
-                            "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                    try (InputStream in = url.openStream()) {
+
                         Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                     }
                     List<String> lines = null;
@@ -318,17 +329,15 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                                 logger.debug("Json sensor read {} with label {} with address {}",
                                         megaSensors.getSensorType(), megaSensors.getSensorLabel(),
                                         megaSensors.getSensorAddress());
-                                Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorAddress(),
+                                Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(),
                                         megaSensors);
                             }
                         } catch (Exception ignored) {
                         }
                     }
-                } catch (IOException ignored) {
                 }
+            } catch (IOException ignored) {
             }
-        } catch (Exception e) {
-            logger.error("Discovery service error {}", e.getLocalizedMessage());
         }
     }
 
