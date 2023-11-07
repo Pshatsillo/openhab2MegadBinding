@@ -85,6 +85,20 @@
           }
         }
       }
+    },
+    {
+      "hm3301": {
+        "Label": "HM3301",
+        "Address": "0x40",
+        "Parameters": {
+          "ppm": {
+            "name": "Количество частиц",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          }
+        }
+      }
     }
   ]
 }
