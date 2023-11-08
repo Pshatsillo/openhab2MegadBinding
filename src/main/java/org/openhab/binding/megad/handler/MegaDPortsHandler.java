@@ -18,8 +18,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -632,6 +634,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                 .withAcceptedItemType("Switch")
                                                                 .withConfiguration(channelConfiguration).build();
                                                         channelList.add(extIn);
+
                                                         bridgeDeviceHandler.megaDHardware.setEtyType(configuration.port,
                                                                 MegaDExtendedType.IN);
 
@@ -767,6 +770,27 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "CLICK");
             } else if (input.contains("m=2")) {
                 triggerChannel(MegaDBindingConstants.CHANNEL_LONGPRESS, "LONGPRESS");
+            } else if (input.contains("&ext")) {
+                List<String> extportslist = Arrays.stream(input.split("&")).filter(ep -> ep.contains("ext")).toList();
+                extportslist.forEach(port -> {
+                    String extPort = port.split("=")[0].substring(3);
+                    String extPortState = port.split("=")[1];
+                    List<Channel> channels = thing.getChannels();
+                    for (Channel channel : channels) {
+                        if (channel.getConfiguration().get("port").toString().equals(extPort)) {
+                            String channelType = channel.getAcceptedItemType();
+                            if (channelType != null) {
+                                if ("Switch".equals(channelType)) {
+                                    if ("1".equals(extPortState)) {
+                                        updateChannel(channel.getUID().getId(), "ON");
+                                    } else if ("0".equals(extPortState)) {
+                                        updateChannel(channel.getUID().getId(), "OFF");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             } else {
                 updateChannel(MegaDBindingConstants.CHANNEL_IN, "ON");
                 updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, "ON");
@@ -953,7 +977,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     }
 
     public void refresh() {
-        // logger.debug("Refresh port {}", configuration.port);
+        logger.debug("Refresh port {}", configuration.port);
         MegaHttpHelpers httpRequest = new MegaHttpHelpers();
         MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
@@ -1054,25 +1078,45 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                 } else if (portType.equals(MegaDTypesEnum.I2C)) {
-                    List<Channel> channels = thing.getChannels();
-                    for (Channel channel : channels) {
-                        if ((channel.getConfiguration().get("type") != null)
-                                && (channel.getConfiguration().get("path") != null)) {
-                            String sensortype = channel.getConfiguration().get("type").toString();
-                            String sensorPath = channel.getConfiguration().get("path").toString();
+                    MegaDI2CSensorsEnum megaDI2CSensorsEnum = bridgeDeviceHandler.megaDHardware
+                            .getDI2cType(configuration.port);
+                    if (megaDI2CSensorsEnum != null) {
+                        if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.MCP230XX)) {
                             String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&scl="
-                                    + bridgeDeviceHandler.megaDHardware.getScl(configuration.port) + "&i2c_dev="
-                                    + sensortype + "&" + sensorPath).getResponseResult();
-                            updateChannel(channel.getUID().getId(), response);
-                        }
-                        if (channel.getConfiguration().get("port") != null) {
-                            String response = httpRequest
-                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                            + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                                     .getResponseResult();
-                            updateChannel(channel.getUID().getId(), response);
+                            String[] portsStatus = response.split(";");
+                            List<Channel> channels = thing.getChannels();
+                            for (Channel channel : channels) {
+                                BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
+                                String acceptType = channel.getAcceptedItemType();
+                                if (acceptType != null) {
+                                    if ("Switch".equals(acceptType)) {
+                                        updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        List<Channel> channels = thing.getChannels();
+                        for (Channel channel : channels) {
+                            if ((channel.getConfiguration().get("type") != null)
+                                    && (channel.getConfiguration().get("path") != null)) {
+                                String sensortype = channel.getConfiguration().get("type").toString();
+                                String sensorPath = channel.getConfiguration().get("path").toString();
+                                String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname
+                                        + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                        + "&scl=" + bridgeDeviceHandler.megaDHardware.getScl(configuration.port)
+                                        + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
+                                updateChannel(channel.getUID().getId(), response);
+                            }
+                            if (channel.getConfiguration().get("port") != null) {
+                                String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname
+                                        + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                        + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
+                                        .getResponseResult();
+                                updateChannel(channel.getUID().getId(), response);
+                            }
                         }
                     }
                 }

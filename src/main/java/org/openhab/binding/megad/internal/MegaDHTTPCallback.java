@@ -45,9 +45,11 @@ public class MegaDHTTPCallback extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         logger.debug("request from {} is: {}", req.getRemoteAddr(), req.getQueryString());
         String query = req.getQueryString();
-        resp.setContentType(MediaType.TEXT_PLAIN);
-        resp.setCharacterEncoding("utf-8");
+        resp.setContentType(MediaType.TEXT_HTML);
         resp.setStatus(HttpServletResponse.SC_OK);
+        resp.setHeader("Content-Length", "0");
+        resp.setHeader("Connection", "close");
+        resp.setCharacterEncoding("utf-8");
         if (query != null) {
             if (query.contains("all=")) {
                 // logger.debug("loop incoming");
