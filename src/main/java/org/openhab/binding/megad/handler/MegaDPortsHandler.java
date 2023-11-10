@@ -226,6 +226,37 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         updateState(channelUID.getId(), DecimalType.valueOf(Integer.toString(dimmervalue)));
                     }
                 }
+            } else {
+                MegaDTypesEnum portType = bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port);
+                if (portType != null) {
+                    if (portType.equals(MegaDTypesEnum.I2C)) {
+                        MegaDI2CSensorsEnum megaDI2CSensorsEnum = bridgeDeviceHandler.megaDHardware
+                                .getDI2cType(configuration.port);
+                        if (megaDI2CSensorsEnum != null) {
+                            if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.MCP230XX)) {
+                                BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
+                                        .getConfiguration().get("port");
+                                BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
+                                String cmd = "";
+                                if (command.equals(OnOffType.ON)) {
+                                    cmd = "1";
+                                } else if (command.equals(OnOffType.OFF)) {
+                                    cmd = "0";
+                                }
+                                String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
+                                        + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":"
+                                        + cmd;
+                                MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+                                int responseCode = httpRequest.request(request).getResponseCode();
+                                if (responseCode != 200) {
+                                    logger.error("Send command at port {} error, check your mega {}",
+                                            configuration.port, bridgeDeviceHandler.config.hostname);
+                                }
+                                logger.debug("MCP230XX request to mega: {}", request);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
