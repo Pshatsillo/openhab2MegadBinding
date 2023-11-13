@@ -26,11 +26,9 @@ import javax.servlet.ServletException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.events.Event;
 import org.openhab.core.events.EventPublisher;
 import org.openhab.core.events.EventSubscriber;
-import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.items.events.ItemStateEvent;
 import org.openhab.core.net.HttpServiceUtil;
 import org.osgi.framework.Constants;
@@ -59,15 +57,8 @@ public class MegaDService implements EventSubscriber {
     public static int port = 0;
 
     @Activate
-    public MegaDService(final @Reference HttpClientFactory httpClientFactory,
-            /* final @Reference ItemRegistry itemRegistry, */final @Reference EventPublisher eventPublisher,
-            final @Reference HttpService httpService, /* final @Reference ThingRegistry things, */
-            /* final @Reference ItemChannelLinkRegistry link, */ ComponentContext context) {
-        HttpClient httpClient = httpClientFactory.createHttpClient("megad");
-        httpClient.setStopTimeout(0);
-        httpClient.setMaxConnectionsPerDestination(200);
-        httpClient.setConnectTimeout(30000);
-        httpClient.setFollowRedirects(false);
+    public MegaDService(final @Reference EventPublisher eventPublisher, final @Reference HttpService httpService,
+            ComponentContext context) {
 
         MegaDService.eventPublisher = eventPublisher;
         MegaDHTTPCallback megaDHTTPCallback = new MegaDHTTPCallback();
@@ -102,6 +93,8 @@ public class MegaDService implements EventSubscriber {
             }
             port = HttpServiceUtil.getHttpServicePort(context.getBundleContext());
         }
+        // Thread incomingServer = new Thread(new MegaDIncomingServer(), "Incoming server");
+        // incomingServer.start();
     }
 
     @Override

@@ -32,4 +32,17 @@
 			<label>Extender port</label>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:extpwm">
+		<parameter name="port" type="integer" required="true">
+			<default>0</default>
+			<label>Extender port</label>
+		</parameter>
+		<parameter name="type" type="text">
+			<options>
+				<option value="PWM">PWM</option>
+				<option value="DIMMER">Dimmer</option>
+			</options>
+			<default>DIMMER</default>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>

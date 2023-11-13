@@ -83,6 +83,8 @@ public class MegaDBindingConstants {
     // extender
     public static final String CHANNEL_EXTENDER_IN = "extin";
     public static final String CHANNEL_EXTENDER_OUT = "extout";
+    public static final String CHANNEL_EXTENDER_DIMMER = "extdimmer";
+    public static final String CHANNEL_EXTENDER_PWM = "extpwm";
 
     // megad2w
     public static final String CHANNEL_MEGAD2W_A = "a";

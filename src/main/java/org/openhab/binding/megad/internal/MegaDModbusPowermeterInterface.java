@@ -19,12 +19,12 @@ import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 
 /**
- * The {@link ModbusPowermeterInterface} is responsible for modbus protocol feature for megad
+ * The {@link MegaDModbusPowermeterInterface} is responsible for modbus protocol feature for megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public interface ModbusPowermeterInterface {
+public interface MegaDModbusPowermeterInterface {
     String getVoltage();
 
     void updateValues();

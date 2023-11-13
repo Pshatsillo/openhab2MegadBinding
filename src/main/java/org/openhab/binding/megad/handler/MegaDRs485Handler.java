@@ -18,12 +18,12 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.internal.MegaDDDs238;
+import org.openhab.binding.megad.internal.MegaDMideaProtocol;
+import org.openhab.binding.megad.internal.MegaDModbusPowermeterInterface;
 import org.openhab.binding.megad.internal.MegaDRS485Interface;
 import org.openhab.binding.megad.internal.MegaDSdm120;
 import org.openhab.binding.megad.internal.MegaDWBMAP6S;
-import org.openhab.binding.megad.internal.MegadDDs238;
-import org.openhab.binding.megad.internal.MegadMideaProtocol;
-import org.openhab.binding.megad.internal.ModbusPowermeterInterface;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -55,7 +55,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
     @Nullable
     MegaDRS485Interface rsi;
     @Nullable
-    ModbusPowermeterInterface modbus;
+    MegaDModbusPowermeterInterface modbus;
     int powerLines;
 
     public MegaDRs485Handler(Thing thing) {
@@ -98,9 +98,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
             address = getThing().getConfiguration().get("address").toString();
         }
         if (getThing().getConfiguration().get("type").toString().equals("midea")) {
-            rsi = new MegadMideaProtocol(address);
+            rsi = new MegaDMideaProtocol(address);
             ThingBuilder thingBuilder = editThing();
-            final MegadMideaProtocol megaDRS485Interface = (MegadMideaProtocol) rsi;
+            final MegaDMideaProtocol megaDRS485Interface = (MegaDMideaProtocol) rsi;
             if (megaDRS485Interface != null) {
                 thingBuilder.withChannels(megaDRS485Interface.getChannelsList(getThing()));
                 updateThing(thingBuilder.build());
@@ -109,9 +109,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("dds238")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                modbus = new MegadDDs238(bridgeHandler, address);
+                modbus = new MegaDDDs238(bridgeHandler, address);
                 ThingBuilder thingBuilder = editThing();
-                final MegadDDs238 modbusPowermeterInterface = (MegadDDs238) modbus;
+                final MegaDDDs238 modbusPowermeterInterface = (MegaDDDs238) modbus;
                 if (modbusPowermeterInterface != null) {
                     thingBuilder.withChannels(modbusPowermeterInterface.getChannelsList(getThing()));
                     updateThing(thingBuilder.build());
@@ -148,9 +148,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
 
     protected void updateData() {
         if (getThing().getConfiguration().get("type").equals("dds238")) {
-            final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-            if (modbusPowermeterInterface != null) {
-                modbusPowermeterInterface.updateValues();
+            final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+            if (megaDModbusPowermeterInterface != null) {
+                megaDModbusPowermeterInterface.updateValues();
             }
         }
         logger.debug("Updating Megadevice thing {}...", getThing().getUID());
@@ -159,9 +159,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_CURRENT)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getCurrent(Integer
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getCurrent(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Current is {} A at line {}", value, channel.getUID().getId());
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -172,9 +172,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_VOLTAGE)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getVoltage();
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getVoltage();
                             logger.debug("Voltage is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                         }
@@ -183,9 +183,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_ACTIVEPOWER)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getActivePower(Integer
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getActivePower(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Active power is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -194,9 +194,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_APPARENTPOWER)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getApparentPower(
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getApparentPower(
                                 Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                         logger.debug("Apparent power is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -204,9 +204,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_REACTIVEPOWER)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getReactivePower(Integer
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getReactivePower(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Reactive power is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -216,9 +216,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_POWERFACTOR)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getPowerFactor(Integer
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getPowerFactor(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Power factor is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -227,9 +227,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_PHASEANGLE)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getPhaseAngle(
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getPhaseAngle(
                                 Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                         logger.debug("Phase angle is : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -237,104 +237,104 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_FREQUENCY)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getFrequency();
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getFrequency();
                             logger.debug("Frequency is : {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                         }
                     } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTACTNRG)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getImportActiveEnergy();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getImportActiveEnergy();
                         logger.debug("Import active energy: {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTACTNRG)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getExportActiveEnergy();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getExportActiveEnergy();
                         logger.debug("Export active energy : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTREACTNRG)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getImportReactiveEnergy();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getImportReactiveEnergy();
                         logger.debug("Import reactive energy : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTREACTNRG)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getExportReactiveEnergy();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getExportReactiveEnergy();
                         logger.debug("Export reactive energy : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getTotalSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getTotalSystemPowerDemand();
                         logger.debug("Total system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXTOTALSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getMaxTotalSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getMaxTotalSystemPowerDemand();
                         logger.debug("Max total system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getImportSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getImportSystemPowerDemand();
                         logger.debug("Import system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXIMPORTSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getMaxImportSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getMaxImportSystemPowerDemand();
                         logger.debug("Max import system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getExportSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getExportSystemPowerDemand();
                         logger.debug("Export system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXEXPORTSYSPWRDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getMaxExportSystemPowerDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getMaxExportSystemPowerDemand();
                         logger.debug("Max export system power demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CURRENTDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getCurrentDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getCurrentDemand();
                         logger.debug("Current demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXCURRENTDMD)) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getMaxCurrentDemand();
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getMaxCurrentDemand();
                         logger.debug("Max current demand : {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_TOTALACTNRG)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getTotalActiveEnergy();
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getTotalActiveEnergy();
                             logger.debug("Total active energy: {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                         }
@@ -343,9 +343,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_ACTIVEENERGY)) {
                     try {
-                        final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                        if (modbusPowermeterInterface != null) {
-                            String value = modbusPowermeterInterface.getActiveEnergy(Integer
+                        final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                        if (megaDModbusPowermeterInterface != null) {
+                            String value = megaDModbusPowermeterInterface.getActiveEnergy(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Total active energy: {}", value);
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
@@ -355,9 +355,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 } else if ((channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALREACTNRG))
                         || (channel.getUID().getId().equals(
                                 channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_REACTIVEENERGY))) {
-                    final ModbusPowermeterInterface modbusPowermeterInterface = modbus;
-                    if (modbusPowermeterInterface != null) {
-                        String value = modbusPowermeterInterface.getTotalReactiveActiveEnergy(
+                    final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
+                    if (megaDModbusPowermeterInterface != null) {
+                        String value = megaDModbusPowermeterInterface.getTotalReactiveActiveEnergy(
                                 Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                         logger.debug("Total reactive energy: {}", value);
                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));

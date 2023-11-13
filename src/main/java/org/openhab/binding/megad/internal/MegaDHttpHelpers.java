@@ -23,15 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegaHttpHelpers} is responsible for http request to megad
+ * The {@link MegaDHttpHelpers} is responsible for http request to megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaHttpHelpers {
-    public MegaHTTPResponse request(String urlString) {
-        Logger logger = LoggerFactory.getLogger(MegaHttpHelpers.class);
-        MegaHTTPResponse megaHTTPResponse = new MegaHTTPResponse();
+public class MegaDHttpHelpers {
+    public MegaDHTTPResponse request(String urlString) {
+        Logger logger = LoggerFactory.getLogger(MegaDHttpHelpers.class);
+        MegaDHTTPResponse megaDHTTPResponse = new MegaDHTTPResponse();
         try {
             URL url = new URL(urlString);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -39,7 +39,7 @@ public class MegaHttpHelpers {
             con.setReadTimeout(1500);
             con.setConnectTimeout(1500);
             con.setRequestProperty("User-Agent", "Mozilla/5.0");
-            megaHTTPResponse.setResponseCode(con.getResponseCode());
+            megaDHTTPResponse.setResponseCode(con.getResponseCode());
             if (con.getResponseCode() == 200) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
                 String inputLine;
@@ -48,13 +48,13 @@ public class MegaHttpHelpers {
                     response.append(inputLine);
                 }
                 in.close();
-                megaHTTPResponse.setResponseResult(response.toString().trim());
+                megaDHTTPResponse.setResponseResult(response.toString().trim());
                 // logger.debug("input string from {} -> {}", url, megaHTTPResponse.getResponseResult());
             }
             con.disconnect();
         } catch (IOException e) {
             logger.error("Connect to megadevice error: {}", e.getLocalizedMessage());
         }
-        return megaHTTPResponse;
+        return megaDHTTPResponse;
     }
 }

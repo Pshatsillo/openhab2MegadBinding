@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public enum MegaDExtendedType {
     IN(0),
+    PWM(0),
     OUT(1);
 
     private final int id;

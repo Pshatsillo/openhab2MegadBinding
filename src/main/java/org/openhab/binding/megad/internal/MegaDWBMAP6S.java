@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
  */
 
 @NonNullByDefault
-public class MegaDWBMAP6S implements ModbusPowermeterInterface {
+public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
     String address;
     MegaDDeviceHandler bridgeHandler;
-    private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
     public MegaDWBMAP6S(MegaDDeviceHandler bridgeHandler, String address) {
         this.address = address;

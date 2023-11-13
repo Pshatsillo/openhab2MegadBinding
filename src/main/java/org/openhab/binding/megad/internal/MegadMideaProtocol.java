@@ -25,18 +25,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegadMideaProtocol} is responsible for Midea modbus protocol feature for megad
+ * The {@link MegaDMideaProtocol} is responsible for Midea modbus protocol feature for megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegadMideaProtocol implements MegaDRS485Interface {
+public class MegaDMideaProtocol implements MegaDRS485Interface {
     String[] answer = { "" };
-    final Logger logger = LoggerFactory.getLogger(MegadMideaProtocol.class);
+    final Logger logger = LoggerFactory.getLogger(MegaDMideaProtocol.class);
     String address;
-    private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegadMideaProtocol(String address) {
+    public MegaDMideaProtocol(String address) {
         this.address = address;
     }
 

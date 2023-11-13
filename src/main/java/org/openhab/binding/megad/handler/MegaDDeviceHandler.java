@@ -29,9 +29,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.openhab.binding.megad.dto.MegaDHardware;
+import org.openhab.binding.megad.internal.MegaDHTTPResponse;
+import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDService;
-import org.openhab.binding.megad.internal.MegaHTTPResponse;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDDeviceHandler extends BaseBridgeHandler {
-    private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     // protected long lastRefresh = 0;
@@ -70,7 +70,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
         config = getConfigAs(MegaDConfiguration.class);
         megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
-        MegaHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
+        MegaDHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
         if (response.getResponseCode() >= 400) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
         } else {

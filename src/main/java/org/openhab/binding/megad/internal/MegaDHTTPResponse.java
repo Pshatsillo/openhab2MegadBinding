@@ -15,13 +15,13 @@ package org.openhab.binding.megad.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link MegaHTTPResponse} is responsible for creating things and thing
+ * The {@link MegaDHTTPResponse} is responsible for creating things and thing
  * handlers.
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaHTTPResponse {
+public class MegaDHTTPResponse {
     int responseCode = 0;
 
     public int getResponseCode() {

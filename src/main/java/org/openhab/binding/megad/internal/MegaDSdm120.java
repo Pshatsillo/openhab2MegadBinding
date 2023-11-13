@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
  */
 
 @NonNullByDefault
-public class MegaDSdm120 implements ModbusPowermeterInterface {
+public class MegaDSdm120 implements MegaDModbusPowermeterInterface {
     String address;
     MegaDDeviceHandler bridgeHandler;
-    private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
     public MegaDSdm120(MegaDDeviceHandler bridgeHandler, String address) {
         this.address = address;

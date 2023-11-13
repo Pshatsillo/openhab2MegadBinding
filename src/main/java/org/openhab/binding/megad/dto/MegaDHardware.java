@@ -19,11 +19,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaDDsenEnum;
 import org.openhab.binding.megad.internal.MegaDExtendedType;
+import org.openhab.binding.megad.internal.MegaDHTTPResponse;
+import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDI2CSensorsEnum;
 import org.openhab.binding.megad.internal.MegaDModesEnum;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
-import org.openhab.binding.megad.internal.MegaHTTPResponse;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -55,29 +55,30 @@ public class MegaDHardware {
     }
 
     public MegaDHardware(String hostname, String password) {
-        MegaHttpHelpers http = new MegaHttpHelpers();
-        MegaHTTPResponse megaHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=2");
-        mdid = megaHTTPResponse.getResponseResult()
-                .substring(megaHTTPResponse.getResponseResult().indexOf("name=mdid"));
+        MegaDHttpHelpers http = new MegaDHttpHelpers();
+        MegaDHTTPResponse megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=2");
+        mdid = megaDHTTPResponse.getResponseResult()
+                .substring(megaDHTTPResponse.getResponseResult().indexOf("name=mdid"));
         mdid = mdid.substring(mdid.indexOf("value=") + "value=".length(), mdid.indexOf("><br>")).replace("\"", "");
 
-        String srvloop = megaHTTPResponse.getResponseResult()
-                .substring(megaHTTPResponse.getResponseResult().indexOf("name=sl"));
+        String srvloop = megaDHTTPResponse.getResponseResult()
+                .substring(megaDHTTPResponse.getResponseResult().indexOf("name=sl"));
         srvloop = srvloop.substring(srvloop.indexOf("name=sl") + "name=sl".length(), srvloop.indexOf("><br>"));
         if (srvloop.contains("checked")) {
             this.srvloop = true;
         }
-        megaHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=1");
-        ip = megaHTTPResponse.getResponseResult().substring(megaHTTPResponse.getResponseResult().indexOf("name=sip"));
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=1");
+        ip = megaDHTTPResponse.getResponseResult().substring(megaDHTTPResponse.getResponseResult().indexOf("name=sip"));
         ip = ip.substring(ip.indexOf("value=") + "value=".length(), ip.indexOf("><br>"));
 
-        sct = megaHTTPResponse.getResponseResult().substring(megaHTTPResponse.getResponseResult().indexOf("name=sct"));
+        sct = megaDHTTPResponse.getResponseResult()
+                .substring(megaDHTTPResponse.getResponseResult().indexOf("name=sct"));
         sct = sct.substring(sct.indexOf("value=") + "value=".length(), sct.indexOf("><br>")).replace("\"", "");
 
-        megaHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
-        actualFirmware = megaHTTPResponse.getResponseResult().substring(
-                megaHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
-                megaHTTPResponse.getResponseResult().indexOf("</font><br>"));
+        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
+        actualFirmware = megaDHTTPResponse.getResponseResult().substring(
+                megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
+                megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
         actualFirmware = actualFirmware.split("ver")[1].trim().strip();
     }
 

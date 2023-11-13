@@ -25,19 +25,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegadDDs238} is responsible for rs485/modbus feature of megad
+ * The {@link MegaDDDs238} is responsible for rs485/modbus feature of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegadDDs238 implements ModbusPowermeterInterface {
-    final Logger logger = LoggerFactory.getLogger(MegadDDs238.class);
+public class MegaDDDs238 implements MegaDModbusPowermeterInterface {
+    final Logger logger = LoggerFactory.getLogger(MegaDDDs238.class);
     String[] answer = {};
     String address;
     MegaDDeviceHandler bridgeHandler;
-    private final MegaHttpHelpers httpHelper = new MegaHttpHelpers();
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegadDDs238(MegaDDeviceHandler bridgeHandler, String address) {
+    public MegaDDDs238(MegaDDeviceHandler bridgeHandler, String address) {
         this.address = address;
         this.bridgeHandler = bridgeHandler;
     }

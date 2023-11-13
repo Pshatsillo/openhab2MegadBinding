@@ -42,8 +42,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
-import org.openhab.binding.megad.internal.MegaHttpHelpers;
 import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
@@ -223,7 +223,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private synchronized void scan() {
         logger.info("Scanning...");
-        MegaHttpHelpers httpRequest = new MegaHttpHelpers();
+        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         try {
             if (megaDDeviceHandlerList != null) {
