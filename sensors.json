@@ -104,6 +104,27 @@
         },
         "Init": false
       }
+    },
+    {
+      "sht31": {
+        "Label": "SHT31",
+        "Address": "0x40",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+          "humidity": {
+            "name": "Влажность",
+            "path": "i2c_par=0",
+            "OH": "Number:Dimensionless",
+            "HASS": "Humidity"
+          }
+        },
+        "Init": false
+      }
     }
   ]
 }
