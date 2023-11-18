@@ -264,7 +264,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     cmd = "1";
                                 } else if (command.equals(OnOffType.OFF)) {
                                     cmd = "0";
-                                } else {
+                                } else if ((!command.toString().equals("REFRESH"))
+                                        || (!command.toString().equals("ADDED"))) {
                                     if (Objects.requireNonNull(thing.getChannel(channelUID)).getConfiguration()
                                             .get("type") != null) {
                                         String channelType = Objects.requireNonNull(thing.getChannel(channelUID))
@@ -272,12 +273,18 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         if ("PWM".equals(channelType)) {
                                             cmd = command.toString();
                                         } else if ("DIMMER".equals(channelType)) {
-                                            int value = Integer.parseInt(command.toString());
-                                            cmd = String.valueOf(Math.round(value * 40.95));
+                                            try {
+                                                int value = Integer.parseInt(command.toString());
+                                                cmd = String.valueOf(Math.round(value * 40.95));
+                                            } catch (Exception e) {
+                                            }
                                         }
                                     } else {
-                                        int value = Integer.parseInt(command.toString());
-                                        cmd = String.valueOf(Math.round(value * 40.95));
+                                        try {
+                                            int value = Integer.parseInt(command.toString());
+                                            cmd = String.valueOf(Math.round(value * 40.95));
+                                        } catch (Exception e) {
+                                        }
                                     }
                                 }
                                 String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
@@ -773,6 +780,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                     } else if (etyOption.toUpperCase(Locale.ROOT).contains("PWM")) {
                                                         Configuration channelConfiguration = new Configuration();
                                                         channelConfiguration.put("port", i);
+                                                        channelConfiguration.put("type", "DIMMER");
                                                         ChannelUID extPwmUID = new ChannelUID(thing.getUID(),
                                                                 MegaDBindingConstants.CHANNEL_EXTENDER_PWM + "_" + i);
                                                         Channel extPwm = ChannelBuilder.create(extPwmUID)
@@ -780,13 +788,31 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                         MegaDBindingConstants.BINDING_ID,
                                                                         MegaDBindingConstants.CHANNEL_EXTENDER_PWM))
                                                                 .withLabel(label + "extender port " + i + " PWM")
-                                                                .withAcceptedItemType("Number")
-                                                                .withConfiguration(channelConfiguration).build();
+                                                                .withConfiguration(channelConfiguration)
+                                                                .withAcceptedItemType("Dimmer").build();
                                                         if (existingChannelList.stream()
                                                                 .anyMatch(cn -> cn.getUID().equals(extPwm.getUID()))) {
                                                             Channel foundedChannel = existingChannelList.stream()
                                                                     .filter(cn -> cn.getUID().equals(extPwm.getUID()))
                                                                     .findFirst().get();
+                                                            if (foundedChannel.getConfiguration().get("type") != null) {
+                                                                if (foundedChannel.getConfiguration().get("type")
+                                                                        .equals("PWM")) {
+                                                                    existingChannelList.remove(foundedChannel);
+                                                                    foundedChannel = ChannelBuilder
+                                                                            .create(foundedChannel)
+                                                                            .withAcceptedItemType("Number").build();
+                                                                } else if (foundedChannel.getConfiguration().get("type")
+                                                                        .equals("DIMMER")) {
+                                                                    existingChannelList.remove(foundedChannel);
+                                                                    foundedChannel = ChannelBuilder
+                                                                            .create(foundedChannel)
+                                                                            .withAcceptedItemType("Dimmer").build();
+                                                                }
+                                                            } else {
+                                                                foundedChannel = ChannelBuilder.create(foundedChannel)
+                                                                        .withAcceptedItemType("Dimmer").build();
+                                                            }
                                                             channelList.add(foundedChannel);
                                                             existingChannelList.remove(foundedChannel);
                                                         } else {
