@@ -108,7 +108,7 @@
     {
       "sht31": {
         "Label": "SHT31",
-        "Address": "0x40",
+        "Address": "0x44",
         "Parameters": {
           "temperature": {
             "name": "Температура",
