@@ -1208,10 +1208,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
     }
 
     public void refresh() {
-        logger.debug("Refresh port {}", configuration.port);
         MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
         MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
-        if (bridgeDeviceHandler != null) {
+        if ((bridgeDeviceHandler != null) && (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE))) {
+            logger.debug("Refresh port {}", configuration.port);
             MegaDTypesEnum portType = bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port);
             if (portType != null) {
                 if (portType.equals(MegaDTypesEnum.DSEN)) {
@@ -1351,6 +1351,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                         + "&scl=" + bridgeDeviceHandler.megaDHardware.getScl(configuration.port)
                                         + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException ignored) {
+                                }
                                 updateChannel(channel.getUID().getId(), response);
                             }
                             if (channel.getConfiguration().get("port") != null) {

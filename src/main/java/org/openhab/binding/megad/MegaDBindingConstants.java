@@ -65,6 +65,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_ADC = "adc";
     public static final String CHANNEL_AT = "at";
     public static final String CHANNEL_ST = "st";
+    public static final String CHANNEL_FLASH = "flash";
     public static final String CHANNEL_IB = "ib";
     public static final String CHANNEL_WIEGAND = "wiegand";
     public static final String CHANNEL_TGET = "tget";

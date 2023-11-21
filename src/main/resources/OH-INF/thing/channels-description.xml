@@ -125,6 +125,12 @@
 		<description>Flag, that Mega started</description>
 		<state readOnly="true" pattern="%s"/>
 	</channel-type>
+	<channel-type id="flash">
+		<item-type>Switch</item-type>
+		<label>Start firmware upgrade</label>
+		<description>Flash new firmware</description>
+		<config-description-ref uri="channel-type:megad:flash"/>
+	</channel-type>
 	<channel-type id="ib">
 		<item-type>Text</item-type>
 		<label>Ibutton</label>

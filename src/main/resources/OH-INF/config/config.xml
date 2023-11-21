@@ -45,4 +45,10 @@
 			<default>DIMMER</default>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:flash">
+		<parameter name="beta" type="boolean" required="true">
+			<default>false</default>
+			<label>Upgrade to beta</label>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>
