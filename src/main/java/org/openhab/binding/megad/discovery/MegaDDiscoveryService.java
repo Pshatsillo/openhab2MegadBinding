@@ -24,7 +24,6 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -42,6 +41,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.core.OpenHAB;
@@ -231,43 +231,48 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
                         for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
                             Configuration config = mega.getThing().getConfiguration();
-                            String response = httpRequest.request(
-                                    "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i)
-                                    .getResponseResult();
-                            String type = response.substring(response.indexOf("name=pty>") + "name=pty>".length(),
-                                    response.indexOf("</select><br>"));
-                            String[] respSplit = type.split("<option");
-                            for (String mode : respSplit) {
-                                if (mode.contains("selected")) {
-                                    if (!mode.contains("value=255")) {
-                                        if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
-                                            addToDiscoverThing(mega, i);
-                                        } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
-                                            addToDiscoverThing(mega, i);
-                                        } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
-                                            addToDiscoverThing(mega, i);
-                                        } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
-                                            int sclBeginIdx = response.indexOf("name=m>") + "name=m>".length();
-                                            int sclEndIdx = response.substring(sclBeginIdx).indexOf("</select><br>");
-                                            String scl = response.substring(sclBeginIdx, sclEndIdx + sclBeginIdx);
-                                            String[] mSplit = scl.split("<option");
-                                            for (String m : mSplit) {
-                                                if (m.contains("selected")) {
-                                                    if (m.toUpperCase(Locale.ROOT).contains("SDA")) {
-                                                        addToDiscoverThing(mega, i);
+                            MegaDHTTPResponse response = httpRequest.request(
+                                    "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i);
+                            if (response.getResponseCode() == 200) {
+                                String type = response.getResponseResult().substring(
+                                        response.getResponseResult().indexOf("name=pty>") + "name=pty>".length(),
+                                        response.getResponseResult().indexOf("</select><br>"));
+                                String[] respSplit = type.split("<option");
+                                for (String mode : respSplit) {
+                                    if (mode.contains("selected")) {
+                                        if (!mode.contains("value=255")) {
+                                            if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
+                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
+                                                addToDiscoverThing(mega, i);
+                                            } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
+                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
+                                                addToDiscoverThing(mega, i);
+                                            } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
+                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
+                                                addToDiscoverThing(mega, i);
+                                            } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
+                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
+                                                int sclBeginIdx = response.getResponseResult().indexOf("name=m>")
+                                                        + "name=m>".length();
+                                                int sclEndIdx = response.getResponseResult().substring(sclBeginIdx)
+                                                        .indexOf("</select><br>");
+                                                String scl = response.getResponseResult().substring(sclBeginIdx,
+                                                        sclEndIdx + sclBeginIdx);
+                                                String[] mSplit = scl.split("<option");
+                                                for (String m : mSplit) {
+                                                    if (m.contains("selected")) {
+                                                        if (m.toUpperCase(Locale.ROOT).contains("SDA")) {
+                                                            addToDiscoverThing(mega, i);
+                                                        }
                                                     }
                                                 }
+                                            } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
+                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
+                                                addToDiscoverThing(mega, i);
                                             }
-                                        } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
-                                            addToDiscoverThing(mega, i);
+                                        } else {
+                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
                                         }
-                                    } else {
-                                        mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
                                     }
                                 }
                             }
@@ -276,7 +281,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
                 }
             }
-
             readSensorsFile();
         } catch (Exception e) {
             logger.error("Discovery service error {}", e.getLocalizedMessage());
@@ -296,44 +300,46 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                         "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
                 try (InputStream in = url.openStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                } catch (Exception e) {
+                    logger.error("Connect to json file error");
                 }
             } catch (IOException ignored) {
             }
         } else {
             try {
-                boolean isDel = file.delete();
-                if (isDel) {
-                    Files.createFile(Path.of(file.toURI()));
-                    // TODO Download file from ab-log.ru
-                    URL url = new URL(
-                            "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                    try (InputStream in = url.openStream()) {
-
+                // TODO Download file from ab-log.ru
+                URL url = new URL(
+                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                try (InputStream in = url.openStream()) {
+                    boolean isDel = file.delete();
+                    if (isDel) {
+                        // Files.createFile(Path.of(file.toURI()));
                         Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                     }
-                    List<String> lines = null;
+                } catch (Exception e) {
+                    logger.error("Connect to json file error");
+                }
+                List<String> lines = null;
+                try {
+                    lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+                } catch (IOException ignored) {
+                }
+                if (lines != null) {
+                    JsonReader reader;
                     try {
-                        lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-                    } catch (IOException ignored) {
-                    }
-                    if (lines != null) {
-                        JsonReader reader;
-                        try {
-                            reader = new JsonReader(new FileReader(file));
-                            JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
-                                    .getAsJsonArray("sensors");
-                            reader.close();
+                        reader = new JsonReader(new FileReader(file));
+                        JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
+                                .getAsJsonArray("sensors");
+                        reader.close();
 
-                            for (JsonElement sensor : sensorsList) {
-                                MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
-                                logger.debug("Json sensor read {} with label {} with address {}",
-                                        megaSensors.getSensorType(), megaSensors.getSensorLabel(),
-                                        megaSensors.getSensorAddress());
-                                Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(),
-                                        megaSensors);
-                            }
-                        } catch (Exception ignored) {
+                        for (JsonElement sensor : sensorsList) {
+                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                            logger.debug("Json sensor read {} with label {} with address {}",
+                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                                    megaSensors.getSensorAddress());
+                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(), megaSensors);
                         }
+                    } catch (Exception ignored) {
                     }
                 }
             } catch (IOException ignored) {

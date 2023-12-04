@@ -119,18 +119,7 @@
 		<description>Alarm if temperature too high</description>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
-	<channel-type id="st">
-		<kind>trigger</kind>
-		<label>Starting Mega trigger</label>
-		<description>Flag, that Mega started</description>
-		<state readOnly="true" pattern="%s"/>
-	</channel-type>
-	<channel-type id="flash">
-		<item-type>Switch</item-type>
-		<label>Start firmware upgrade</label>
-		<description>Flash new firmware</description>
-		<config-description-ref uri="channel-type:megad:flash"/>
-	</channel-type>
+
 	<channel-type id="ib">
 		<item-type>Text</item-type>
 		<label>Ibutton</label>
@@ -449,4 +438,32 @@
 		<state pattern="%d"/>
 	</channel-type>
 
+	<!-- Device channels -->
+	<channel-type id="st">
+		<kind>trigger</kind>
+		<label>Starting Mega trigger</label>
+		<description>Flag, that Mega started</description>
+		<state readOnly="true" pattern="%s"/>
+	</channel-type>
+	<channel-type id="flash">
+		<item-type>Switch</item-type>
+		<label>Start firmware upgrade</label>
+		<description>Flash new firmware</description>
+		<config-description-ref uri="channel-type:megad:flash"/>
+	</channel-type>
+	<channel-type id="progress">
+		<item-type>String</item-type>
+		<label>Update progress</label>
+		<state pattern="%s"/>
+	</channel-type>
+	<channel-type id="status">
+		<item-type>String</item-type>
+		<label>Update status</label>
+		<state pattern="%s"/>
+	</channel-type>
+	<channel-type id="writeconf">
+		<item-type>Switch</item-type>
+		<label>Write configuration to mega</label>
+		<description>Writes configuration to mega</description>
+	</channel-type>
 </thing:thing-descriptions>

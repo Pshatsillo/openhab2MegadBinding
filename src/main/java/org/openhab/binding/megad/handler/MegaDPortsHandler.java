@@ -322,19 +322,19 @@ public class MegaDPortsHandler extends BaseThingHandler {
         List<Channel> channelList = new ArrayList<>();
         configuration = getConfigAs(MegaDConfiguration.class);
         bridgeDeviceHandler = getBridgeHandler();
+        final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
-            MegaDHTTPCallback.portListener.add(this);
-            ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-            if (configuration.refresh != 0) {
-                logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(), configuration.refresh);
-                if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                    refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10, configuration.refresh,
-                            TimeUnit.SECONDS);
-                    this.refreshPollingJob = refreshPollingJob;
+            if (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
+                MegaDHTTPCallback.portListener.add(this);
+                ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+                if (configuration.refresh != 0) {
+                    logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(), configuration.refresh);
+                    if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10, configuration.refresh,
+                                TimeUnit.SECONDS);
+                        this.refreshPollingJob = refreshPollingJob;
+                    }
                 }
-            }
-            final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
-            if (bridgeDeviceHandler != null) {
                 MegaDTypesEnum portType = MegaDTypesEnum.NC;
                 MegaDTypesEnum discoverPort;
                 String response = getType(bridgeDeviceHandler);
@@ -886,14 +886,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 ThingBuilder thingBuilder = editThing();
                 thingBuilder.withChannels(channelList);
                 updateThing(thingBuilder.build());
-            }
 
-            properties.put("Mega URL:", "http://" + Objects.requireNonNull(bridgeDeviceHandler).config.hostname + "/"
-                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port);
-            properties.put("Type:", Objects
-                    .requireNonNull(bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port)).toString());
-            updateProperties(properties);
-            updateStatus(ThingStatus.ONLINE);
+                properties.put("Mega URL:", "http://" + Objects.requireNonNull(bridgeDeviceHandler).config.hostname
+                        + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port);
+                properties.put("Type:", Objects
+                        .requireNonNull(bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port)).toString());
+                updateProperties(properties);
+                updateStatus(ThingStatus.ONLINE);
+            }
+            this.bridgeDeviceHandler = bridgeDeviceHandler;
         } else {
             updateStatus(ThingStatus.UNINITIALIZED, ThingStatusDetail.BRIDGE_UNINITIALIZED, "Bridge is not defined");
         }

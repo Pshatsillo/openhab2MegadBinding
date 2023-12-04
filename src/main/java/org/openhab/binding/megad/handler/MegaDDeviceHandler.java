@@ -48,6 +48,7 @@ import org.openhab.binding.megad.internal.MegaDService;
 import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -80,6 +81,12 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     private boolean firmwareUpdate = false;
     @Nullable
     DatagramSocket socket = null;
+    String checkData = "";
+    @Nullable
+    Channel statusChannel;
+    boolean beta = false;
+    @Nullable
+    InetAddress broadcastAddress;
 
     public MegaDDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -93,15 +100,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         MegaDHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
         if (response.getResponseCode() >= 400) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
-        } else {
-            if (response.getResponseResult().contains("[44,")) {
-                logger.debug("Mega has 45 ports");
-                megaDHardware.setPortsCount(45);
-            } else {
-                logger.debug("Mega has 37 ports");
-                megaDHardware.setPortsCount(37);
-            }
-            megaDHardware.parse(response.getResponseResult());
+        } else if (response.getResponseCode() == 200) {
+            updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.CONFIGURATION_PENDING);
             Map<String, String> properties = new HashMap<>();
             properties.put("Type:", megaDHardware.getType());
             properties.put("Firmware:", megaDHardware.getFirmware());
@@ -111,7 +111,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             for (InetAddress address : MegaDService.interfacesAddresses) {
                 if (address.getHostAddress().startsWith(ip)) {
                     if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
-                        if ((!megaDHardware.getIp()
+                        if ((!megaDHardware.getSip()
                                 .equals(MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
                                         + ":" + MegaDService.port))
                                 || (!megaDHardware.getSct().equals("megad"))) {
@@ -151,18 +151,38 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             } else {
                 channelList.add(start);
             }
+            ChannelUID progressUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_PROGRESS);
+            Channel progress = ChannelBuilder.create(progressUID).withType(
+                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_PROGRESS))
+                    .withAcceptedItemType("String").build();
+            channelList.add(progress);
+
+            ChannelUID statusUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_STATUS);
+            Channel status = ChannelBuilder.create(statusUID)
+                    .withType(
+                            new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_STATUS))
+                    .withAcceptedItemType("String").build();
+            channelList.add(status);
+            ChannelUID writeConfUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_WRITE_CONF);
+            Channel writeConf = ChannelBuilder.create(writeConfUID).withType(
+                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_WRITE_CONF))
+                    .withAcceptedItemType("Switch").build();
+            channelList.add(writeConf);
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withChannels(channelList);
             updateThing(thingBuilder.build());
             updateStatus(ThingStatus.ONLINE);
-        }
-        Objects.requireNonNull(megaDDeviceHandlerList).add(this);
-        final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-            this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000, TimeUnit.MILLISECONDS);
+
+            Objects.requireNonNull(megaDDeviceHandlerList).add(this);
+            final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000,
+                        TimeUnit.MILLISECONDS);
+            } else {
+                updateStatus(ThingStatus.OFFLINE);
+            }
         } else {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE,
-                    "Bridge for incoming connections not selected");
+            updateStatus(ThingStatus.OFFLINE);
         }
     }
 
@@ -172,18 +192,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             int bl = 0;
             logger.warn("Flashing mega!");
             firmwareUpdate = true;
-            int chipType = 0;
-            boolean beta = false;
-            boolean blUpgrade = false;
             Channel flashChannel = thing.getChannel(channelUID);
             if (flashChannel != null) {
                 if (flashChannel.getConfiguration().get("beta") != null) {
                     beta = Boolean.parseBoolean(flashChannel.getConfiguration().get("beta").toString());
                 }
             }
+            statusChannel = thing.getChannel(MegaDBindingConstants.CHANNEL_STATUS);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.FIRMWARE_UPDATING);
+            final Channel statusChannel = this.statusChannel;
             try {
-                InetAddress broadcastAddress = InetAddress
+                broadcastAddress = InetAddress
                         .getByName(config.hostname.substring(0, config.hostname.lastIndexOf(".") + 1) + "255");
                 socket = new DatagramSocket(42000);
                 final DatagramSocket socket = this.socket;
@@ -197,7 +216,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     if (response.getResponseResult().equals("1")) {
                         bl = 1;
                         // logger.warn("Flashing mega bl {}", bl);
-                        String checkData = "DACA";
+                        checkData = "DACA";
                         Socket sck = new Socket(config.hostname, 80);
                         sck.close();
                         Thread.sleep(100);
@@ -217,156 +236,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 receivedPacket = rcvBuf.clone();
                             }
                         }
-                        if (((receivedPacket[0] & 0xFF) == 0xAA) && ((receivedPacket[1] & 0xFF) == 0x00)) {
-                            logger.warn("OK");
-                            if ((receivedPacket[2] & 0xFF) == 0x99 || (receivedPacket[2] & 0xFF) == 0x9A) {
-                                if (!checkData.isBlank()) {
-                                    logger.warn("New bootloader");
-                                }
-                                if ((receivedPacket[2] & 0xFF) == 0x99) {
-                                    logger.warn("WARNING! Please upgrade bootloader!");
-                                    blUpgrade = true;
-                                }
-                                chipType = 2561;
-                            } else {
-                                logger.warn("(chip type: atmega328)");
-                            }
-                            String dl_fw_fname;
-                            URL url;
-                            if (chipType == 2561) {
-                                if (beta) {
-                                    dl_fw_fname = "megad-2561-beta.hex";
-                                } else {
-                                    dl_fw_fname = "megad-2561.hex";
-                                }
-                                url = new URL("https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dl_fw_fname);
-                                logger.warn("Beta {}, firmware filename is {}", beta, dl_fw_fname);
-                            } else {
-                                if (beta) {
-                                    dl_fw_fname = "megad-328-beta.hex";
-                                } else {
-                                    dl_fw_fname = "megad-328-beta.hex";
-                                }
-                                url = new URL("https://ab-log.ru/files/File/megad-firmware/latest/" + dl_fw_fname);
-                            }
-                            logger.warn("Downloading firmware... {}", dl_fw_fname);
-                            File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator
-                                    + dl_fw_fname);
-                            if (file.exists()) {
-                                boolean isDel = file.delete();
-                                logger.debug("file {} deleted {}", file.getName(), isDel);
-                            }
-                            try (InputStream in = url.openStream()) {
-                                Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-                            }
-                            List<String> lines = null;
-                            lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-                            if (lines != null) {
-                                StringBuilder firmware = new StringBuilder();
-                                for (int i = 0; i < lines.size(); i++) {
-                                    float progress = (float) i / lines.size();
-                                    logger.debug("Preparing firmware ... {}%", (int) (progress * 100));
-                                    char addrEnd = lines.get(i).charAt(8);
-                                    if (!lines.get(i).isEmpty() && addrEnd == 48) {
-                                        String byteCount = String.valueOf(lines.get(i).charAt(1));
-                                        byteCount += String.valueOf(lines.get(i).charAt(2));
-                                        String convResult = new BigInteger(byteCount, 16).toString(10);
-                                        for (int i1 = 0; i1 < Integer.parseInt(convResult); i1++) {
-                                            int pos = i1 * 2 + 9;
-                                            firmware.append(lines.get(i).charAt(pos))
-                                                    .append(String.valueOf(lines.get(i).charAt(pos + 1)));
-                                        }
-                                    }
-                                }
-                                logger.warn("Download finish");
-                                byte[] intByte = HexFormat.of().parseHex(firmware.toString());
-                                if (intByte.length > 258046 && chipType == 2561) {
-                                    logger.warn("FAULT! Firmware is too large!");
-                                } else if (intByte.length < 1000) {
-                                    logger.warn("FAULT! Firmware length is zero or file is corrupted!");
-                                } else if (intByte.length > 32768 && chipType == 2561 && blUpgrade) {
-                                    logger.warn("FAULT! You have to upgrade bootloader!");
-                                } else {
-                                    logger.warn("Erasing firmware... ");
-                                    broadcast_string = "AA0002" + checkData;
-                                    buf = HexFormat.of().parseHex(broadcast_string);
-                                    byte[] eraseBuf = new byte[5];
-                                    DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress,
-                                            52000);
-                                    socket.send(erasePacket);
-                                    DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
-                                    socket.receive(rcvErasePacket);
-                                    if (rcvErasePacket.getData() != null) {
-                                        if (((receivedPacket[0] & 0xFF) == 0xAA)
-                                                && ((receivedPacket[1] & 0xFF) == 0x00)) {
-                                            logger.warn("Writing firmware... ");
-                                            int block;
-                                            if (chipType == 2561) {
-                                                block = 256;
-                                            } else {
-                                                block = 128;
-                                            }
-                                            int fullCells = intByte.length / block;
-                                            int restBytes = intByte.length % block;
-                                            // logger.debug("FullCells {} and rest is {}", fullCells, restBytes);
-                                            byte[][] fwPacket = new byte[fullCells + 1][];
-                                            int x = 0;
-                                            for (int i = 0; i < fullCells; i++) {
-                                                byte[] packet = new byte[block];
-                                                for (int j = 0; j < block; j++) {
-                                                    packet[j] = intByte[x];
-                                                    x++;
-                                                }
-                                                fwPacket[i] = packet;
-                                            }
-                                            byte[] restPacket = new byte[restBytes];
-                                            for (int i = 0; i < restBytes; i++) {
-                                                restPacket[i] = intByte[x];
-                                                x++;
-                                            }
-                                            fwPacket[fullCells] = restPacket;
-                                            int msgID = 0;
-                                            for (int i = 0; i < fullCells + 1; i++) {
-                                                byte[] preamble = { HexFormat.of().parseHex("AA")[0], (byte) i, 1,
-                                                        HexFormat.of().parseHex(checkData)[0],
-                                                        HexFormat.of().parseHex(checkData)[1] };
-                                                byte[] bufPack = new byte[preamble.length + fwPacket[i].length];
-                                                int cell = 0;
-                                                for (int j = 0; j < preamble.length; j++) {
-                                                    bufPack[cell] = preamble[j];
-                                                    cell++;
-                                                }
-                                                for (int j = 0; j < fwPacket[i].length; j++) {
-                                                    bufPack[cell] = fwPacket[i][j];
-                                                    cell++;
-                                                }
-                                                logger.trace("Sending packet {} is {}", i, bufPack);
-                                                float progress = (float) i / fullCells;
-                                                logger.debug("Writing firmware ... {}%", (int) (progress * 100));
-                                                DatagramPacket sendPacket = new DatagramPacket(bufPack, bufPack.length,
-                                                        broadcastAddress, 52000);
-                                                socket.send(sendPacket);
-                                                Thread.sleep(4);
-                                                byte[] rcvBuf = new byte[10];
-                                                DatagramPacket rcvPacket = new DatagramPacket(rcvBuf, 10);
-                                                socket.receive(rcvPacket);
-                                                if (rcvPacket.getData() != null) {
-                                                    if ((rcvPacket.getData()[0] & 0xFF) == 0xAA
-                                                            && (rcvPacket.getData()[1] & 0xFF) != msgID) {
-                                                        logger.warn("FAULT\nPlease update firmware in recovery mode");
-                                                        break;
-                                                    }
-                                                }
-                                                msgID++;
-                                                if (msgID == 256)
-                                                    msgID = 0;
-                                                // logger.warn("next: {}", rcvPacket.getData());
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        flashFirmware(receivedPacket);
                         broadcast_string = "AA0003" + checkData;
                         buf = HexFormat.of().parseHex(broadcast_string);
                         DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
@@ -374,30 +244,267 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         socket.close();
                     }
                     updateState(channelUID, OnOffType.OFF);
+                    if (statusChannel != null) {
+                        updateState(statusChannel.getUID(), StringType.valueOf("DONE"));
+                    }
                     Map<String, String> properties = new HashMap<>();
                     properties.put("Type:", megaDHardware.getType());
                     properties.put("Firmware:", megaDHardware.getFirmware());
                     properties.put("Actual Firmware:", megaDHardware.getActualFirmware());
                     updateProperties(properties);
+                    firmwareUpdate = false;
                     updateStatus(ThingStatus.ONLINE);
                 }
             } catch (IOException e) {
                 logger.warn("Flashing mega error. Device is offline");
+                if (statusChannel != null) {
+                    updateState(statusChannel.getUID(), StringType
+                            .valueOf("Flashing mega error. " + e.getMessage() + " press reset to recover firmware"));
+                }
+                try {
+                    broadcastAddress = InetAddress
+                            .getByName(config.hostname.substring(0, config.hostname.lastIndexOf(".") + 1) + "255");
+                    String broadcast_string = "AA0000";
+                    byte[] buf = HexFormat.of().parseHex(broadcast_string);
+                    byte[] rcvBuf = new byte[200];
+                    DatagramSocket socket = this.socket;
+                    if (socket != null) {
+                        DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+                        socket.send(packet);
+                        DatagramPacket rcvPacket = new DatagramPacket(rcvBuf, 200);
+                        socket.receive(rcvPacket);
+                        if (rcvPacket.getData() != null) {
+                            flashFirmware(rcvBuf);
+                        }
+                    }
+                } catch (IOException ignored) {
+                }
             } catch (InterruptedException ignored) {
             }
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_WRITE_CONF)
+                && command.equals(OnOffType.ON)) {
+            writeConf();
+        }
+    }
+
+    private void flashFirmware(byte[] receivedPacket) {
+        boolean blUpgrade = false;
+        int chipType = 0;
+        Channel progressChannel = thing.getChannel(MegaDBindingConstants.CHANNEL_PROGRESS);
+        byte[] buf;
+        String broadcast_string;
+        final Channel statusChannel = this.statusChannel;
+        try {
+            if (((receivedPacket[0] & 0xFF) == 0xAA) && ((receivedPacket[1] & 0xFF) == 0x00)) {
+                logger.warn("OK");
+                if ((receivedPacket[2] & 0xFF) == 0x99 || (receivedPacket[2] & 0xFF) == 0x9A) {
+                    if (!checkData.isBlank()) {
+                        logger.warn("New bootloader");
+                    }
+                    if ((receivedPacket[2] & 0xFF) == 0x99) {
+                        if (statusChannel != null) {
+                            updateState(statusChannel.getUID(),
+                                    StringType.valueOf("WARNING! Please upgrade bootloader!"));
+                        }
+                        logger.warn("WARNING! Please upgrade bootloader!");
+                        blUpgrade = true;
+                    }
+                    chipType = 2561;
+                } else {
+                    logger.warn("(chip type: atmega328)");
+                }
+                String dl_fw_fname;
+                URL url;
+                if (chipType == 2561) {
+                    if (beta) {
+                        dl_fw_fname = "megad-2561-beta.hex";
+                    } else {
+                        dl_fw_fname = "megad-2561.hex";
+                    }
+                    url = new URL("https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dl_fw_fname);
+                    logger.warn("Beta {}, firmware filename is {}", beta, dl_fw_fname);
+                } else {
+                    if (beta) {
+                        dl_fw_fname = "megad-328-beta.hex";
+                    } else {
+                        dl_fw_fname = "megad-328-beta.hex";
+                    }
+                    url = new URL("https://ab-log.ru/files/File/megad-firmware/latest/" + dl_fw_fname);
+                }
+                logger.warn("Downloading firmware... {}", dl_fw_fname);
+                // updateState(channelUID, OnOffType.OFF);
+                if (statusChannel != null) {
+                    updateState(statusChannel.getUID(), StringType.valueOf("Downloading firmware... " + dl_fw_fname));
+                }
+                File file = new File(
+                        OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + dl_fw_fname);
+                if (file.exists()) {
+                    boolean isDel = file.delete();
+                    logger.debug("file {} deleted {}", file.getName(), isDel);
+                }
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                }
+                List<String> lines = null;
+                lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+                if (lines != null) {
+                    StringBuilder firmware = new StringBuilder();
+                    if (statusChannel != null) {
+                        updateState(statusChannel.getUID(), StringType.valueOf("Preparing firmware ... "));
+                    }
+                    for (int i = 0; i < lines.size(); i++) {
+                        float progress = (float) i / lines.size();
+                        if (progressChannel != null) {
+                            updateState(progressChannel.getUID(),
+                                    StringType.valueOf(String.valueOf((int) (progress * 100))));
+                        }
+                        logger.debug("Preparing firmware ... {}%", (int) (progress * 100));
+                        char addrEnd = lines.get(i).charAt(8);
+                        if (!lines.get(i).isEmpty() && addrEnd == 48) {
+                            String byteCount = String.valueOf(lines.get(i).charAt(1));
+                            byteCount += String.valueOf(lines.get(i).charAt(2));
+                            String convResult = new BigInteger(byteCount, 16).toString(10);
+                            for (int i1 = 0; i1 < Integer.parseInt(convResult); i1++) {
+                                int pos = i1 * 2 + 9;
+                                firmware.append(lines.get(i).charAt(pos)).append(lines.get(i).charAt(pos + 1));
+                            }
+                        }
+                    }
+                    logger.warn("Download finish");
+                    DatagramSocket socket = this.socket;
+                    if (socket != null) {
+                        if (statusChannel != null) {
+                            updateState(statusChannel.getUID(), StringType.valueOf("Download finish"));
+                        }
+                        byte[] intByte = HexFormat.of().parseHex(firmware.toString());
+                        if (intByte.length > 258046 && chipType == 2561) {
+                            if (statusChannel != null) {
+                                updateState(statusChannel.getUID(),
+                                        StringType.valueOf("FAULT! Firmware is too large!"));
+                            }
+                            logger.warn("FAULT! Firmware is too large!");
+                        } else if (intByte.length < 1000) {
+                            if (statusChannel != null) {
+                                updateState(statusChannel.getUID(),
+                                        StringType.valueOf("FAULT! Firmware length is zero or file is corrupted!"));
+                            }
+                            logger.warn("FAULT! Firmware length is zero or file is corrupted!");
+                        } else if (intByte.length > 32768 && chipType == 2561 && blUpgrade) {
+                            if (statusChannel != null) {
+                                updateState(statusChannel.getUID(),
+                                        StringType.valueOf("FAULT! You have to upgrade bootloader!"));
+                            }
+                            logger.warn("FAULT! You have to upgrade bootloader!");
+                        } else {
+                            if (statusChannel != null) {
+                                updateState(statusChannel.getUID(), StringType.valueOf("Erasing firmware..."));
+                            }
+                            logger.warn("Erasing firmware... ");
+                            broadcast_string = "AA0002" + checkData;
+                            buf = HexFormat.of().parseHex(broadcast_string);
+                            byte[] eraseBuf = new byte[5];
+                            DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+                            socket.send(erasePacket);
+                            DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
+                            socket.receive(rcvErasePacket);
+                            if (rcvErasePacket.getData() != null) {
+                                if (((receivedPacket[0] & 0xFF) == 0xAA) && ((receivedPacket[1] & 0xFF) == 0x00)) {
+                                    logger.warn("Writing firmware...");
+                                    if (statusChannel != null) {
+                                        updateState(statusChannel.getUID(), StringType.valueOf("Writing firmware..."));
+                                    }
+                                    int block;
+                                    if (chipType == 2561) {
+                                        block = 256;
+                                    } else {
+                                        block = 128;
+                                    }
+                                    int fullCells = intByte.length / block;
+                                    int restBytes = intByte.length % block;
+                                    // logger.debug("FullCells {} and rest is {}", fullCells, restBytes);
+                                    byte[][] fwPacket = new byte[fullCells + 1][];
+                                    int x = 0;
+                                    for (int i = 0; i < fullCells; i++) {
+                                        byte[] packet = new byte[block];
+                                        for (int j = 0; j < block; j++) {
+                                            packet[j] = intByte[x];
+                                            x++;
+                                        }
+                                        fwPacket[i] = packet;
+                                    }
+                                    byte[] restPacket = new byte[restBytes];
+                                    for (int i = 0; i < restBytes; i++) {
+                                        restPacket[i] = intByte[x];
+                                        x++;
+                                    }
+                                    fwPacket[fullCells] = restPacket;
+                                    int msgID = 0;
+                                    for (int i = 0; i < fullCells + 1; i++) {
+                                        byte[] preamble = { HexFormat.of().parseHex("AA")[0], (byte) i, 1,
+                                                HexFormat.of().parseHex(checkData)[0],
+                                                HexFormat.of().parseHex(checkData)[1] };
+                                        byte[] bufPack = new byte[preamble.length + fwPacket[i].length];
+                                        int cell = 0;
+                                        for (int j = 0; j < preamble.length; j++) {
+                                            bufPack[cell] = preamble[j];
+                                            cell++;
+                                        }
+                                        for (int j = 0; j < fwPacket[i].length; j++) {
+                                            bufPack[cell] = fwPacket[i][j];
+                                            cell++;
+                                        }
+                                        logger.trace("Sending packet {} is {}", i, bufPack);
+                                        float progress = (float) i / fullCells;
+                                        logger.debug("Writing firmware ... {}%", (int) (progress * 100));
+                                        if (progressChannel != null) {
+                                            updateState(progressChannel.getUID(),
+                                                    StringType.valueOf(String.valueOf((int) (progress * 100))));
+                                        }
+                                        DatagramPacket sendPacket = new DatagramPacket(bufPack, bufPack.length,
+                                                broadcastAddress, 52000);
+                                        socket.send(sendPacket);
+                                        Thread.sleep(4);
+                                        byte[] rcvBuf = new byte[10];
+                                        DatagramPacket rcvPacket = new DatagramPacket(rcvBuf, 10);
+                                        socket.receive(rcvPacket);
+                                        if (rcvPacket.getData() != null) {
+                                            if ((rcvPacket.getData()[0] & 0xFF) == 0xAA
+                                                    && (rcvPacket.getData()[1] & 0xFF) != msgID) {
+                                                if (statusChannel != null) {
+                                                    updateState(statusChannel.getUID(), StringType
+                                                            .valueOf("FAULT! Please update firmware in recovery mode"));
+                                                }
+                                                logger.warn("FAULT! Please update firmware in recovery mode");
+                                                break;
+                                            }
+                                        }
+                                        msgID++;
+                                        if (msgID == 256)
+                                            msgID = 0;
+                                    }
+                                    // logger.warn("next: {}", rcvPacket.getData());
+                                }
+                            }
+                        }
+                    } else {
+                        logger.error("Socket is null");
+                    }
+                }
+            }
+        } catch (IOException | InterruptedException ignore) {
+            logger.warn("FAULT! firmware update error");
         }
     }
 
     private void refresh() {
         if (!firmwareUpdate) {
-            try {
-                Socket sck = new Socket(getThing().getConfiguration().get("hostname").toString(), 80);
+            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+            int response = httpRequest.request("http://" + config.hostname + "/" + config.password).getResponseCode();
+            if (response == 200) {
                 updateStatus(ThingStatus.ONLINE);
-                sck.close();
-            } catch (IOException e) {
+            } else {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                         "Device not responding on ping");
-                // logger.debug("proc error {}", e.getMessage());
             }
             long now = System.currentTimeMillis();
             ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
@@ -465,5 +572,49 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     public void started() {
         triggerChannel(MegaDBindingConstants.CHANNEL_ST, "START");
+    }
+
+    private void readConf() {
+    }
+
+    private void writeConf() {
+        try {
+            final Channel statusChannel = this.statusChannel;
+            logger.warn("Writing config...");
+            // updateState(channelUID, OnOffType.OFF);
+            if (statusChannel != null) {
+                updateState(statusChannel.getUID(), StringType.valueOf("Writing config... "));
+            }
+            File file = new File(
+                    OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "cfg" + File.separator);
+            if (file.listFiles() != null) {
+                for (File fileList : file.listFiles()) {
+                    logger.debug("file {}", fileList.getName());
+                    List<String> lines = null;
+                    lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
+                    if (lines != null) {
+                        for (String line : lines) {
+                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                            // logger.warn("line is {}", line);
+                            int response = httpRequest
+                                    .request("http://" + config.hostname + "/" + config.password + "/?" + line.trim())
+                                    .getResponseCode();
+                            if (response == 200) {
+                                logger.warn("line written {}", line);
+                                Thread.sleep(100);
+                            }
+                        }
+                    }
+                }
+            } else {
+                boolean createOk = file.mkdirs();
+                if (!createOk) {
+                    logger.warn("Cannot create folder {}", file.getAbsolutePath());
+                }
+            }
+        } catch (IOException err) {
+            logger.warn("error write config...{}", err.getLocalizedMessage());
+        } catch (InterruptedException ignored) {
+        }
     }
 }

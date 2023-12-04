@@ -28,26 +28,9 @@ public class MegaDBindingConstants {
     public static final String BINDING_ID = "megad";
 
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_ITOC_BRIDGE = new ThingTypeUID(BINDING_ID, "itoc");
-    public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
-    public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
-    public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
     public static final ThingTypeUID THING_TYPE_PORT = new ThingTypeUID(BINDING_ID, "port");
-    public static final ThingTypeUID THING_TYPE_MEGAPORTS_STD = new ThingTypeUID(BINDING_ID, "standard");
     public static final ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
-    public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
-    public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
     public static final ThingTypeUID THING_TYPE_RS485 = new ThingTypeUID(BINDING_ID, "rs485");
-    public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
-    public static final ThingTypeUID THING_TYPE_ENCODER = new ThingTypeUID(BINDING_ID, "encoder");
-    public static final ThingTypeUID THING_TYPE_GROUP = new ThingTypeUID(BINDING_ID, "group");
-    // Extender MCP230XX
-    public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
-    public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
-    // Extender PCA9685
-    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685_BRIDGE = new ThingTypeUID(BINDING_ID,
-            "extenderPCA9685Bridge");
-    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685 = new ThingTypeUID(BINDING_ID, "extenderPCA9685");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -61,40 +44,25 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_LONGPRESS = "longpress";
     public static final String CHANNEL_CLICK = "click";
     public static final String CHANNEL_1WTEMP = "1wtemp";
-    public static final String CHANNEL_ONEWIRE = "onewire";
     public static final String CHANNEL_ADC = "adc";
-    public static final String CHANNEL_AT = "at";
+    public static final String CHANNEL_CONTACT = "contact";
+
+    // device channels
     public static final String CHANNEL_ST = "st";
     public static final String CHANNEL_FLASH = "flash";
-    public static final String CHANNEL_IB = "ib";
-    public static final String CHANNEL_WIEGAND = "wiegand";
-    public static final String CHANNEL_TGET = "tget";
-    public static final String CHANNEL_CONTACT = "contact";
-    public static final String CHANNEL_SMS_PHONE = "smsphone";
-    public static final String CHANNEL_SMS_TEXT = "smstext";
-    public static final String CHANNEL_SMOOTH = "smoothtime";
+    public static final String CHANNEL_PROGRESS = "progress";
+    public static final String CHANNEL_STATUS = "status";
+    public static final String CHANNEL_WRITE_CONF = "writeconf";
 
     // i2c
     public static final String CHANNEL_TEMP = "temp";
     public static final String CHANNEL_HUM = "humidity";
-    public static final String CHANNEL_PRESSURE = "pressure";
-    public static final String CHANNEL_GAS = "gas";
     public static final String CHANNEL_I2C = "i2c";
 
     // extender
     public static final String CHANNEL_EXTENDER_IN = "extin";
     public static final String CHANNEL_EXTENDER_OUT = "extout";
-    public static final String CHANNEL_EXTENDER_DIMMER = "extdimmer";
     public static final String CHANNEL_EXTENDER_PWM = "extpwm";
-
-    // megad2w
-    public static final String CHANNEL_MEGAD2W_A = "a";
-    public static final String CHANNEL_MEGAD2W_B = "b";
-
-    public static final String CHANNEL_PAR0 = "par0";
-    public static final String CHANNEL_PAR1 = "par1";
-    public static final String CHANNEL_PAR2 = "par2";
-    public static final String CHANNEL_I2CRAW = "i2craw";
 
     // rs485 sdm120
     public static final String CHANNEL_VOLTAGE = "voltage";
@@ -135,4 +103,42 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_MIDEAOPERMODE = "opermode";
     public static final String CHANNEL_MIDEAFANMODE = "fanmode";
     public static final String CHANNEL_MIDEATEMP = "mideatemperature";
+
+    public static final ThingTypeUID THING_TYPE_ITOC_BRIDGE = new ThingTypeUID(BINDING_ID, "itoc");
+    public static final ThingTypeUID THING_TYPE_I2C = new ThingTypeUID(BINDING_ID, "i2c");
+    public static final ThingTypeUID THING_TYPE_1WIREBUS_BRIDGE = new ThingTypeUID(BINDING_ID, "1wirebus");
+    public static final ThingTypeUID THING_TYPE_1WIREADDRESS = new ThingTypeUID(BINDING_ID, "1wireaddress");
+    public static final ThingTypeUID THING_TYPE_MEGAPORTS_STD = new ThingTypeUID(BINDING_ID, "standard");
+    public static final ThingTypeUID THING_TYPE_INCOMING_BRIDGE = new ThingTypeUID(BINDING_ID, "tcp");
+    public static final ThingTypeUID THING_TYPE_I2CBUSSENSOR = new ThingTypeUID(BINDING_ID, "i2cbussensor");
+    public static final ThingTypeUID THING_TYPE_LCD1609 = new ThingTypeUID(BINDING_ID, "lcd1609");
+    public static final ThingTypeUID THING_TYPE_ENCODER = new ThingTypeUID(BINDING_ID, "encoder");
+    public static final ThingTypeUID THING_TYPE_GROUP = new ThingTypeUID(BINDING_ID, "group");
+    // Extender MCP230XX
+    public static final ThingTypeUID THING_TYPE_EXTENDER_BRIDGE = new ThingTypeUID(BINDING_ID, "extenderport");
+    public static final ThingTypeUID THING_TYPE_EXTENDER = new ThingTypeUID(BINDING_ID, "extender");
+    // Extender PCA9685
+    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685_BRIDGE = new ThingTypeUID(BINDING_ID,
+            "extenderPCA9685Bridge");
+    public static final ThingTypeUID THING_TYPE_EXTENDER_PCA9685 = new ThingTypeUID(BINDING_ID, "extenderPCA9685");
+    public static final String CHANNEL_ONEWIRE = "onewire";
+    public static final String CHANNEL_AT = "at";
+    public static final String CHANNEL_IB = "ib";
+    public static final String CHANNEL_WIEGAND = "wiegand";
+    public static final String CHANNEL_TGET = "tget";
+    public static final String CHANNEL_SMS_PHONE = "smsphone";
+    public static final String CHANNEL_SMS_TEXT = "smstext";
+    public static final String CHANNEL_SMOOTH = "smoothtime";
+    public static final String CHANNEL_PRESSURE = "pressure";
+    public static final String CHANNEL_GAS = "gas";
+    public static final String CHANNEL_EXTENDER_DIMMER = "extdimmer";
+
+    // megad2w
+    public static final String CHANNEL_MEGAD2W_A = "a";
+    public static final String CHANNEL_MEGAD2W_B = "b";
+
+    public static final String CHANNEL_PAR0 = "par0";
+    public static final String CHANNEL_PAR1 = "par1";
+    public static final String CHANNEL_PAR2 = "par2";
+    public static final String CHANNEL_I2CRAW = "i2craw";
 }
