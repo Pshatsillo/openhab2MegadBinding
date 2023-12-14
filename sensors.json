@@ -83,7 +83,7 @@
           "CO2": {
             "name": "CO2",
             "path": "i2c_par=1",
-            "OH": "Number:Intencity",
+            "OH": "Number:Dimensionless",
             "HASS": "Pressure"
           }
         },
