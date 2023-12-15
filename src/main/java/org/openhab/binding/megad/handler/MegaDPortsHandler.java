@@ -38,14 +38,15 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
+import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
-import org.openhab.binding.megad.internal.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDExtendersEnum;
+import org.openhab.binding.megad.enums.MegaDModesEnum;
+import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDExtendedType;
 import org.openhab.binding.megad.internal.MegaDHTTPCallback;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
-import org.openhab.binding.megad.internal.MegaDI2CSensorsEnum;
-import org.openhab.binding.megad.internal.MegaDModesEnum;
-import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -231,10 +232,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 MegaDTypesEnum portType = bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port);
                 if (portType != null) {
                     if (portType.equals(MegaDTypesEnum.I2C)) {
-                        MegaDI2CSensorsEnum megaDI2CSensorsEnum = bridgeDeviceHandler.megaDHardware
+                        MegaDExtendersEnum megaDExtendersEnum = bridgeDeviceHandler.megaDHardware
                                 .getDI2cType(configuration.port);
-                        if (megaDI2CSensorsEnum != null) {
-                            if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.MCP230XX)) {
+                        if (megaDExtendersEnum != null) {
+                            if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                                 BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
                                         .getConfiguration().get("port");
                                 BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
@@ -255,7 +256,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 }
                                 logger.debug("MCP230XX request to mega: {}", request);
                             }
-                            if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.PCA9685)) {
+                            if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                                 BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
                                         .getConfiguration().get("port");
                                 BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
@@ -734,7 +735,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             properties.put("Mode:", "Extender MCP230XX");
                                         }
                                         bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
-                                                MegaDI2CSensorsEnum.MCP230XX);
+                                                MegaDExtendersEnum.MCP230XX);
                                     } else if (sensor.toUpperCase(Locale.ROOT).contains("PCA9685")) {
                                         List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                                         for (int i = 0; i < 16; i++) {
@@ -827,7 +828,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         channelList.addAll(existingChannelList);
                                         properties.put("Mode:", "Extender PCA9685");
                                         bridgeDeviceHandler.megaDHardware.setDI2CType(configuration.port,
-                                                MegaDI2CSensorsEnum.PCA9685);
+                                                MegaDExtendersEnum.PCA9685);
                                     }
                                 }
                             }
@@ -1095,16 +1096,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         MegaDTypesEnum megaDTypes = bridgeDeviceHandler.megaDHardware.getPortsType(configuration.port);
                         if (megaDTypes != null) {
                             if (megaDTypes.equals(MegaDTypesEnum.I2C)) {
-                                MegaDI2CSensorsEnum megaDI2CSensorsEnum = bridgeDeviceHandler.megaDHardware
+                                MegaDExtendersEnum megaDExtendersEnum = bridgeDeviceHandler.megaDHardware
                                         .getDI2cType(configuration.port);
-                                if (megaDI2CSensorsEnum != null) {
-                                    if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.MCP230XX)) {
+                                if (megaDExtendersEnum != null) {
+                                    if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                                         if (value.contains("ON")) {
                                             updateState(channel.getUID().getId(), OnOffType.ON);
                                         } else if (value.contains("OFF")) {
                                             updateState(channel.getUID().getId(), OnOffType.OFF);
                                         }
-                                    } else if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.PCA9685)) {
+                                    } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                                         if (value.contains("ON")) {
                                             updateState(channel.getUID().getId(), OnOffType.ON);
                                         } else if (value.contains("OFF")) {
@@ -1310,10 +1311,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                 } else if (portType.equals(MegaDTypesEnum.I2C)) {
-                    MegaDI2CSensorsEnum megaDI2CSensorsEnum = bridgeDeviceHandler.megaDHardware
-                            .getDI2cType(configuration.port);
-                    if (megaDI2CSensorsEnum != null) {
-                        if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.MCP230XX)) {
+                    MegaDHardware.Port hwPort = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
+                    if (hwPort != null) {
+                        MegaDExtendersEnum megaDExtendersEnum = hwPort.getExtenders();
+                        if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                             String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                                     .getResponseResult();
@@ -1328,7 +1329,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     }
                                 }
                             }
-                        } else if (megaDI2CSensorsEnum.equals(MegaDI2CSensorsEnum.PCA9685)) {
+                        } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                             String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                                     .getResponseResult();
@@ -1340,30 +1341,32 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
                                 }
                             }
-                        }
-                    } else {
-                        List<Channel> channels = thing.getChannels();
-                        for (Channel channel : channels) {
-                            if ((channel.getConfiguration().get("type") != null)
-                                    && (channel.getConfiguration().get("path") != null)) {
-                                String sensortype = channel.getConfiguration().get("type").toString();
-                                String sensorPath = channel.getConfiguration().get("path").toString();
-                                String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname
-                                        + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                        + "&scl=" + bridgeDeviceHandler.megaDHardware.getScl(configuration.port)
-                                        + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
-                                try {
-                                    Thread.sleep(200);
-                                } catch (InterruptedException ignored) {
+                        } else {
+                            List<Channel> channels = thing.getChannels();
+                            for (Channel channel : channels) {
+                                if ((channel.getConfiguration().get("type") != null)
+                                        && (channel.getConfiguration().get("path") != null)) {
+                                    String sensortype = channel.getConfiguration().get("type").toString();
+                                    String sensorPath = channel.getConfiguration().get("path").toString();
+                                    String response = httpRequest.request("http://"
+                                            + bridgeDeviceHandler.config.hostname + "/"
+                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                            + "&scl=" + bridgeDeviceHandler.megaDHardware.getScl(configuration.port)
+                                            + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
+                                    try {
+                                        Thread.sleep(200);
+                                    } catch (InterruptedException ignored) {
+                                    }
+                                    updateChannel(channel.getUID().getId(), response);
                                 }
-                                updateChannel(channel.getUID().getId(), response);
-                            }
-                            if (channel.getConfiguration().get("port") != null) {
-                                String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname
-                                        + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                        + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
-                                        .getResponseResult();
-                                updateChannel(channel.getUID().getId(), response);
+                                if (channel.getConfiguration().get("port") != null) {
+                                    String response = httpRequest.request("http://"
+                                            + bridgeDeviceHandler.config.hostname + "/"
+                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                            + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
+                                            .getResponseResult();
+                                    updateChannel(channel.getUID().getId(), response);
+                                }
                             }
                         }
                     }

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
@@ -39,13 +38,12 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
+import org.openhab.binding.megad.enums.MegaDModesEnum;
+import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
-import org.openhab.binding.megad.internal.MegaDHTTPResponse;
-import org.openhab.binding.megad.internal.MegaDHttpHelpers;
-import org.openhab.binding.megad.internal.MegaDTypesEnum;
 import org.openhab.core.OpenHAB;
-import org.openhab.core.config.core.Configuration;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -223,56 +221,18 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private synchronized void scan() {
         logger.info("Scanning...");
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         try {
             if (megaDDeviceHandlerList != null) {
                 if (!megaDDeviceHandlerList.isEmpty()) {
                     for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
                         for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
-                            Configuration config = mega.getThing().getConfiguration();
-                            MegaDHTTPResponse response = httpRequest.request(
-                                    "http://" + config.get("hostname") + "/" + config.get("password") + "/?pt=" + i);
-                            if (response.getResponseCode() == 200) {
-                                String type = response.getResponseResult().substring(
-                                        response.getResponseResult().indexOf("name=pty>") + "name=pty>".length(),
-                                        response.getResponseResult().indexOf("</select><br>"));
-                                String[] respSplit = type.split("<option");
-                                for (String mode : respSplit) {
-                                    if (mode.contains("selected")) {
-                                        if (!mode.contains("value=255")) {
-                                            if (mode.toUpperCase(Locale.ROOT).contains("IN")) {
-                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.IN);
-                                                addToDiscoverThing(mega, i);
-                                            } else if (mode.toUpperCase(Locale.ROOT).contains("OUT")) {
-                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.OUT);
-                                                addToDiscoverThing(mega, i);
-                                            } else if (mode.toUpperCase(Locale.ROOT).contains("DSen".toUpperCase())) {
-                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.DSEN);
-                                                addToDiscoverThing(mega, i);
-                                            } else if (mode.toUpperCase(Locale.ROOT).contains("I2C")) {
-                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.I2C);
-                                                int sclBeginIdx = response.getResponseResult().indexOf("name=m>")
-                                                        + "name=m>".length();
-                                                int sclEndIdx = response.getResponseResult().substring(sclBeginIdx)
-                                                        .indexOf("</select><br>");
-                                                String scl = response.getResponseResult().substring(sclBeginIdx,
-                                                        sclEndIdx + sclBeginIdx);
-                                                String[] mSplit = scl.split("<option");
-                                                for (String m : mSplit) {
-                                                    if (m.contains("selected")) {
-                                                        if (m.toUpperCase(Locale.ROOT).contains("SDA")) {
-                                                            addToDiscoverThing(mega, i);
-                                                        }
-                                                    }
-                                                }
-                                            } else if (mode.toUpperCase(Locale.ROOT).contains("ADC")) {
-                                                mega.megaDHardware.setPortType(i, MegaDTypesEnum.ADC);
-                                                addToDiscoverThing(mega, i);
-                                            }
-                                        } else {
-                                            mega.megaDHardware.setPortType(i, MegaDTypesEnum.NC);
-                                        }
+                            MegaDHardware.Port port = mega.megaDHardware.getPort(i);
+                            if (port != null) {
+                                MegaDTypesEnum portType = port.getPty();
+                                if (portType != MegaDTypesEnum.NC) {
+                                    if (port.getM() != MegaDModesEnum.SCL) {
+                                        addToDiscoverThing(mega, i);
                                     }
                                 }
                             }

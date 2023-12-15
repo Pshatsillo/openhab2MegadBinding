@@ -466,4 +466,9 @@
 		<label>Write configuration to mega</label>
 		<description>Writes configuration to mega</description>
 	</channel-type>
+	<channel-type id="readconf">
+		<item-type>Switch</item-type>
+		<label>Read configuration from mega</label>
+		<description>Writes configuration to mega</description>
+	</channel-type>
 </thing:thing-descriptions>

@@ -10,27 +10,38 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.internal;
+package org.openhab.binding.megad.enums;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link MegaDTypesEnum} is responsible for http request to megad
+ * The {@link MegaDModesEnum} is responsible for http request to megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public enum MegaDTypesEnum {
-    NC(255),
-    IN(0),
-    OUT(1),
-    DSEN(2),
-    I2C(4),
-    ADC(5);
+public enum MegaDModesEnum {
+    SW(0),
+    PWM(1),
+    DS2413(2),
+    SWLINK(3),
+    WS281X(4),
+    SDA(1),
+    SCL(2),
+    NC(0),
+    P(0),
+    PR(1),
+    R(2),
+    C(3),
+    NORM(0),
+    MORE(1),
+    LESS(2),
+    BETWEEN(3),
+    NONE(255);
 
     private final int id;
 
-    MegaDTypesEnum(int id) {
+    MegaDModesEnum(int id) {
         this.id = id;
     }
 

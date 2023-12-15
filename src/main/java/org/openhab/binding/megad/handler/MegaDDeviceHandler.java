@@ -23,10 +23,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -42,6 +44,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.openhab.binding.megad.dto.MegaDHardware;
+import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDService;
@@ -94,7 +97,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     @Override
     public void initialize() {
-        final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
         config = getConfigAs(MegaDConfiguration.class);
         megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
         MegaDHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
@@ -168,6 +170,11 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_WRITE_CONF))
                     .withAcceptedItemType("Switch").build();
             channelList.add(writeConf);
+            ChannelUID readConfUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_READ_CONF);
+            Channel readConf = ChannelBuilder.create(readConfUID).withType(
+                    new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_READ_CONF))
+                    .withAcceptedItemType("Switch").build();
+            channelList.add(readConf);
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withChannels(channelList);
             updateThing(thingBuilder.build());
@@ -190,6 +197,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_FLASH) && command.equals(OnOffType.ON)) {
             int bl = 0;
+            readConf();
             logger.warn("Flashing mega!");
             firmwareUpdate = true;
             Channel flashChannel = thing.getChannel(channelUID);
@@ -284,6 +292,10 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_WRITE_CONF)
                 && command.equals(OnOffType.ON)) {
             writeConf();
+            updateState(channelUID, OnOffType.OFF);
+        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_READ_CONF) && command.equals(OnOffType.ON)) {
+            readConf();
+            updateState(channelUID, OnOffType.OFF);
         }
     }
 
@@ -575,6 +587,190 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     }
 
     private void readConf() {
+        Channel statusChannel = this.statusChannel;
+        if (statusChannel != null) {
+            updateState(statusChannel.getUID(), StringType.valueOf("Reading full configuration!"));
+        }
+        logger.warn("Reading full configuration!");
+        MegaDHttpHelpers http = new MegaDHttpHelpers();
+        megaDHardware.readConfigPage1(config.hostname, config.password, http);
+        megaDHardware.readConfigPage2(config.hostname, config.password, http);
+        megaDHardware.readScreens(config.hostname, config.password, http);
+        megaDHardware.readElements(config.hostname, config.password, http);
+        megaDHardware.readCron(config.hostname, config.password, http);
+        megaDHardware.readKeys(config.hostname, config.password, http);
+        megaDHardware.readProgram(config.hostname, config.password, http);
+        megaDHardware.readPID(config.hostname, config.password, http);
+        // megaDHardware.getMegaPortsAndType(config.hostname, config.password, http);
+        megaDHardware.getPortsStatus(config.hostname, config.password, http);
+        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "cfg"
+                + File.separator + config.hostname + ".cfg");
+        if (file.exists()) {
+            file.delete();
+        }
+        boolean createOk = file.getParentFile().mkdirs();
+        if (createOk) {
+            logger.debug("Folders {} created", file.getAbsolutePath());
+        }
+        try {
+            StringBuilder cfgLine = new StringBuilder("cf=1&" + "eip=" + config.hostname + "&emsk="
+                    + megaDHardware.getEmsk() + "&pwd=" + config.password + "&gw=" + megaDHardware.getGw() + "&sip="
+                    + megaDHardware.getSip() + "&sct=" + megaDHardware.getSct() + "&pr=" + megaDHardware.getPr()
+                    + "&lp=" + megaDHardware.getLp() + "&gsmf=" + megaDHardware.isGsmf() + "&srvt="
+                    + megaDHardware.getSrvt() + "&gsm=" + megaDHardware.getGsm() + "&nr=1\n");
+            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8);
+            cfgLine = new StringBuilder(
+                    "cf=2" + "&mdid=" + megaDHardware.getMdid() + "&sl=" + megaDHardware.isSl() + "&nr=1\n");
+            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            for (int i = 0; i < 5; i++) {
+                MegaDHardware.Screen screen = megaDHardware.getScreenList().get(i);
+                cfgLine = new StringBuilder("cf=6" + "&sc=" + i + "&scrnt="
+                        + URLEncoder.encode(screen.getScrnt(), "windows-1251") + "&scrnc=" + screen.getScrnc());
+                for (int j = 0; j < screen.getE().length; j++) {
+                    if (screen.getE()[j]) {
+                        cfgLine.append("&e").append(j).append("=").append("on");
+                    } else {
+                        cfgLine.append("&e").append(j).append("=");
+                    }
+                }
+                cfgLine.append("&nr=1\n");
+                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            }
+            for (int i = 0; i < megaDHardware.getElementsList().size(); i++) {
+                MegaDHardware.Elements elts = megaDHardware.getElementsList().get(i);
+                cfgLine = new StringBuilder("cf=6" + "&sc=99");
+                cfgLine.append("&el=").append(i);
+                cfgLine.append("&elemt=").append(URLEncoder.encode(elts.getElemt(), "windows-1251"));
+                String eli = URLEncoder.encode(elts.getElemi(), "windows-1251");
+                cfgLine.append("&elemi=").append(eli.replace("&", "%26"));
+                cfgLine.append("&elemp=").append(URLEncoder.encode(elts.getElemp(), "windows-1251"));
+                cfgLine.append("&elemf=").append(URLEncoder.encode(elts.getElemf(), "windows-1251"));
+                cfgLine.append("&elemc=").append(URLEncoder.encode(elts.getElemc(), "windows-1251"));
+                cfgLine.append("&elemu=").append(URLEncoder.encode(elts.getElemu(), "windows-1251"));
+                cfgLine.append("&elemz=").append(URLEncoder.encode(elts.getElemz(), "windows-1251"));
+                cfgLine.append("&elemr=").append(URLEncoder.encode(elts.getElemr(), "windows-1251"));
+                cfgLine.append("&elemy=").append(URLEncoder.encode(elts.getElemy(), "windows-1251"));
+                cfgLine.append("&elema=").append(URLEncoder.encode(elts.getElema(), "windows-1251"));
+                cfgLine.append("&nr=1\n");
+                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            }
+            cfgLine = new StringBuilder("cf=7");
+            MegaDHardware.Cron cron = megaDHardware.getCron();
+            cfgLine.append("&stime=").append(cron.getStime());
+            cfgLine.append("&cscl=").append(cron.getCscl());
+            cfgLine.append("&csda=").append(cron.getCsda());
+            for (int i = 0; i < 5; i++) {
+                cfgLine.append("&crnt").append(i).append("=").append(cron.getCrnt()[i]);
+                cfgLine.append("&crna").append(i).append("=").append(cron.getCrna()[i]);
+            }
+            cfgLine.append("&nr=1\n");
+            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            cfgLine = new StringBuilder("cf=8");
+            for (int i = 0; i < 5; i++) {
+                cfgLine.append("&key").append(i).append("=").append(megaDHardware.getKeys().getKey()[i]);
+            }
+            cfgLine.append("&nr=1\n");
+            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+
+            for (int i = 0; i < 10; i++) {
+                cfgLine = new StringBuilder("cf=10");
+                cfgLine.append("&prn").append("=").append(i);
+                cfgLine.append("&prp").append("=").append(megaDHardware.getProgramList().get(i).getPrp());
+                cfgLine.append("&prv").append("=").append(megaDHardware.getProgramList().get(i).getPrv());
+                cfgLine.append("&prd").append("=").append(megaDHardware.getProgramList().get(i).getPrd());
+                cfgLine.append("&prs").append("=").append(megaDHardware.getProgramList().get(i).isPrs());
+                cfgLine.append("&prc").append("=").append(megaDHardware.getProgramList().get(i).getPrc());
+                cfgLine.append("&nr=1\n");
+                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            }
+
+            for (int i = 0; i < 5; i++) {
+                cfgLine = new StringBuilder("cf=11");
+                cfgLine.append("&pid").append("=").append(i);
+                cfgLine.append("&pide").append("=").append("1");
+                cfgLine.append("&pidt").append("=").append(megaDHardware.getPidList().get(i).getPidt());
+                cfgLine.append("&pidi").append("=").append(megaDHardware.getPidList().get(i).getPidi());
+                cfgLine.append("&pido").append("=").append(megaDHardware.getPidList().get(i).getPido());
+                cfgLine.append("&pidsp").append("=").append(megaDHardware.getPidList().get(i).getPidsp());
+                cfgLine.append("&pidpf").append("=").append(megaDHardware.getPidList().get(i).getPidpf());
+                cfgLine.append("&pidif").append("=").append(megaDHardware.getPidList().get(i).getPidif());
+                cfgLine.append("&piddf").append("=").append(megaDHardware.getPidList().get(i).getPiddf());
+                cfgLine.append("&pidc").append("=").append(megaDHardware.getPidList().get(i).getPidc());
+                cfgLine.append("&pidm").append("=").append(megaDHardware.getPidList().get(i).getPidm());
+                cfgLine.append("&nr=1\n");
+                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            }
+
+            for (int i = 0; i < megaDHardware.getPortsCount(); i++) {
+                MegaDHardware.Port port = megaDHardware.getPortList().get(i);
+                if (port != null) {
+                    cfgLine = new StringBuilder("pn=").append(i);
+                    cfgLine.append("&pty").append("=").append(port.getPty().getID());
+                    if (port.getPty() == MegaDTypesEnum.IN) {
+                        cfgLine.append("&ecmd").append("=").append(URLEncoder.encode(port.getEcmd(), "windows-1251"));
+                        cfgLine.append("&af").append("=").append(port.isAf());
+                        cfgLine.append("&eth").append("=").append(URLEncoder.encode(port.getEth(), "windows-1251"));
+                        cfgLine.append("&naf").append("=").append(port.isNaf());
+                        cfgLine.append("&m").append("=").append(port.getM().getID());
+                        cfgLine.append("&misc").append("=").append(port.isMiscChecked());
+                        cfgLine.append("&d").append("=").append(port.isdCheckbox());
+                        cfgLine.append("&mt").append("=").append(port.isMt());
+                    } else if (port.getPty() == MegaDTypesEnum.OUT) {
+                        cfgLine.append("&d").append("=").append(port.getdSelect());
+                        cfgLine.append("&m").append("=").append(port.getM().getID());
+                        cfgLine.append("&grp").append("=").append(port.getGrp());
+                    } else if (port.getPty() == MegaDTypesEnum.DSEN) {
+                        cfgLine.append("&d").append("=").append(port.getdSelect());
+                        cfgLine.append("&m").append("=").append(port.getM().getID());
+                        cfgLine.append("&misc").append("=").append(port.getMisc());
+                        cfgLine.append("&hst").append("=").append(port.getHst());
+                        cfgLine.append("&ecmd").append("=").append(URLEncoder.encode(port.getEcmd(), "windows-1251"));
+                        cfgLine.append("&eth").append("=").append(URLEncoder.encode(port.getEth(), "windows-1251"));
+                        cfgLine.append("&af").append("=").append(port.isAf());
+                        cfgLine.append("&naf").append("=").append(port.isNaf());
+                        cfgLine.append("&m").append("=").append(port.getmAsString());
+                    } else if (port.getPty() == MegaDTypesEnum.I2C) {
+                        cfgLine.append("&m").append("=").append(port.getM().getID());
+                        cfgLine.append("&misc").append("=").append(port.getMisc());
+                        cfgLine.append("&gr").append("=").append(port.getGr());
+                        cfgLine.append("&d").append("=").append(port.getdSelect());
+                        cfgLine.append("&hst").append("=").append(port.getHst());
+                        cfgLine.append("&inta").append("=").append(port.getInta());
+                        cfgLine.append("&clock").append("=").append(port.getClock());
+                    }
+                    cfgLine.append("&emt").append("=").append(URLEncoder.encode(port.getEmt(), "windows-1251"));
+                    cfgLine.append("&nr=1\n");
+                    Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
+                            StandardOpenOption.APPEND);
+                    if (!port.getExtPorts().isEmpty()) {
+                        for (int j = 0; j < port.getExtPorts().size(); j++) {
+                            MegaDHardware.ExtPort extPort = port.getExtPorts().get(j);
+                            cfgLine = new StringBuilder("pt=").append(i);
+                            cfgLine.append("&ext=").append(j);
+                            cfgLine.append("&ety").append("=").append(extPort.getEty());
+                            cfgLine.append("&ept").append("=")
+                                    .append(URLEncoder.encode(extPort.getEpt(), "windows-1251"));
+                            cfgLine.append("&eact").append("=")
+                                    .append(URLEncoder.encode(extPort.getEact(), "windows-1251"));
+                            cfgLine.append("&epf").append("=").append(extPort.isEpf());
+                            cfgLine.append("&emode").append("=").append(extPort.getEmode());
+                            cfgLine.append("&emin").append("=").append(extPort.getEmin());
+                            cfgLine.append("&emax").append("=").append(extPort.getEmax());
+                            cfgLine.append("&espd").append("=").append(extPort.getEspd());
+                            cfgLine.append("&epwm").append("=").append(extPort.getEpwm());
+                            cfgLine.append("&nr=1\n");
+                            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
+                                    StandardOpenOption.APPEND);
+                        }
+
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Cannot write to file {}", file.getName());
+        }
+        logger.warn("Reading configuration done!");
     }
 
     private void writeConf() {
@@ -590,18 +786,20 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             if (file.listFiles() != null) {
                 for (File fileList : file.listFiles()) {
                     logger.debug("file {}", fileList.getName());
-                    List<String> lines = null;
+                    List<String> lines;
                     lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
                     if (lines != null) {
-                        for (String line : lines) {
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            // logger.warn("line is {}", line);
-                            int response = httpRequest
-                                    .request("http://" + config.hostname + "/" + config.password + "/?" + line.trim())
-                                    .getResponseCode();
-                            if (response == 200) {
-                                logger.warn("line written {}", line);
-                                Thread.sleep(100);
+                        if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
+                            for (String line : lines) {
+                                MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                                // logger.warn("line is {}", line);
+                                int response = httpRequest.request(
+                                        "http://" + config.hostname + "/" + config.password + "/?" + line.trim())
+                                        .getResponseCode();
+                                if (response == 200) {
+                                    logger.warn("line written {}", line);
+                                    Thread.sleep(100);
+                                }
                             }
                         }
                     }
@@ -616,5 +814,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             logger.warn("error write config...{}", err.getLocalizedMessage());
         } catch (InterruptedException ignored) {
         }
+        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+        int response = httpRequest.request("http://" + config.hostname + "/" + config.password + "/?restart=1")
+                .getResponseCode();
     }
 }

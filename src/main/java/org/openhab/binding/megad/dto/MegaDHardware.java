@@ -19,13 +19,13 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.megad.internal.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDExtendersEnum;
+import org.openhab.binding.megad.enums.MegaDModesEnum;
+import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDExtendedType;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
-import org.openhab.binding.megad.internal.MegaDI2CSensorsEnum;
-import org.openhab.binding.megad.internal.MegaDModesEnum;
-import org.openhab.binding.megad.internal.MegaDTypesEnum;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -43,6 +43,99 @@ public class MegaDHardware {
     private String sip = "";
     private String sct = "";
     private String emsk = "";
+
+    public String getMdid() {
+        return mdid;
+    }
+
+    public String getEmsk() {
+        return emsk;
+    }
+
+    public String getGw() {
+        return gw;
+    }
+
+    public String getPr() {
+        return pr;
+    }
+
+    public String getLp() {
+        return lp;
+    }
+
+    public String isGsmf() {
+        if (gsmf) {
+            return "1";
+        } else {
+            return "";
+        }
+    }
+
+    public String getSrvt() {
+        return srvt;
+    }
+
+    public String getGsm() {
+        return gsm;
+    }
+
+    public Cron getCron() {
+        return cron;
+    }
+
+    public IbuttonKeys getKeys() {
+        return keys;
+    }
+
+    public List<Screen> getScreenList() {
+        return screenList;
+    }
+
+    public List<Elements> getElementsList() {
+        return elementsList;
+    }
+
+    public List<Program> getProgramList() {
+        return programList;
+    }
+
+    public List<PID> getPidList() {
+        return pidList;
+    }
+
+    public Map<Integer, Port> getPortList() {
+        return portList;
+    }
+
+    public Map<Integer, MegaDTypesEnum> getPortsType() {
+        return portsType;
+    }
+
+    public Map<Integer, MegaDModesEnum> getPortsMode() {
+        return portsMode;
+    }
+
+    public Map<Integer, MegaDDsenEnum> getdSensorType() {
+        return dSensorType;
+    }
+
+    public Map<Integer, Integer> getScl() {
+        return scl;
+    }
+
+    public Map<Integer, MegaDExtendersEnum> getdI2cType() {
+        return dI2cType;
+    }
+
+    public Map<Integer, MegaDExtendedType> getEtyType() {
+        return etyType;
+    }
+
+    public Map<Integer, Integer> getInta() {
+        return inta;
+    }
+
     private String gw = "";
     private String pr = "";
     private String lp = "";
@@ -57,11 +150,12 @@ public class MegaDHardware {
     List<Elements> elementsList = new ArrayList<>();
     List<Program> programList = new ArrayList<>();
     List<PID> pidList = new ArrayList<>();
+    Map<Integer, Port> portList = new HashMap<>();
     private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
     private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
     private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
     private final Map<Integer, Integer> scl = new HashMap<>();
-    private final Map<Integer, MegaDI2CSensorsEnum> dI2cType = new HashMap<>();
+    private final Map<Integer, MegaDExtendersEnum> dI2cType = new HashMap<>();
     private final Map<Integer, MegaDExtendedType> etyType = new HashMap<>();
     private final Map<Integer, Integer> inta = new HashMap<>();
 
@@ -71,80 +165,102 @@ public class MegaDHardware {
 
     public MegaDHardware(String hostname, String password) {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
-        MegaDHTTPResponse megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=1");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            sip = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "sip");
-            emsk = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emsk");
-            gw = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "gw");
-            sct = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "sct");
-            pr = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "pr");
-            lp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "lp");
-            gsmf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "gsmf");
-            srvt = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "srvt");
-            gsm = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gsm");
-        }
-        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=2");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            mdid = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "mdid");
-            sl = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "sl");
-        }
-        for (int i = 0; i < 5; i++) {
-            megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=6&sc=" + i);
-            if (megaDHTTPResponse.getResponseCode() == 200) {
-                Screen screen = new Screen();
-                screen.scrnt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "scrnt");
-                screen.scrnc = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "scrnc");
-                for (int j = 0; j < 15; j++) {
-                    screen.e[j] = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "e" + j);
-                }
-                screenList.add(screen);
-            }
-        }
-        for (int i = 0; i < 16; i++) {
-            megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=6&el=" + i);
-            if (megaDHTTPResponse.getResponseCode() == 200) {
-                Elements elements = new Elements();
-                elements.elemt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemt");
-                elements.elemy = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "elemy");
-                elements.elemi = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemi");
-                elements.elemp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemp");
-                elements.elemf = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemf");
-                elements.elema = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "elema");
-                elements.elemz = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemz");
-                elements.elemc = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemc");
-                elements.elemr = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemr");
-                elementsList.add(elements);
-            }
-        }
-        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=7");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            cron.stime = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "stime");
-            cron.cscl = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "cscl");
-            cron.csda = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "csda");
-            for (int i = 0; i < 5; i++) {
-                cron.crnt[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crnt" + i);
-                cron.crna[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crna" + i);
-            }
+        readConfigPage1(hostname, password, http);
+        readConfigPage2(hostname, password, http);
+        // readScreens(hostname, password, http);
+        // readElements(hostname, password, http);
+        // readCron(hostname, password, http);
+        // readKeys(hostname, password, http);
+        // readProgram(hostname, password, http);
+        // readPID(hostname, password, http);
+        getActualFirmware(http);
+        getMegaPortsAndType(hostname, password, http);
+        getPortsStatus(hostname, password, http);
+    }
 
-        }
-        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=8");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            for (int i = 0; i < 5; i++) {
-                keys.key[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crnt" + i);
+    public void getPortsStatus(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        for (int i = 0; i < getPortsCount(); i++) {
+            megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?pt=" + i);
+            if (megaDHTTPResponse.getResponseCode() == 200) {
+                Port port = new Port();
+                String pty = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "pty");
+                if (pty.isBlank()) {
+                    port.pty = MegaDTypesEnum.NC;
+                } else {
+                    port.pty = MegaDTypesEnum.setID(Integer.parseInt(pty));
+                }
+                port.ecmd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "ecmd");
+                port.af = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "af");
+                port.eth = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eth");
+                port.naf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "naf");
+                port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
+                port.miscChecked = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
+                port.misc = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
+                port.dCheckbox = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
+                port.mt = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "mt");
+                port.emt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emt");
+                port.dSelect = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
+                port.setD(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "d"));
+                port.grp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "grp");
+                port.hst = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "hst");
+                port.gr = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gr");
+                port.clock = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "clock");
+                port.inta = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "inta");
+                if (port.pty == MegaDTypesEnum.I2C && (port.d.equals("20") || port.d.equals("21"))) {
+                    for (int j = 0; j < 16; j++) {
+                        megaDHTTPResponse = http
+                                .request("http://" + hostname + "/" + password + "/?pt=" + i + "&ext=" + j);
+                        if (megaDHTTPResponse.getResponseCode() == 200) {
+                            ExtPort extPort = new ExtPort();
+                            extPort.ety = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "ety");
+                            extPort.ept = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "ept");
+                            extPort.eact = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eact");
+                            extPort.epf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "epf");
+                            extPort.emode = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "emode");
+                            extPort.emin = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emin");
+                            extPort.emax = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emax");
+                            extPort.espd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "espd");
+                            extPort.setEpwm(getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "epwm"));
+                            port.extPorts.put(j, extPort);
+                        }
+                    }
+                }
+                portList.put(i, port);
             }
         }
-        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=10");
+    }
+
+    private void getMegaPortsAndType(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password);
         if (megaDHTTPResponse.getResponseCode() == 200) {
-            for (int i = 0; i < 10; i++) {
-                Program program = new Program();
-                program.prp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prp");
-                program.prc = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "prc");
-                program.prv = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prv");
-                program.prd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prd");
-                program.prs = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "prs");
-                programList.add(program);
+            type = megaDHTTPResponse.getResponseResult().strip().trim().split(" ")[0];
+            firmware = megaDHTTPResponse.getResponseResult()
+                    .substring(megaDHTTPResponse.getResponseResult().indexOf("fw:") + 3,
+                            megaDHTTPResponse.getResponseResult().indexOf("<br>") - 1)
+                    .strip().trim();
+            if (megaDHTTPResponse.getResponseResult().contains("[44,")) {
+                setPortsCount(45);
+            } else {
+                setPortsCount(37);
             }
         }
+    }
+
+    private void getActualFirmware(MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            actualFirmware = megaDHTTPResponse.getResponseResult().substring(
+                    megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
+                    megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
+            actualFirmware = actualFirmware.split("ver")[1].trim().strip();
+        }
+    }
+
+    public void readPID(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
         for (int i = 0; i < 5; i++) {
             megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=11&pid=" + i);
             if (megaDHTTPResponse.getResponseCode() == 200) {
@@ -161,31 +277,110 @@ public class MegaDHardware {
                 pidList.add(pid);
             }
         }
-        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            actualFirmware = megaDHTTPResponse.getResponseResult().substring(
-                    megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
-                    megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
-            actualFirmware = actualFirmware.split("ver")[1].trim().strip();
-        }
-        megaDHTTPResponse = http.request("http://" + hostname + "/" + password);
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            type = megaDHTTPResponse.getResponseResult().strip().trim().split(" ")[0];
-            firmware = megaDHTTPResponse.getResponseResult()
-                    .substring(megaDHTTPResponse.getResponseResult().indexOf("fw:") + 3,
-                            megaDHTTPResponse.getResponseResult().indexOf("<br>") - 1)
-                    .strip().trim();
-            if (megaDHTTPResponse.getResponseResult().contains("[44,")) {
-                setPortsCount(45);
-            } else {
-                setPortsCount(37);
-            }
-            for (int i = 0; i <= getPortsCount(); i++) {
-                megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?pt=" + i);
-                if (megaDHTTPResponse.getResponseCode() == 200) {
+    }
 
-                }
+    public void readProgram(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        programList.clear();
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=10");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            for (int i = 0; i < 10; i++) {
+                Program program = new Program();
+                program.prp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prp");
+                program.prc = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "prc");
+                program.prv = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prv");
+                program.prd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "prd");
+                program.prs = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "prs");
+                programList.add(program);
             }
+        }
+    }
+
+    public void readKeys(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=8");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            for (int i = 0; i < 5; i++) {
+                keys.key[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crnt" + i);
+            }
+        }
+    }
+
+    public void readCron(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=7");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            cron.stime = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "stime");
+            cron.cscl = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "cscl");
+            cron.csda = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "csda");
+            for (int i = 0; i < 5; i++) {
+                cron.crnt[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crnt" + i);
+                cron.crna[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crna" + i);
+            }
+
+        }
+    }
+
+    public void readElements(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        elementsList.clear();
+        for (int i = 0; i < 16; i++) {
+            megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=6&el=" + i);
+            if (megaDHTTPResponse.getResponseCode() == 200) {
+                Elements elements = new Elements();
+                elements.elemt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemt");
+                elements.elemy = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "elemy");
+                elements.elemi = getValueByHTMLName(megaDHTTPResponse.getResponseResult().replace("&amp;", "&"),
+                        "elemi");
+                elements.elemp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemp");
+                elements.elemf = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemf");
+                elements.elema = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "elema");
+                elements.elemz = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemz");
+                elements.elemc = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemc");
+                elements.elemu = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemu");
+                elements.elemr = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "elemr");
+                elementsList.add(elements);
+            }
+        }
+    }
+
+    public void readScreens(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        for (int i = 0; i < 5; i++) {
+            megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=6&sc=" + i);
+            if (megaDHTTPResponse.getResponseCode() == 200) {
+                Screen screen = new Screen();
+                screen.scrnt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "scrnt");
+                screen.scrnc = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "scrnc");
+                for (int j = 0; j < 16; j++) {
+                    screen.e[j] = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "e" + j);
+                }
+                screenList.add(screen);
+            }
+        }
+    }
+
+    public void readConfigPage2(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=2");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            mdid = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "mdid");
+            sl = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "sl");
+        }
+    }
+
+    public void readConfigPage1(String hostname, String password, MegaDHttpHelpers http) {
+        MegaDHTTPResponse megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?cf=1");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            sip = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "sip");
+            emsk = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emsk");
+            gw = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "gw");
+            sct = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "sct");
+            pr = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "pr");
+            lp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "lp");
+            gsmf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "gsmf");
+            srvt = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "srvt");
+            gsm = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gsm");
         }
     }
 
@@ -196,11 +391,6 @@ public class MegaDHardware {
     public MegaDHardware() {
     }
 
-    // public void parse(String result) {
-    // type = result.strip().trim().split(" ")[0];
-    // firmware = result.substring(result.indexOf("fw:") + 3, result.indexOf("<br>") - 1).strip().trim();
-    // }
-
     public String getType() {
         return type;
     }
@@ -209,11 +399,12 @@ public class MegaDHardware {
         return firmware;
     }
 
-    // public String getMdid() {
-    // return mdid;
-    // }
-    public boolean isSl() {
-        return sl;
+    public String isSl() {
+        if (sl) {
+            return "1";
+        } else {
+            return "";
+        }
     }
 
     public String getActualFirmware() {
@@ -232,8 +423,14 @@ public class MegaDHardware {
         portsType.put(portNum, megaDTypesEnum);
     }
 
-    public @Nullable MegaDTypesEnum getPortsType(int port) {
-        return portsType.get(port);
+    public @Nullable MegaDTypesEnum getPortsType(int portNum) {
+        Map<Integer, Port> portList = this.portList;
+        Port port = portList.get(portNum);
+        if (port != null) {
+            return port.getPty();
+        } else {
+            return null;
+        }
     }
 
     public void setMode(int portNum, MegaDModesEnum megaDModesEnum) {
@@ -260,11 +457,11 @@ public class MegaDHardware {
         this.scl.put(portNum, scl);
     }
 
-    public void setDI2CType(Integer port, MegaDI2CSensorsEnum megaDI2CSensorsEnum) {
-        dI2cType.put(port, megaDI2CSensorsEnum);
+    public void setDI2CType(Integer port, MegaDExtendersEnum megaDExtendersEnum) {
+        dI2cType.put(port, megaDExtendersEnum);
     }
 
-    public @Nullable MegaDI2CSensorsEnum getDI2cType(Integer port) {
+    public @Nullable MegaDExtendersEnum getDI2cType(Integer port) {
         return dI2cType.get(port);
     }
 
@@ -295,7 +492,7 @@ public class MegaDHardware {
             result = request.substring(request.indexOf("name=" + name));
             result = result.substring(result.indexOf("name=" + name), result.indexOf(">"));
             if (result.contains("value=")) {
-                result = result.substring(result.indexOf("value=") + "value=".length());
+                result = result.substring(result.indexOf("value=") + "value=".length()).replace("''", "");
             } else {
                 result = "";
             }
@@ -323,22 +520,77 @@ public class MegaDHardware {
     private boolean getCheckedByHTMLName(String request, String name) {
         boolean result = false;
         String tag = "";
-        tag = request.substring(request.indexOf("name=" + name));
-        tag = tag.substring(tag.indexOf("name=" + name), tag.indexOf(">"));
-        // tag = tag.substring(tag.indexOf("value=") + "value=".length(), tag.indexOf("><br>"));
-        if (tag.contains("checked")) {
-            result = true;
+        if (request.contains("name=" + name)) {
+            tag = request.substring(request.indexOf("name=" + name));
+            tag = tag.substring(tag.indexOf("name=" + name), tag.indexOf(">"));
+            // tag = tag.substring(tag.indexOf("value=") + "value=".length(), tag.indexOf("><br>"));
+            if (tag.contains("checked")) {
+                result = true;
+            }
         }
         return result;
     }
 
-    private class Screen {
-        private String scrnt = "";
-        private String scrnc = "";
-        private boolean[] e = new boolean[15];
+    public @Nullable Port getPort(int i) {
+        Map<Integer, Port> portList = this.portList;
+        return portList.get(i);
     }
 
-    private class Elements {
+    public class Screen {
+        public String getScrnt() {
+            return scrnt;
+        }
+
+        public String getScrnc() {
+            return scrnc;
+        }
+
+        public boolean[] getE() {
+            return e;
+        }
+
+        private String scrnt = "";
+        private String scrnc = "";
+        private boolean[] e = new boolean[16];
+    }
+
+    public class Elements {
+        public String getElemt() {
+            return elemt;
+        }
+
+        public String getElemy() {
+            return elemy;
+        }
+
+        public String getElemi() {
+            return elemi;
+        }
+
+        public String getElemp() {
+            return elemp;
+        }
+
+        public String getElemf() {
+            return elemf;
+        }
+
+        public String getElema() {
+            return elema;
+        }
+
+        public String getElemz() {
+            return elemz;
+        }
+
+        public String getElemc() {
+            return elemc;
+        }
+
+        public String getElemr() {
+            return elemr;
+        }
+
         private String elemt = "";
         private String elemy = "";
         private String elemi = "";
@@ -348,9 +600,34 @@ public class MegaDHardware {
         private String elemz = "";
         private String elemc = "";
         private String elemr = "";
+        private String elemu = "";
+
+        public String getElemu() {
+            return elemu;
+        }
     }
 
-    private class Cron {
+    public class Cron {
+        public String getStime() {
+            return stime;
+        }
+
+        public String getCscl() {
+            return cscl;
+        }
+
+        public String getCsda() {
+            return csda;
+        }
+
+        public String[] getCrnt() {
+            return crnt;
+        }
+
+        public String[] getCrna() {
+            return crna;
+        }
+
         private String stime = "";
         private String cscl = "";
         private String csda = "";
@@ -358,11 +635,39 @@ public class MegaDHardware {
         private String[] crna = new String[5];
     }
 
-    private class IbuttonKeys {
+    public class IbuttonKeys {
+        public String[] getKey() {
+            return key;
+        }
+
         private String[] key = new String[5];
     }
 
-    private class Program {
+    public class Program {
+        public String getPrp() {
+            return prp;
+        }
+
+        public String getPrc() {
+            return prc;
+        }
+
+        public String getPrv() {
+            return prv;
+        }
+
+        public String getPrd() {
+            return prd;
+        }
+
+        public String isPrs() {
+            if (prs) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
         private String prp = "";
         private String prc = "";
         private String prv = "";
@@ -370,7 +675,43 @@ public class MegaDHardware {
         private boolean prs = false;
     }
 
-    private class PID {
+    public class PID {
+        public String getPidt() {
+            return pidt;
+        }
+
+        public String getPidi() {
+            return pidi;
+        }
+
+        public String getPido() {
+            return pido;
+        }
+
+        public String getPidsp() {
+            return pidsp;
+        }
+
+        public String getPidpf() {
+            return pidpf;
+        }
+
+        public String getPidif() {
+            return pidif;
+        }
+
+        public String getPiddf() {
+            return piddf;
+        }
+
+        public String getPidm() {
+            return pidm;
+        }
+
+        public String getPidc() {
+            return pidc;
+        }
+
         private String pidt = "";
         private String pidi = "";
         private String pido = "";
@@ -382,7 +723,233 @@ public class MegaDHardware {
         private String pidc = "";
     }
 
-    private class Port{
+    public class Port {
+        private Map<Integer, ExtPort> extPorts = new HashMap<>();
+        private MegaDTypesEnum pty = MegaDTypesEnum.NC;
+        private String ecmd = "";
+        private boolean af = false;
+        private String eth = "";
+        private boolean naf = false;
+        private MegaDModesEnum m = MegaDModesEnum.NONE;
+        private String mAsString = "";
+        private boolean miscChecked = false;
+        private String misc = "";
+        private boolean dCheckbox = false;
+        private String d = "";
+        private MegaDExtendersEnum extenders = MegaDExtendersEnum.NC;
+        private String dSelect = "";
+        private boolean mt = false;
+        private String emt = "";
+        private String grp = "";
+        private String hst = "";
+        private String gr = "";
+        private String clock = "";
+        private String inta = "";
+        // private MegaDDsenEnum senType = MegaDDsenEnum.NC;
 
+        public Map<Integer, ExtPort> getExtPorts() {
+            return extPorts;
+        }
+
+        public MegaDTypesEnum getPty() {
+            return pty;
+        }
+
+        public String getEcmd() {
+            return ecmd;
+        }
+
+        public String isAf() {
+            if (af) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public String getEth() {
+            return eth;
+        }
+
+        public String isNaf() {
+            if (naf) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public MegaDModesEnum getM() {
+            return m;
+        }
+
+        public void setM(String m) {
+            this.mAsString = m;
+            if (pty == MegaDTypesEnum.I2C) {
+                switch (m) {
+                    case "0" -> this.m = MegaDModesEnum.NC;
+                    case "1" -> this.m = MegaDModesEnum.SDA;
+                    case "2" -> this.m = MegaDModesEnum.SCL;
+                }
+            } else if (pty == MegaDTypesEnum.IN) {
+                switch (m) {
+                    case "0" -> this.m = MegaDModesEnum.P;
+                    case "1" -> this.m = MegaDModesEnum.PR;
+                    case "2" -> this.m = MegaDModesEnum.R;
+                    case "3" -> this.m = MegaDModesEnum.C;
+                }
+            } else if (pty == MegaDTypesEnum.OUT) {
+                switch (m) {
+                    case "0" -> this.m = MegaDModesEnum.SW;
+                    case "2" -> this.m = MegaDModesEnum.DS2413;
+                    case "3" -> this.m = MegaDModesEnum.SWLINK;
+                    case "4" -> this.m = MegaDModesEnum.WS281X;
+                }
+            }
+        }
+
+        public String isMiscChecked() {
+            if (miscChecked) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public String getMisc() {
+            return misc;
+        }
+
+        public String isdCheckbox() {
+            if (dCheckbox) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public String getD() {
+            return d;
+        }
+
+        public MegaDExtendersEnum getExtenders() {
+            return extenders;
+        }
+
+        public void setD(String d) {
+            this.d = d;
+            if (pty == MegaDTypesEnum.I2C) {
+                switch (d) {
+                    case "0" -> this.extenders = MegaDExtendersEnum.NC;
+                    case "21" -> this.extenders = MegaDExtendersEnum.PCA9685;
+                    case "20" -> this.extenders = MegaDExtendersEnum.MCP230XX;
+                }
+            } // else if (pty == MegaDTypesEnum.DSEN) {
+              // switch (d) {
+              // case "1" -> this.senType = MegaDDsenEnum.DHT11;
+              // case "2" -> this.senType = MegaDDsenEnum.DHT22;
+              // case "3" -> this.senType = MegaDDsenEnum.ONEWIRE;
+              // case "4" -> this.senType = MegaDDsenEnum.IB;
+              // case "5" -> this.senType = MegaDDsenEnum.ONEWIREBUS;
+              // case "6" -> this.senType = MegaDDsenEnum.W26;
+              // }
+              // }
+        }
+
+        public String getdSelect() {
+            return dSelect;
+        }
+
+        public String isMt() {
+            if (mt) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public String getEmt() {
+            return emt;
+        }
+
+        public String getGrp() {
+            return grp;
+        }
+
+        public String getHst() {
+            return hst;
+        }
+
+        public String getGr() {
+            return gr;
+        }
+
+        public String getClock() {
+            return clock;
+        }
+
+        public String getInta() {
+            return inta;
+        }
+
+        public String getmAsString() {
+            return mAsString;
+        }
+    }
+
+    public class ExtPort {
+        private String ety = "";
+        private String ept = "";
+        private String eact = "";
+        private boolean epf = false;
+        private String emode = "";
+        private String emin = "";
+        private String emax = "";
+        private String espd = "";
+        private String epwm = "";
+
+        public String getEty() {
+            return ety;
+        }
+
+        public String getEpt() {
+            return ept;
+        }
+
+        public String getEact() {
+            return eact;
+        }
+
+        public String isEpf() {
+            if (epf) {
+                return "1";
+            } else {
+                return "";
+            }
+        }
+
+        public String getEmode() {
+            return emode;
+        }
+
+        public String getEmin() {
+            return emin;
+        }
+
+        public String getEmax() {
+            return emax;
+        }
+
+        public String getEspd() {
+            return espd;
+        }
+
+        public String getEpwm() {
+            return epwm;
+        }
+
+        public void setEpwm(String epwm) {
+            this.epwm = epwm.split(" ")[0];
+        }
     }
 }

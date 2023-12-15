@@ -53,6 +53,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_PROGRESS = "progress";
     public static final String CHANNEL_STATUS = "status";
     public static final String CHANNEL_WRITE_CONF = "writeconf";
+    public static final String CHANNEL_READ_CONF = "readconf";
 
     // i2c
     public static final String CHANNEL_TEMP = "temp";

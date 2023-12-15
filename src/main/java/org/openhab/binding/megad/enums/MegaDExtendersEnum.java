@@ -10,27 +10,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.internal;
+package org.openhab.binding.megad.enums;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link MegaDDsenEnum} is responsible for http request to megad
+ * The {@link MegaDExtendersEnum} is responsible for http request to megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public enum MegaDDsenEnum {
-    DHT11(1),
-    DHT22(2),
-    ONEWIRE(3),
-    IB(4),
-    ONEWIREBUS(5),
-    W26(6);
+public enum MegaDExtendersEnum {
+    NC(0),
+    MCP230XX(20),
+    PCA9685(21);
 
     private final int id;
 
-    MegaDDsenEnum(int id) {
+    MegaDExtendersEnum(int id) {
         this.id = id;
     }
 
