@@ -245,7 +245,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             }
                         }
                         flashFirmware(receivedPacket);
-                        //eraseEEPROM();
+                        // eraseEEPROM();
                         broadcast_string = "AA0003" + checkData;
                         buf = HexFormat.of().parseHex(broadcast_string);
                         DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
@@ -515,25 +515,27 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
         String broadcast_string = "AA0009" + checkData;
         try {
-            buf = HexFormat.of().parseHex(broadcast_string);
-            byte[] eraseBuf = new byte[5];
-            DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
-            socket.send(erasePacket);
-            DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
-            socket.receive(rcvErasePacket);
-            broadcast_string = "AA0109" + checkData;
-            buf = HexFormat.of().parseHex(broadcast_string);
-            eraseBuf = new byte[5];
-            erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
-            socket.send(erasePacket);
-            rcvErasePacket = new DatagramPacket(eraseBuf, 5);
-            socket.receive(rcvErasePacket);
-            if (rcvErasePacket.getData() != null) {
-                if (((eraseBuf[0] & 0xFF) == 0xAA) && ((eraseBuf[1] & 0xFF) == 0x01)) {
-                    logger.warn("EEPROM erased");
+            DatagramSocket socket = this.socket;
+            if (socket != null) {
+                buf = HexFormat.of().parseHex(broadcast_string);
+                byte[] eraseBuf = new byte[5];
+                DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+                socket.send(erasePacket);
+                DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
+                socket.receive(rcvErasePacket);
+                broadcast_string = "AA0109" + checkData;
+                buf = HexFormat.of().parseHex(broadcast_string);
+                eraseBuf = new byte[5];
+                erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+                socket.send(erasePacket);
+                rcvErasePacket = new DatagramPacket(eraseBuf, 5);
+                socket.receive(rcvErasePacket);
+                if (rcvErasePacket.getData() != null) {
+                    if (((eraseBuf[0] & 0xFF) == 0xAA) && ((eraseBuf[1] & 0xFF) == 0x01)) {
+                        logger.warn("EEPROM erased");
+                    }
                 }
             }
-
         } catch (IOException e) {
             logger.error("EEPROM deleting error {}", e.getMessage());
         }
