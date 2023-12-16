@@ -18,6 +18,11 @@
 				<description>Password to access the device</description>
 				<default>sec</default>
 			</parameter>
+			<parameter name="ping" type="boolean" required="true">
+				<label>Ping device</label>
+				<description>Set to true if you want to ping mega for accessibility once per second</description>
+				<default>true</default>
+			</parameter>
 		</config-description>
 	</bridge-type>
 </thing:thing-descriptions>

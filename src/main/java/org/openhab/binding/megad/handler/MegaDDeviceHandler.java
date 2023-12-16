@@ -510,13 +510,18 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     private void refresh() {
         if (!firmwareUpdate) {
-            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-            int response = httpRequest.request("http://" + config.hostname + "/" + config.password).getResponseCode();
-            if (response == 200) {
-                updateStatus(ThingStatus.ONLINE);
-            } else {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        "Device not responding on ping");
+            if (config.ping) {
+                MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                int response = httpRequest.request("http://" + config.hostname + "/" + config.password)
+                        .getResponseCode();
+                if (response == 200) {
+                    if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
+                        updateStatus(ThingStatus.ONLINE);
+                    }
+                } else {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                            "Device not responding on ping");
+                }
             }
             long now = System.currentTimeMillis();
             ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
@@ -584,6 +589,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     public void started() {
         triggerChannel(MegaDBindingConstants.CHANNEL_ST, "START");
+        MegaDHttpHelpers http = new MegaDHttpHelpers();
+        megaDHardware.getMegaPortsAndType(config.hostname, config.password, http);
+        megaDHardware.getPortsStatus(config.hostname, config.password, http);
     }
 
     private void readConf() {
@@ -735,7 +743,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         cfgLine.append("&gr").append("=").append(port.getGr());
                         cfgLine.append("&d").append("=").append(port.getdSelect());
                         cfgLine.append("&hst").append("=").append(port.getHst());
-                        cfgLine.append("&inta").append("=").append(port.getInta());
+                        cfgLine.append("&inta").append("=").append(megaDHardware.getIntAsString(i));
                         cfgLine.append("&clock").append("=").append(port.getClock());
                     }
                     cfgLine.append("&emt").append("=").append(URLEncoder.encode(port.getEmt(), "windows-1251"));
@@ -745,22 +753,24 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     if (!port.getExtPorts().isEmpty()) {
                         for (int j = 0; j < port.getExtPorts().size(); j++) {
                             MegaDHardware.ExtPort extPort = port.getExtPorts().get(j);
-                            cfgLine = new StringBuilder("pt=").append(i);
-                            cfgLine.append("&ext=").append(j);
-                            cfgLine.append("&ety").append("=").append(extPort.getEty());
-                            cfgLine.append("&ept").append("=")
-                                    .append(URLEncoder.encode(extPort.getEpt(), "windows-1251"));
-                            cfgLine.append("&eact").append("=")
-                                    .append(URLEncoder.encode(extPort.getEact(), "windows-1251"));
-                            cfgLine.append("&epf").append("=").append(extPort.isEpf());
-                            cfgLine.append("&emode").append("=").append(extPort.getEmode());
-                            cfgLine.append("&emin").append("=").append(extPort.getEmin());
-                            cfgLine.append("&emax").append("=").append(extPort.getEmax());
-                            cfgLine.append("&espd").append("=").append(extPort.getEspd());
-                            cfgLine.append("&epwm").append("=").append(extPort.getEpwm());
-                            cfgLine.append("&nr=1\n");
-                            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
-                                    StandardOpenOption.APPEND);
+                            if (extPort != null) {
+                                cfgLine = new StringBuilder("pt=").append(i);
+                                cfgLine.append("&ext=").append(j);
+                                cfgLine.append("&ety").append("=").append(extPort.getEty().getID());
+                                cfgLine.append("&ept").append("=")
+                                        .append(URLEncoder.encode(extPort.getEpt(), "windows-1251"));
+                                cfgLine.append("&eact").append("=")
+                                        .append(URLEncoder.encode(extPort.getEact(), "windows-1251"));
+                                cfgLine.append("&epf").append("=").append(extPort.isEpf());
+                                cfgLine.append("&emode").append("=").append(extPort.getEmode());
+                                cfgLine.append("&emin").append("=").append(extPort.getEmin());
+                                cfgLine.append("&emax").append("=").append(extPort.getEmax());
+                                cfgLine.append("&espd").append("=").append(extPort.getEspd());
+                                cfgLine.append("&epwm").append("=").append(extPort.getEpwm());
+                                cfgLine.append("&nr=1\n");
+                                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
+                                        StandardOpenOption.APPEND);
+                            }
                         }
 
                     }
@@ -815,7 +825,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         } catch (InterruptedException ignored) {
         }
         MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-        int response = httpRequest.request("http://" + config.hostname + "/" + config.password + "/?restart=1")
-                .getResponseCode();
+        httpRequest.request("http://" + config.hostname + "/" + config.password + "/?restart=1");
     }
 }

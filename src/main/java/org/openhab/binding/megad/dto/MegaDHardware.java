@@ -20,10 +20,10 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.enums.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.binding.megad.enums.MegaDExtendersEnum;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
-import org.openhab.binding.megad.internal.MegaDExtendedType;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 
@@ -120,15 +120,15 @@ public class MegaDHardware {
         return dSensorType;
     }
 
-    public Map<Integer, Integer> getScl() {
-        return scl;
-    }
+    // public Map<Integer, Integer> getScl() {
+    // return scl;
+    // }
 
     public Map<Integer, MegaDExtendersEnum> getdI2cType() {
         return dI2cType;
     }
 
-    public Map<Integer, MegaDExtendedType> getEtyType() {
+    public Map<Integer, MegaDExtendedTypeEnum> getEtyType() {
         return etyType;
     }
 
@@ -154,9 +154,9 @@ public class MegaDHardware {
     private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
     private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
     private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
-    private final Map<Integer, Integer> scl = new HashMap<>();
+    // private final Map<Integer, Integer> scl = new HashMap<>();
     private final Map<Integer, MegaDExtendersEnum> dI2cType = new HashMap<>();
-    private final Map<Integer, MegaDExtendedType> etyType = new HashMap<>();
+    private final Map<Integer, MegaDExtendedTypeEnum> etyType = new HashMap<>();
     private final Map<Integer, Integer> inta = new HashMap<>();
 
     public String getSct() {
@@ -196,7 +196,7 @@ public class MegaDHardware {
                 port.naf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "naf");
                 port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
                 port.miscChecked = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
-                port.misc = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
+                port.setMisc(getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "misc"));
                 port.dCheckbox = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
                 port.mt = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "mt");
                 port.emt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emt");
@@ -206,14 +206,14 @@ public class MegaDHardware {
                 port.hst = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "hst");
                 port.gr = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gr");
                 port.clock = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "clock");
-                port.inta = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "inta");
+                setInt(i, getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "inta"));
                 if (port.pty == MegaDTypesEnum.I2C && (port.d.equals("20") || port.d.equals("21"))) {
                     for (int j = 0; j < 16; j++) {
                         megaDHTTPResponse = http
                                 .request("http://" + hostname + "/" + password + "/?pt=" + i + "&ext=" + j);
                         if (megaDHTTPResponse.getResponseCode() == 200) {
-                            ExtPort extPort = new ExtPort();
-                            extPort.ety = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "ety");
+                            ExtPort extPort = new ExtPort(port.getExtenders());
+                            extPort.setEty(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "ety"));
                             extPort.ept = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "ept");
                             extPort.eact = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eact");
                             extPort.epf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "epf");
@@ -231,7 +231,7 @@ public class MegaDHardware {
         }
     }
 
-    private void getMegaPortsAndType(String hostname, String password, MegaDHttpHelpers http) {
+    public void getMegaPortsAndType(String hostname, String password, MegaDHttpHelpers http) {
         MegaDHTTPResponse megaDHTTPResponse;
         megaDHTTPResponse = http.request("http://" + hostname + "/" + password);
         if (megaDHTTPResponse.getResponseCode() == 200) {
@@ -423,58 +423,60 @@ public class MegaDHardware {
         portsType.put(portNum, megaDTypesEnum);
     }
 
-    public @Nullable MegaDTypesEnum getPortsType(int portNum) {
-        Map<Integer, Port> portList = this.portList;
-        Port port = portList.get(portNum);
-        if (port != null) {
-            return port.getPty();
-        } else {
-            return null;
+    // public @Nullable MegaDTypesEnum getPortsType(int portNum) {
+    // Map<Integer, Port> portList = this.portList;
+    // Port port = portList.get(portNum);
+    // if (port != null) {
+    // return port.getPty();
+    // } else {
+    // return null;
+    // }
+    // }
+    //
+    // public void setMode(int portNum, MegaDModesEnum megaDModesEnum) {
+    // portsMode.put(portNum, megaDModesEnum);
+    // }
+    //
+    // public @Nullable MegaDModesEnum getMode(Integer port) {
+    // return portsMode.get(port);
+    // }
+    //
+    // public void setDSensorType(int portNum, MegaDDsenEnum megaDDsenEnum) {
+    // dSensorType.put(portNum, megaDDsenEnum);
+    // }
+
+    // public @Nullable MegaDDsenEnum getDSensorType(Integer port) {
+    // return dSensorType.get(port);
+    // }
+
+    // public @Nullable Integer getScl(Integer port) {
+    // return scl.get(port);
+    // }
+
+    // public void setScl(int portNum, int scl) {
+    // this.scl.put(portNum, scl);
+    // }
+
+    // public void setDI2CType(Integer port, MegaDExtendersEnum megaDExtendersEnum) {
+    // dI2cType.put(port, megaDExtendersEnum);
+    // }
+
+    // public @Nullable MegaDExtendersEnum getDI2cType(Integer port) {
+    // return dI2cType.get(port);
+    // }
+
+    // public void setEtyType(Integer port, MegaDExtendedTypeEnum megaDI2CSensorsEnum) {
+    // etyType.put(port, megaDI2CSensorsEnum);
+    // }
+    //
+    // public @Nullable MegaDExtendedTypeEnum getEtyType(Integer port) {
+    // return etyType.get(port);
+    // }
+    //
+    public void setInt(Integer port, String in) {
+        if (!in.isEmpty()) {
+            inta.put(Integer.parseInt(in), port);
         }
-    }
-
-    public void setMode(int portNum, MegaDModesEnum megaDModesEnum) {
-        portsMode.put(portNum, megaDModesEnum);
-    }
-
-    public @Nullable MegaDModesEnum getMode(Integer port) {
-        return portsMode.get(port);
-    }
-
-    public void setDSensorType(int portNum, MegaDDsenEnum megaDDsenEnum) {
-        dSensorType.put(portNum, megaDDsenEnum);
-    }
-
-    public @Nullable MegaDDsenEnum getDSensorType(Integer port) {
-        return dSensorType.get(port);
-    }
-
-    public @Nullable Integer getScl(Integer port) {
-        return scl.get(port);
-    }
-
-    public void setScl(int portNum, int scl) {
-        this.scl.put(portNum, scl);
-    }
-
-    public void setDI2CType(Integer port, MegaDExtendersEnum megaDExtendersEnum) {
-        dI2cType.put(port, megaDExtendersEnum);
-    }
-
-    public @Nullable MegaDExtendersEnum getDI2cType(Integer port) {
-        return dI2cType.get(port);
-    }
-
-    public void setEtyType(Integer port, MegaDExtendedType megaDI2CSensorsEnum) {
-        etyType.put(port, megaDI2CSensorsEnum);
-    }
-
-    public @Nullable MegaDExtendedType getEtyType(Integer port) {
-        return etyType.get(port);
-    }
-
-    public void setInt(Integer port, int in) {
-        inta.put(in, port);
     }
 
     public Integer getInt(Integer port) {
@@ -484,6 +486,18 @@ public class MegaDHardware {
             retn = num;
         }
         return retn;
+    }
+
+    public String getIntAsString(Integer port) {
+        var ref = new Object() {
+            String num = "";
+        };
+        inta.forEach((k, v) -> {
+            if (v.equals(port)) {
+                ref.num = k.toString();
+            }
+        });
+        return ref.num;
     }
 
     private String getValueByHTMLName(String request, String name) {
@@ -744,8 +758,8 @@ public class MegaDHardware {
         private String hst = "";
         private String gr = "";
         private String clock = "";
-        private String inta = "";
-        // private MegaDDsenEnum senType = MegaDDsenEnum.NC;
+        private MegaDDsenEnum senType = MegaDDsenEnum.NC;
+        private int scl = -1;
 
         public Map<Integer, ExtPort> getExtPorts() {
             return extPorts;
@@ -801,6 +815,7 @@ public class MegaDHardware {
             } else if (pty == MegaDTypesEnum.OUT) {
                 switch (m) {
                     case "0" -> this.m = MegaDModesEnum.SW;
+                    case "1" -> this.m = MegaDModesEnum.PWM;
                     case "2" -> this.m = MegaDModesEnum.DS2413;
                     case "3" -> this.m = MegaDModesEnum.SWLINK;
                     case "4" -> this.m = MegaDModesEnum.WS281X;
@@ -844,16 +859,16 @@ public class MegaDHardware {
                     case "21" -> this.extenders = MegaDExtendersEnum.PCA9685;
                     case "20" -> this.extenders = MegaDExtendersEnum.MCP230XX;
                 }
-            } // else if (pty == MegaDTypesEnum.DSEN) {
-              // switch (d) {
-              // case "1" -> this.senType = MegaDDsenEnum.DHT11;
-              // case "2" -> this.senType = MegaDDsenEnum.DHT22;
-              // case "3" -> this.senType = MegaDDsenEnum.ONEWIRE;
-              // case "4" -> this.senType = MegaDDsenEnum.IB;
-              // case "5" -> this.senType = MegaDDsenEnum.ONEWIREBUS;
-              // case "6" -> this.senType = MegaDDsenEnum.W26;
-              // }
-              // }
+            } else if (pty == MegaDTypesEnum.DSEN) {
+                switch (d) {
+                    case "1" -> this.senType = MegaDDsenEnum.DHT11;
+                    case "2" -> this.senType = MegaDDsenEnum.DHT22;
+                    case "3" -> this.senType = MegaDDsenEnum.ONEWIRE;
+                    case "4" -> this.senType = MegaDDsenEnum.IB;
+                    case "5" -> this.senType = MegaDDsenEnum.ONEWIREBUS;
+                    case "6" -> this.senType = MegaDDsenEnum.W26;
+                }
+            }
         }
 
         public String getdSelect() {
@@ -888,17 +903,30 @@ public class MegaDHardware {
             return clock;
         }
 
-        public String getInta() {
-            return inta;
-        }
-
         public String getmAsString() {
             return mAsString;
+        }
+
+        public MegaDDsenEnum getSenType() {
+            return senType;
+        }
+
+        public void setMisc(String misc) {
+            this.misc = misc;
+            if (getPty().equals(MegaDTypesEnum.I2C)) {
+                if (!misc.isEmpty()) {
+                    this.scl = Integer.parseInt(misc);
+                }
+            }
+        }
+
+        public int getScl() {
+            return scl;
         }
     }
 
     public class ExtPort {
-        private String ety = "";
+        private MegaDExtendedTypeEnum ety = MegaDExtendedTypeEnum.NA;
         private String ept = "";
         private String eact = "";
         private boolean epf = false;
@@ -907,8 +935,13 @@ public class MegaDHardware {
         private String emax = "";
         private String espd = "";
         private String epwm = "";
+        MegaDExtendersEnum extType;
 
-        public String getEty() {
+        public ExtPort(MegaDExtendersEnum extenders) {
+            extType = extenders;
+        }
+
+        public MegaDExtendedTypeEnum getEty() {
             return ety;
         }
 
@@ -950,6 +983,20 @@ public class MegaDHardware {
 
         public void setEpwm(String epwm) {
             this.epwm = epwm.split(" ")[0];
+        }
+
+        public void setEty(String ety) {
+            if (extType.equals(MegaDExtendersEnum.MCP230XX)) {
+                switch (ety) {
+                    case "0" -> this.ety = MegaDExtendedTypeEnum.IN;
+                    case "1" -> this.ety = MegaDExtendedTypeEnum.OUT;
+                }
+            } else if (extType.equals(MegaDExtendersEnum.PCA9685)) {
+                switch (ety) {
+                    case "0" -> this.ety = MegaDExtendedTypeEnum.PWM;
+                    case "1" -> this.ety = MegaDExtendedTypeEnum.SW;
+                }
+            }
         }
     }
 }
