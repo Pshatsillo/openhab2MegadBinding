@@ -26,6 +26,8 @@ import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -35,6 +37,7 @@ import org.openhab.binding.megad.internal.MegaDHttpHelpers;
  */
 @NonNullByDefault
 public class MegaDHardware {
+    private Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     // private final Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     private String firmware = "";
     private String actualFirmware = "";
@@ -241,7 +244,7 @@ public class MegaDHardware {
                             megaDHTTPResponse.getResponseResult().indexOf("<br>") - 1)
                     .strip().trim();
             if (megaDHTTPResponse.getResponseResult().contains("[44,")) {
-                setPortsCount(45);
+                setPortsCount(46);
             } else {
                 setPortsCount(37);
             }
@@ -517,18 +520,22 @@ public class MegaDHardware {
     private String getSelectedByHTMLName(String request, String name) {
         String result = "";
         String tag = "<select name=" + name + ">";
-        int dStartIndex = request.indexOf(tag) + tag.length();
-        int dEndIndex = request.substring(dStartIndex).indexOf("</select>") + dStartIndex;
-        String selectTag = request.substring(dStartIndex, dEndIndex);
-        String[] optionList = selectTag.split("<option");
-        for (String selectOption : optionList) {
-            if (selectOption.contains("selected")) {
-                result = selectOption
-                        .substring(selectOption.indexOf("value=") + "value=".length(), selectOption.indexOf("s"))
-                        .trim();
+        if (request.contains(tag)) {
+            int dStartIndex = request.indexOf(tag) + tag.length();
+            int dEndIndex = request.substring(dStartIndex).indexOf("</select>") + dStartIndex;
+            String selectTag = request.substring(dStartIndex, dEndIndex);
+            String[] optionList = selectTag.split("<option");
+            for (String selectOption : optionList) {
+                if (selectOption.contains("selected")) {
+                    result = selectOption
+                            .substring(selectOption.indexOf("value=") + "value=".length(), selectOption.indexOf("s"))
+                            .trim();
+                }
             }
+            return result;
+        } else {
+            return "";
         }
-        return result;
     }
 
     private boolean getCheckedByHTMLName(String request, String name) {

@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.internal;
+package org.openhab.binding.megad.RS485;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;

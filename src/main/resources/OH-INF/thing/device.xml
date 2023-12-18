@@ -23,6 +23,11 @@
 				<description>Set to true if you want to ping mega for accessibility once per second</description>
 				<default>true</default>
 			</parameter>
+			<parameter name="setup" type="boolean" required="true">
+				<label>Auto setup</label>
+				<description>Openhab automatically set server settings and script according to default IP address</description>
+				<default>true</default>
+			</parameter>
 		</config-description>
 	</bridge-type>
 </thing:thing-descriptions>

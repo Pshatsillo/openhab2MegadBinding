@@ -43,6 +43,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
@@ -109,17 +110,19 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             properties.put("Firmware:", megaDHardware.getFirmware());
             properties.put("Actual Firmware:", megaDHardware.getActualFirmware());
             updateProperties(properties);
-            String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
-            for (InetAddress address : MegaDService.interfacesAddresses) {
-                if (address.getHostAddress().startsWith(ip)) {
-                    if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
-                        if ((!megaDHardware.getSip()
-                                .equals(MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
-                                        + ":" + MegaDService.port))
-                                || (!megaDHardware.getSct().equals("megad"))) {
-                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                    + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
-                                    + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
+            if (config.setup) {
+                String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
+                for (InetAddress address : MegaDService.interfacesAddresses) {
+                    if (address.getHostAddress().startsWith(ip)) {
+                        if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
+                            if ((!megaDHardware.getSip()
+                                    .equals(MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
+                                            + ":" + MegaDService.port))
+                                    || (!megaDHardware.getSct().equals("megad"))) {
+                                httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
+                                        + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
+                                        + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
+                            }
                         }
                     }
                 }
@@ -618,6 +621,10 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             this.socket = socket;
         }
         super.dispose();
+        List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
+        if (megaDDeviceHandlerList != null) {
+            megaDDeviceHandlerList.remove(this);
+        }
     }
 
     public void started() {

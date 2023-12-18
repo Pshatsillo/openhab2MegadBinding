@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.internal;
+package org.openhab.binding.megad.RS485;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 @NonNullByDefault
 public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
+    final Logger logger = LoggerFactory.getLogger(MegaDWBMAP6S.class);
     String address;
     MegaDDeviceHandler bridgeHandler;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
@@ -41,14 +43,14 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
     }
 
     private String getValueFromWBMAP6S(String valueByte, int registersCount) {
-        final Logger logger = LoggerFactory.getLogger(MegaDWBMAP6S.class);
         String result = "http://" + bridgeHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                 + bridgeHandler.getThing().getConfiguration().get("password").toString() + "/?uart_tx="
                 + Integer.toHexString(Integer.parseInt(address)) + "04" + valueByte + "000" + registersCount
                 + "&mode=rs485";
-        httpHelper.request(result);
+        String response = httpHelper.request(result).getResponseResult();
+        logger.debug("rs485 response is {} ", response);
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException ignored) {
         }
         result = "http://" + bridgeHandler.getThing().getConfiguration().get("hostname").toString() + "/"

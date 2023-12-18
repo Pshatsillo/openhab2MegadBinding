@@ -31,4 +31,5 @@ public class MegaDConfiguration {
     public String password = "";
     public int refresh = 0;
     public boolean ping = true;
+    public boolean setup = true;
 }

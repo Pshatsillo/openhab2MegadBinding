@@ -100,6 +100,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startScan() {
         logger.info("StartScan");
+        scan();
         try {
             socket = new DatagramSocket(42000);
             final DatagramSocket socket = this.socket;
@@ -161,7 +162,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startBackgroundDiscovery() {
         logger.error("startBackgroundDiscovery");
-        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 60, TimeUnit.SECONDS);
+        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
     }
 
     @Override
