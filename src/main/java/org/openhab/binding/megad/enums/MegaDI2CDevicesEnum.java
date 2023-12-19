@@ -15,29 +15,19 @@ package org.openhab.binding.megad.enums;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link MegaDModesEnum} is responsible for http request to megad
+ * The {@link MegaDI2CDevicesEnum} is responsible for http request to megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
+
 @NonNullByDefault
-public enum MegaDModesEnum {
-    SW(0),
-    PWM(1),
-    DS2413(2),
-    SWLINK(3),
-    WS281X(4),
-    SDA(1),
-    SCL(2),
-    NC(0),
-    P(0),
-    PR(1),
-    R(2),
-    C(3),
+public enum MegaDI2CDevicesEnum {
+    LCD1602(80),
     NONE(255);
 
     private final int id;
 
-    MegaDModesEnum(int id) {
+    MegaDI2CDevicesEnum(int id) {
         this.id = id;
     }
 

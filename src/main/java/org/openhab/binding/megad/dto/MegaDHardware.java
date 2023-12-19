@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.enums.MegaDDsenEnum;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.binding.megad.enums.MegaDExtendersEnum;
+import org.openhab.binding.megad.enums.MegaDI2CDevicesEnum;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
@@ -767,6 +768,7 @@ public class MegaDHardware {
         private String clock = "";
         private MegaDDsenEnum senType = MegaDDsenEnum.NC;
         private int scl = -1;
+        private MegaDI2CDevicesEnum megaDI2CDevicesEnum = MegaDI2CDevicesEnum.NONE;
 
         public Map<Integer, ExtPort> getExtPorts() {
             return extPorts;
@@ -802,6 +804,10 @@ public class MegaDHardware {
 
         public MegaDModesEnum getM() {
             return m;
+        }
+
+        public MegaDI2CDevicesEnum getI2CDevicesList() {
+            return megaDI2CDevicesEnum;
         }
 
         public void setM(String m) {
@@ -865,6 +871,7 @@ public class MegaDHardware {
                     case "0" -> this.extenders = MegaDExtendersEnum.NC;
                     case "21" -> this.extenders = MegaDExtendersEnum.PCA9685;
                     case "20" -> this.extenders = MegaDExtendersEnum.MCP230XX;
+                    case "80" -> megaDI2CDevicesEnum = MegaDI2CDevicesEnum.LCD1602;
                 }
             } else if (pty == MegaDTypesEnum.DSEN) {
                 switch (d) {
@@ -929,6 +936,10 @@ public class MegaDHardware {
 
         public int getScl() {
             return scl;
+        }
+
+        public String getLabel() {
+            return emt;
         }
     }
 
