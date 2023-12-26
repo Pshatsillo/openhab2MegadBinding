@@ -233,7 +233,11 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                                 MegaDTypesEnum portType = port.getPty();
                                 if (portType != MegaDTypesEnum.NC) {
                                     if (port.getM() != MegaDModesEnum.SCL) {
-                                        addToDiscoverThing(mega, i);
+                                        String label = "";
+                                        if (!mega.megaDHardware.getMdid().isEmpty()) {
+                                            label = mega.megaDHardware.getMdid();
+                                        }
+                                        addToDiscoverThing(mega, label, i);
                                     }
                                 }
                             }
@@ -308,12 +312,17 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         }
     }
 
-    private void addToDiscoverThing(MegaDDeviceHandler mega, int i) {
-        String id = "MD" + mega.getThing().getConfiguration().get("hostname").toString().substring(
-                mega.getThing().getConfiguration().get("hostname").toString().lastIndexOf(".") + 1) + "P" + i;
-        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT, mega.getThing().getUID(), id);
-        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i)
-                .withLabel("MD" + mega.getThing().getConfiguration().get("hostname") + "P" + i)
+    private void addToDiscoverThing(MegaDDeviceHandler mega, String label, int i) {
+        if (label.isEmpty()) {
+            label = "MD"
+                    + mega.getThing().getConfiguration().get("hostname").toString().substring(
+                            mega.getThing().getConfiguration().get("hostname").toString().lastIndexOf(".") + 1)
+                    + "P" + i;
+        } else {
+            label = "id_" + label + "_P" + i;
+        }
+        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT, mega.getThing().getUID(), label);
+        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i).withLabel(label)
                 .withBridge(mega.getThing().getUID()).build();
         thingDiscovered(resultS);
     }
