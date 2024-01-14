@@ -107,6 +107,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.CONFIGURATION_PENDING);
             Map<String, String> properties = new HashMap<>();
             properties.put("Type:", megaDHardware.getType());
+            properties.put("Ports count:", String.valueOf(megaDHardware.getPortsCount()));
             properties.put("Firmware:", megaDHardware.getFirmware());
             properties.put("Actual Firmware:", megaDHardware.getActualFirmware());
             updateProperties(properties);
@@ -749,7 +750,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
             }
 
-            for (int i = 0; i < megaDHardware.getPortsCount(); i++) {
+            for (int i = 0; i <= megaDHardware.getPortsCount(); i++) {
                 MegaDHardware.Port port = megaDHardware.getPortList().get(i);
                 if (port != null) {
                     cfgLine = new StringBuilder("pn=").append(i);

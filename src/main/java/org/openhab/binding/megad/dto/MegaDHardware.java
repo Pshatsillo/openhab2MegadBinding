@@ -184,7 +184,7 @@ public class MegaDHardware {
 
     public void getPortsStatus(String hostname, String password, MegaDHttpHelpers http) {
         MegaDHTTPResponse megaDHTTPResponse;
-        for (int i = 0; i < getPortsCount(); i++) {
+        for (int i = 0; i <= getPortsCount(); i++) {
             megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?pt=" + i);
             if (megaDHTTPResponse.getResponseCode() == 200) {
                 Port port = new Port();
@@ -244,7 +244,8 @@ public class MegaDHardware {
                     .substring(megaDHTTPResponse.getResponseResult().indexOf("fw:") + 3,
                             megaDHTTPResponse.getResponseResult().indexOf("<br>") - 1)
                     .strip().trim();
-            if (megaDHTTPResponse.getResponseResult().contains("[44,")) {
+            if (megaDHTTPResponse.getResponseResult().contains("[44,")
+                    || megaDHTTPResponse.getResponseResult().contains("pt=44")) {
                 setPortsCount(46);
             } else {
                 setPortsCount(37);
