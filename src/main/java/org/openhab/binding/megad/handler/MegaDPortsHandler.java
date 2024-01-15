@@ -81,6 +81,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     MegaDConfiguration configuration = getConfigAs(MegaDConfiguration.class);
     String line1 = "";
     String line2 = "";
+    MegaDHardware.Port port = new MegaDHardware.Port();
 
     public MegaDPortsHandler(Thing thing) {
         super(thing);
@@ -129,7 +130,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
                         int resultInt = 0;
                         if (uivalue != 0) {
-                            int minval = 0; // Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                            int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
                             double getDiff = (255.0 - minval) / 100.0;
                             int corrVal = (int) Math.round(uivalue * getDiff);
                             resultInt = corrVal + minval;
@@ -227,97 +228,90 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else {
-                MegaDHardware.Port megaDHardwarePort = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
-                if (megaDHardwarePort != null) {
-                    MegaDTypesEnum portType = megaDHardwarePort.getPty();
-                    if (portType.equals(MegaDTypesEnum.I2C)) {
-                        MegaDExtendersEnum megaDExtendersEnum = megaDHardwarePort.getExtenders();
-                        MegaDI2CDevicesEnum megaDI2CDevicesEnum = megaDHardwarePort.getI2CDevicesList();
-                        if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
-                            BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
-                                    .getConfiguration().get("port");
-                            BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
-                            String cmd = "";
-                            if (command.equals(OnOffType.ON)) {
-                                cmd = "1";
-                            } else if (command.equals(OnOffType.OFF)) {
-                                cmd = "0";
-                            }
-                            String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":"
-                                    + cmd;
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int responseCode = httpRequest.request(request).getResponseCode();
-                            if (responseCode != 200) {
-                                logger.error("Send command at port {} error, check your mega {}", configuration.port,
-                                        bridgeDeviceHandler.config.hostname);
-                            }
-                            logger.debug("MCP230XX request to mega: {}", request);
+                MegaDTypesEnum portType = port.getPty();
+                if (portType.equals(MegaDTypesEnum.I2C)) {
+                    MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
+                    MegaDI2CDevicesEnum megaDI2CDevicesEnum = port.getI2CDevicesList();
+                    if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
+                        BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
+                                .getConfiguration().get("port");
+                        BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
+                        String cmd = "";
+                        if (command.equals(OnOffType.ON)) {
+                            cmd = "1";
+                        } else if (command.equals(OnOffType.OFF)) {
+                            cmd = "0";
                         }
-                        if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
-                            BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
-                                    .getConfiguration().get("port");
-                            BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
-                            String cmd = "";
-                            if (command.equals(OnOffType.ON)) {
-                                cmd = "1";
-                            } else if (command.equals(OnOffType.OFF)) {
-                                cmd = "0";
-                            } else if ((!command.toString().equals("REFRESH"))
-                                    || (!command.toString().equals("ADDED"))) {
-                                if (Objects.requireNonNull(thing.getChannel(channelUID)).getConfiguration()
-                                        .get("type") != null) {
-                                    String channelType = Objects.requireNonNull(thing.getChannel(channelUID))
-                                            .getConfiguration().get("type").toString();
-                                    if ("PWM".equals(channelType)) {
-                                        cmd = command.toString();
-                                    } else if ("DIMMER".equals(channelType)) {
-                                        try {
-                                            int value = Integer.parseInt(command.toString());
-                                            cmd = String.valueOf(Math.round(value * 40.95));
-                                        } catch (Exception e) {
-                                        }
-                                    }
-                                } else {
+                        String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":" + cmd;
+                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                        int responseCode = httpRequest.request(request).getResponseCode();
+                        if (responseCode != 200) {
+                            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                    bridgeDeviceHandler.config.hostname);
+                        }
+                        logger.debug("MCP230XX request to mega: {}", request);
+                    }
+                    if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
+                        BigDecimal port = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
+                                .getConfiguration().get("port");
+                        BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
+                        String cmd = "";
+                        if (command.equals(OnOffType.ON)) {
+                            cmd = "1";
+                        } else if (command.equals(OnOffType.OFF)) {
+                            cmd = "0";
+                        } else if ((!command.toString().equals("REFRESH")) || (!command.toString().equals("ADDED"))) {
+                            if (Objects.requireNonNull(thing.getChannel(channelUID)).getConfiguration()
+                                    .get("type") != null) {
+                                String channelType = Objects.requireNonNull(thing.getChannel(channelUID))
+                                        .getConfiguration().get("type").toString();
+                                if ("PWM".equals(channelType)) {
+                                    cmd = command.toString();
+                                } else if ("DIMMER".equals(channelType)) {
                                     try {
                                         int value = Integer.parseInt(command.toString());
                                         cmd = String.valueOf(Math.round(value * 40.95));
                                     } catch (Exception e) {
                                     }
                                 }
+                            } else {
+                                try {
+                                    int value = Integer.parseInt(command.toString());
+                                    cmd = String.valueOf(Math.round(value * 40.95));
+                                } catch (Exception e) {
+                                }
                             }
-                            String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":"
-                                    + cmd;
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int responseCode = httpRequest.request(request).getResponseCode();
-                            if (responseCode != 200) {
-                                logger.error("Send command at port {} error, check your mega {}", configuration.port,
-                                        bridgeDeviceHandler.config.hostname);
-                            }
-                            logger.debug("PCA9685 request to mega: {}", request);
                         }
-                        if (megaDI2CDevicesEnum.equals(MegaDI2CDevicesEnum.LCD1602)) {
-                            if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)) {
-                                line1 = command.toString();
-                            } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)) {
-                                line2 = command.toString();
-                            }
-                            String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                    + "&disp_cmd=1";
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int responseCode = httpRequest.request(request).getResponseCode();
-                            if (responseCode == 200) {
-                                request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                        + "&text=" + line1.replace(" ", "_");
-                                httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
-                                request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                        + "&text=" + line2.replace(" ", "_") + "&col=0&row=1";
-                                httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
-                            }
-                            logger.debug("LCD1602 request to mega: {}", request);
+                        String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":" + cmd;
+                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                        int responseCode = httpRequest.request(request).getResponseCode();
+                        if (responseCode != 200) {
+                            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                                    bridgeDeviceHandler.config.hostname);
                         }
+                        logger.debug("PCA9685 request to mega: {}", request);
+                    }
+                    if (megaDI2CDevicesEnum.equals(MegaDI2CDevicesEnum.LCD1602)) {
+                        if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)) {
+                            line1 = command.toString();
+                        } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE2)) {
+                            line2 = command.toString();
+                        }
+                        String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&disp_cmd=1";
+                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                        int responseCode = httpRequest.request(request).getResponseCode();
+                        if (responseCode == 200) {
+                            request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                    + "&text=" + line1.replace(" ", "_");
+                            httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
+                            request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                    + "&text=" + line2.replace(" ", "_") + "&col=0&row=1";
+                            httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
+                        }
+                        logger.debug("LCD1602 request to mega: {}", request);
                     }
                 }
             }
@@ -336,8 +330,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-
-        MegaDDiscoveryService.readSensorsFile();
+        MegaDDiscoveryService.readSensorsFile(true);
         Map<String, String> properties = new HashMap<>();
         List<Channel> channelList = new ArrayList<>();
         configuration = getConfigAs(MegaDConfiguration.class);
@@ -359,18 +352,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 reconnect++;
             }
             if (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
-                MegaDHTTPCallback.portListener.add(this);
-                ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-                if (configuration.refresh != 0) {
-                    logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(), configuration.refresh);
-                    if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10, configuration.refresh,
-                                TimeUnit.SECONDS);
-                        this.refreshPollingJob = refreshPollingJob;
+                MegaDHardware.Port mega = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
+                if (mega != null) {
+                    port = mega;
+                    MegaDHTTPCallback.portListener.add(this);
+                    ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+                    if (configuration.refresh != 0) {
+                        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(),
+                                configuration.refresh);
+                        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                            refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10,
+                                    configuration.refresh, TimeUnit.SECONDS);
+                            this.refreshPollingJob = refreshPollingJob;
+                        }
                     }
-                }
-                MegaDHardware.Port port = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
-                if (port != null) {
                     String label = port.getEmt();
                     MegaDTypesEnum portType = port.getPty();
                     if (portType.equals(MegaDTypesEnum.IN)) {
@@ -548,6 +543,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     .withLabel(label + " direction Trigger").withKind(ChannelKind.TRIGGER)
                                     .withAcceptedItemType("String").build();
                             channelList.add(direction);
+                        } else if (port.getSenType().equals(MegaDDsenEnum.IB)) {
+                            ChannelUID ibuttonUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_IB);
+                            Channel ibutton = ChannelBuilder.create(ibuttonUID)
+                                    .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                            MegaDBindingConstants.CHANNEL_IB))
+                                    .withKind(ChannelKind.TRIGGER).withLabel(label + " IButton")
+                                    .withAcceptedItemType("String").build();
+                            channelList.add(ibutton);
                         }
                         properties.put("Sensor:", port.getSenType().toString());
                     } else if (portType.equals(MegaDTypesEnum.I2C)) {
@@ -736,6 +739,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Port not found");
                 }
             }
+
             this.bridgeDeviceHandler = bridgeDeviceHandler;
         } else {
             updateStatus(ThingStatus.UNINITIALIZED, ThingStatusDetail.BRIDGE_UNINITIALIZED, "Bridge is not defined");
@@ -751,6 +755,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "CLICK");
             } else if (input.contains("m=2")) {
                 triggerChannel(MegaDBindingConstants.CHANNEL_LONGPRESS, "LONGPRESS");
+            } else if (input.contains("ib=")) {
+                String[] inputSplit = input.split("&");
+                for (String inputValue : inputSplit) {
+                    if (inputValue.contains("ib=")) {
+                        triggerChannel(MegaDBindingConstants.CHANNEL_IB, inputValue.split("=")[1]);
+                    }
+                }
             } else if (input.contains("&ext")) {
                 List<String> extportslist = Arrays.stream(input.split("&")).filter(ep -> ep.contains("ext")).toList();
                 extportslist.forEach(port -> {
@@ -891,7 +902,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
                             int percent = 0;
                             try {
-                                int minval = 0;// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                                int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
                                 if (minval != 0) {
                                     if (minval == dimmervalue) {
                                         percent = 1;
@@ -903,10 +914,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 } else {
                                     percent = (int) Math.round(dimmervalue / 2.55);
                                 }
+                                updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                             } catch (Exception ex) {
                                 logger.debug("Cannot convert to dimmer values. Error: '{}'", ex.toString());
                             }
-                            updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                             break;
                         case MegaDBindingConstants.CHANNEL_DIRECTION:
                             break;
@@ -914,73 +925,36 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                     MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
                     if (bridgeDeviceHandler != null) {
-                        MegaDHardware.Port port = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
-                        if (port != null) {
-                            MegaDDsenEnum sensorDsenType = port.getSenType();
-                            if (sensorDsenType.equals(MegaDDsenEnum.ONEWIREBUS)
-                                    || sensorDsenType.equals(MegaDDsenEnum.ONEWIRE)) {
-                                try {
-                                    updateState(channel.getUID().getId(), DecimalType.valueOf(value));
-                                } catch (Exception ignored) {
-                                }
+                        MegaDDsenEnum sensorDsenType = port.getSenType();
+                        if (sensorDsenType.equals(MegaDDsenEnum.ONEWIREBUS)
+                                || sensorDsenType.equals(MegaDDsenEnum.ONEWIRE)) {
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                            } catch (Exception ignored) {
                             }
-                            MegaDTypesEnum megaDTypes = port.getPty();
-                            if (megaDTypes.equals(MegaDTypesEnum.I2C)) {
-                                MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
-                                if (megaDExtendersEnum != MegaDExtendersEnum.NC) {
-                                    if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
-                                        if (value.contains("ON")) {
-                                            updateState(channel.getUID().getId(), OnOffType.ON);
-                                        } else if (value.contains("OFF")) {
-                                            updateState(channel.getUID().getId(), OnOffType.OFF);
-                                        }
-                                    } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
-                                        if (value.contains("ON")) {
-                                            updateState(channel.getUID().getId(), OnOffType.ON);
-                                        } else if (value.contains("OFF")) {
-                                            updateState(channel.getUID().getId(), OnOffType.OFF);
-                                        } else {
-                                            try {
-                                                if (channel.getConfiguration().get("type") != null) {
-                                                    String channelType = channel.getConfiguration().get("type")
-                                                            .toString();
-                                                    if ("PWM".equals(channelType)) {
-                                                        updateState(channel.getUID().getId(),
-                                                                DecimalType.valueOf(value));
-                                                    } else if ("DIMMER".equals(channelType)) {
-                                                        try {
-                                                            if ("0".equals(value)) {
-                                                                // logger.debug("dimmer value is 0, do not save dimmer
-                                                                // value");
-                                                                updateState(channel.getUID().getId(),
-                                                                        PercentType.valueOf(Integer.toString(0)));
-                                                                return;
-                                                            } else {
-                                                                dimmervalue = Integer.parseInt(value);
-                                                            }
-                                                        } catch (Exception ignored) {
-                                                        }
-
-                                                        int percent = 0;
-                                                        try {
-                                                            int minval = 0;// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
-                                                            if (minval != 0) {
-                                                                if (minval == dimmervalue) {
-                                                                    percent = 1;
-                                                                } else {
-                                                                    int realval = (dimmervalue - minval);// * 0.01;
-                                                                    double divVal = (4095 - minval) * 0.01;
-                                                                    percent = (int) Math.round(realval / divVal);
-                                                                }
-                                                            } else {
-                                                                percent = (int) Math.round(dimmervalue / 40.95);
-                                                            }
-                                                        } catch (Exception ex) {
-                                                            logger.debug("Cannot convert to dimmer values. Error: '{}'",
-                                                                    ex.toString());
-                                                        }
-                                                    }
-                                                } else {
+                        }
+                        MegaDTypesEnum megaDTypes = port.getPty();
+                        if (megaDTypes.equals(MegaDTypesEnum.I2C)) {
+                            MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
+                            if (megaDExtendersEnum != MegaDExtendersEnum.NC) {
+                                if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
+                                    if (value.contains("ON")) {
+                                        updateState(channel.getUID().getId(), OnOffType.ON);
+                                    } else if (value.contains("OFF")) {
+                                        updateState(channel.getUID().getId(), OnOffType.OFF);
+                                    }
+                                } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
+                                    if (value.contains("ON")) {
+                                        updateState(channel.getUID().getId(), OnOffType.ON);
+                                    } else if (value.contains("OFF")) {
+                                        updateState(channel.getUID().getId(), OnOffType.OFF);
+                                    } else {
+                                        try {
+                                            if (channel.getConfiguration().get("type") != null) {
+                                                String channelType = channel.getConfiguration().get("type").toString();
+                                                if ("PWM".equals(channelType)) {
+                                                    updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                                                } else if ("DIMMER".equals(channelType)) {
                                                     try {
                                                         if ("0".equals(value)) {
                                                             // logger.debug("dimmer value is 0, do not save dimmer
@@ -996,31 +970,58 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
                                                     int percent = 0;
                                                     try {
-                                                        int minval = 0;// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                                                        int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
                                                         if (minval != 0) {
                                                             if (minval == dimmervalue) {
                                                                 percent = 1;
                                                             } else {
                                                                 int realval = (dimmervalue - minval);// * 0.01;
-                                                                double divVal = (4096 - minval) * 0.01;
+                                                                double divVal = (4095 - minval) * 0.01;
                                                                 percent = (int) Math.round(realval / divVal);
                                                             }
                                                         } else {
-                                                            percent = (int) Math.round(dimmervalue / 40.96);
+                                                            percent = (int) Math.round(dimmervalue / 40.95);
                                                         }
                                                     } catch (Exception ex) {
                                                         logger.debug("Cannot convert to dimmer values. Error: '{}'",
                                                                 ex.toString());
                                                     }
-                                                    updateState(channel.getUID().getId(),
-                                                            PercentType.valueOf(Integer.toString(percent)));
                                                 }
-                                            } catch (Exception ignored) {
+                                            } else {
+                                                try {
+                                                    if ("0".equals(value)) {
+                                                        // logger.debug("dimmer value is 0, do not save dimmer
+                                                        // value");
+                                                        updateState(channel.getUID().getId(),
+                                                                PercentType.valueOf(Integer.toString(0)));
+                                                        return;
+                                                    } else {
+                                                        dimmervalue = Integer.parseInt(value);
+                                                    }
+                                                } catch (Exception ignored) {
+                                                }
+
+                                                int percent = 0;
+                                                try {
+                                                    int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                                                    if (minval != 0) {
+                                                        if (minval == dimmervalue) {
+                                                            percent = 1;
+                                                        } else {
+                                                            int realval = (dimmervalue - minval);// * 0.01;
+                                                            double divVal = (4096 - minval) * 0.01;
+                                                            percent = (int) Math.round(realval / divVal);
+                                                        }
+                                                    } else {
+                                                        percent = (int) Math.round(dimmervalue / 40.96);
+                                                    }
+                                                } catch (Exception ex) {
+                                                    logger.debug("Cannot convert to dimmer values. Error: '{}'",
+                                                            ex.toString());
+                                                }
+                                                updateState(channel.getUID().getId(),
+                                                        PercentType.valueOf(Integer.toString(percent)));
                                             }
-                                        }
-                                    } else {
-                                        try {
-                                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                                         } catch (Exception ignored) {
                                         }
                                     }
@@ -1029,6 +1030,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                                     } catch (Exception ignored) {
                                     }
+                                }
+                            } else {
+                                try {
+                                    updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                                } catch (Exception ignored) {
                                 }
                             }
                         }
@@ -1043,173 +1049,165 @@ public class MegaDPortsHandler extends BaseThingHandler {
         MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if ((bridgeDeviceHandler != null) && (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE))) {
             logger.debug("Refresh port {} at {}", configuration.port, thing.getLabel());
-            MegaDHardware.Port megaDPort = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
-            if (megaDPort != null) {
-                MegaDTypesEnum portType = megaDPort.getPty();
-                if (portType.equals(MegaDTypesEnum.DSEN)) {
-                    MegaDDsenEnum dDenType = megaDPort.getSenType();
-                    if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
-                        List<Channel> channels = thing.getChannels();
-                        int responseCode = httpRequest.request("http://"
+            MegaDTypesEnum portType = port.getPty();
+            if (portType.equals(MegaDTypesEnum.DSEN)) {
+                MegaDDsenEnum dDenType = port.getSenType();
+                if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
+                    List<Channel> channels = thing.getChannels();
+                    int responseCode = httpRequest.request(
+                            "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                                    + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                    + "/?pt=" + configuration.port + "?cmd=conv")
+                            .getResponseCode();
+                    if (responseCode == 200) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignored) {
+                        }
+                        String response = httpRequest.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                + configuration.port + "?cmd=conv").getResponseCode();
-                        if (responseCode == 200) {
+                                + configuration.port + "?cmd=list").getResponseResult();
+                        logger.debug("response port {} is {}", configuration.port, response);
+                        String[] sensorsList = response.split(";");
+                        if (!"busy".equals(response)) {
+                            for (Channel channel : channels) {
+                                for (String oneWireSensor : sensorsList) {
+                                    if (!oneWireSensor.isEmpty()) {
+                                        String address = oneWireSensor.split(":")[0];
+                                        String value = oneWireSensor.split(":")[1];
+                                        if (channel.getConfiguration().get("address").toString().equals(address)) {
+                                            updateChannel(channel.getUID().getId(), value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        logger.error("Can not send conv to {}",
+                                bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString());
+                    }
+                } else if (dDenType.equals(MegaDDsenEnum.ONEWIRE)) {
+                    MegaDHTTPResponse response = httpRequest.request(
+                            "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
+                                    + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                                    + "/?pt=" + configuration.port + "?cmd=get");
+                    if (response.getResponseCode() == 200) {
+                        String resp = response.getResponseResult();
+                        String[] sensorsList = resp.split(":");
+                        List<Channel> channels = thing.getChannels();
+                        for (Channel channel : channels) {
+                            if (isLinked(channel.getUID())) {
+                                updateChannel(channel.getUID().getId(), sensorsList[1]);
+                            }
+                        }
+                    }
+                }
+            } else if (portType.equals(MegaDTypesEnum.IN)) {
+                String response = httpRequest
+                        .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
+                        .getResponseResult();
+                if (response.contains("/")) {
+                    String[] values = response.split("/");
+                    if (values[0].contains("ON") || values[0].contains("OFF")) {
+                        updateChannel(MegaDBindingConstants.CHANNEL_IN, values[0]);
+                        updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, values[0]);
+                        if (values.length == 2) {
+                            updateChannel(MegaDBindingConstants.CHANNEL_INCOUNT, values[1]);
+                        }
+                    }
+                } else {
+                    if (response.contains("ON") || response.contains("OFF")) {
+                        updateChannel(MegaDBindingConstants.CHANNEL_IN, response);
+                        updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, response);
+                    }
+                }
+            } else if (portType.equals(MegaDTypesEnum.OUT)) {
+                String response = httpRequest
+                        .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
+                        .getResponseResult();
+                if (response.contains("/")) {
+                    String[] values = response.split("/");
+                    if (values[0].contains("ON") || values[0].contains("OFF")) {
+                        updateChannel(MegaDBindingConstants.CHANNEL_OUT, values[0]);
+                    }
+                } else {
+                    if (response.contains("ON") || response.contains("OFF")) {
+                        updateChannel(MegaDBindingConstants.CHANNEL_OUT, response);
+                    } else {
+                        MegaDModesEnum mode = port.getM();
+                        if (mode.equals(MegaDModesEnum.PWM)) {
+                            updateChannel(MegaDBindingConstants.CHANNEL_PWM, response);
+                            updateChannel(MegaDBindingConstants.CHANNEL_DIMMER, response);
+                        }
+                    }
+                }
+            } else if (portType.equals(MegaDTypesEnum.I2C)) {
+                MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
+                if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
+                    String response = httpRequest
+                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
+                            .getResponseResult();
+                    String[] portsStatus = response.split(";");
+                    List<Channel> channels = thing.getChannels();
+                    for (Channel channel : channels) {
+                        BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
+                        String acceptType = channel.getAcceptedItemType();
+                        if (acceptType != null) {
+                            if ("Switch".equals(acceptType)) {
+                                updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
+                            }
+                        }
+                    }
+                } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
+                    String response = httpRequest
+                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
+                            .getResponseResult();
+                    String[] portsStatus = response.split(";");
+                    List<Channel> channels = thing.getChannels();
+                    for (Channel channel : channels) {
+                        if (channel.getConfiguration().get("port") != null) {
+                            BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
+                            if (portsStatus.length != 1) {
+                                if (!portsStatus[port.intValue()].isEmpty()) {
+                                    updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    List<Channel> channels = thing.getChannels();
+                    for (Channel channel : channels) {
+                        if ((channel.getConfiguration().get("type") != null)
+                                && (channel.getConfiguration().get("path") != null)) {
+                            String sensortype = channel.getConfiguration().get("type").toString();
+                            String sensorPath = channel.getConfiguration().get("path").toString();
+                            String response = httpRequest
+                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                            + "&scl="
+                                            + Objects.requireNonNull(
+                                                    bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
+                                                    .getScl()
+                                            + "&i2c_dev=" + sensortype + "&" + sensorPath)
+                                    .getResponseResult();
                             try {
-                                Thread.sleep(1000);
+                                Thread.sleep(200);
                             } catch (InterruptedException ignored) {
                             }
+                            updateChannel(channel.getUID().getId(), response);
+                        }
+                        if (channel.getConfiguration().get("port") != null) {
                             String response = httpRequest
-                                    .request(
-                                            "http://"
-                                                    + bridgeDeviceHandler
-                                                            .getThing().getConfiguration().get("hostname").toString()
-                                                    + "/"
-                                                    + bridgeDeviceHandler.getThing().getConfiguration().get("password")
-                                                            .toString()
-                                                    + "/?pt=" + configuration.port + "?cmd=list")
-                                    .getResponseResult();
-                            logger.debug("response port {} is {}", configuration.port, response);
-                            String[] sensorsList = response.split(";");
-                            if (!"busy".equals(response)) {
-                                for (Channel channel : channels) {
-                                    for (String oneWireSensor : sensorsList) {
-                                        if (!oneWireSensor.isEmpty()) {
-                                            String address = oneWireSensor.split(":")[0];
-                                            String value = oneWireSensor.split(":")[1];
-                                            if (channel.getConfiguration().get("address").toString().equals(address)) {
-                                                updateChannel(channel.getUID().getId(), value);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            logger.error("Can not send conv to {}",
-                                    bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString());
-                        }
-                    } else if (dDenType.equals(MegaDDsenEnum.ONEWIRE)) {
-                        MegaDHTTPResponse response = httpRequest.request("http://"
-                                + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                + configuration.port + "?cmd=get");
-                        if (response.getResponseCode() == 200) {
-                            String resp = response.getResponseResult();
-                            String[] sensorsList = resp.split(":");
-                            List<Channel> channels = thing.getChannels();
-                            for (Channel channel : channels) {
-                                if (isLinked(channel.getUID())) {
-                                    updateChannel(channel.getUID().getId(), sensorsList[1]);
-                                }
-                            }
-                        }
-                    }
-                } else if (portType.equals(MegaDTypesEnum.IN)) {
-                    String response = httpRequest
-                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
-                            .getResponseResult();
-                    if (response.contains("/")) {
-                        String[] values = response.split("/");
-                        if (values[0].contains("ON") || values[0].contains("OFF")) {
-                            updateChannel(MegaDBindingConstants.CHANNEL_IN, values[0]);
-                            updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, values[0]);
-                            if (values.length == 2) {
-                                updateChannel(MegaDBindingConstants.CHANNEL_INCOUNT, values[1]);
-                            }
-                        }
-                    } else {
-                        if (response.contains("ON") || response.contains("OFF")) {
-                            updateChannel(MegaDBindingConstants.CHANNEL_IN, response);
-                            updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, response);
-                        }
-                    }
-                } else if (portType.equals(MegaDTypesEnum.OUT)) {
-                    String response = httpRequest
-                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
-                            .getResponseResult();
-                    if (response.contains("/")) {
-                        String[] values = response.split("/");
-                        if (values[0].contains("ON") || values[0].contains("OFF")) {
-                            updateChannel(MegaDBindingConstants.CHANNEL_OUT, values[0]);
-                        }
-                    } else {
-                        if (response.contains("ON") || response.contains("OFF")) {
-                            updateChannel(MegaDBindingConstants.CHANNEL_OUT, response);
-                        } else {
-                            MegaDModesEnum mode = megaDPort.getM();
-                            if (mode.equals(MegaDModesEnum.PWM)) {
-                                updateChannel(MegaDBindingConstants.CHANNEL_PWM, response);
-                                updateChannel(MegaDBindingConstants.CHANNEL_DIMMER, response);
-                            }
-                        }
-                    }
-                } else if (portType.equals(MegaDTypesEnum.I2C)) {
-                    MegaDHardware.Port hwPort = bridgeDeviceHandler.megaDHardware.getPort(configuration.port);
-                    if (hwPort != null) {
-                        MegaDExtendersEnum megaDExtendersEnum = hwPort.getExtenders();
-                        if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
-                            String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
-                                    .getResponseResult();
-                            String[] portsStatus = response.split(";");
-                            List<Channel> channels = thing.getChannels();
-                            for (Channel channel : channels) {
-                                BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
-                                String acceptType = channel.getAcceptedItemType();
-                                if (acceptType != null) {
-                                    if ("Switch".equals(acceptType)) {
-                                        updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
-                                    }
-                                }
-                            }
-                        } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
-                            String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
-                                    .getResponseResult();
-                            String[] portsStatus = response.split(";");
-                            List<Channel> channels = thing.getChannels();
-                            for (Channel channel : channels) {
-                                if (channel.getConfiguration().get("port") != null) {
-                                    BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
-                                    if (portsStatus.length != 1) {
-                                        if (!portsStatus[port.intValue()].isEmpty()) {
-                                            updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            List<Channel> channels = thing.getChannels();
-                            for (Channel channel : channels) {
-                                if ((channel.getConfiguration().get("type") != null)
-                                        && (channel.getConfiguration().get("path") != null)) {
-                                    String sensortype = channel.getConfiguration().get("type").toString();
-                                    String sensorPath = channel.getConfiguration().get("path").toString();
-                                    String response = httpRequest
-                                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                                    + "&scl="
-                                                    + Objects.requireNonNull(bridgeDeviceHandler.megaDHardware
-                                                            .getPort(configuration.port)).getScl()
-                                                    + "&i2c_dev=" + sensortype + "&" + sensorPath)
-                                            .getResponseResult();
-                                    try {
-                                        Thread.sleep(200);
-                                    } catch (InterruptedException ignored) {
-                                    }
-                                    updateChannel(channel.getUID().getId(), response);
-                                }
-                                if (channel.getConfiguration().get("port") != null) {
-                                    String response = httpRequest.request("http://"
-                                            + bridgeDeviceHandler.config.hostname + "/"
+                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                             + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
-                                            .getResponseResult();
-                                    updateChannel(channel.getUID().getId(), response);
-                                }
-                            }
+                                    .getResponseResult();
+                            updateChannel(channel.getUID().getId(), response);
                         }
                     }
                 }

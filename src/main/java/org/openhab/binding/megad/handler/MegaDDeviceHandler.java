@@ -768,6 +768,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         cfgLine.append("&d").append("=").append(port.getdSelect());
                         cfgLine.append("&m").append("=").append(port.getM().getID());
                         cfgLine.append("&grp").append("=").append(port.getGrp());
+                        cfgLine.append("&pwmm").append("=").append(port.getPwmm());
                     } else if (port.getPty() == MegaDTypesEnum.DSEN) {
                         cfgLine.append("&d").append("=").append(port.getdSelect());
                         cfgLine.append("&m").append("=").append(port.getM().getID());

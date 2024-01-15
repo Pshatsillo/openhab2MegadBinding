@@ -121,7 +121,7 @@
 	</channel-type>
 
 	<channel-type id="ib">
-		<item-type>Text</item-type>
+		<kind>trigger</kind>
 		<label>Ibutton</label>
 		<state readOnly="true" pattern="%s"/>
 	</channel-type>

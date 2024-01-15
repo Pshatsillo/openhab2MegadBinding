@@ -80,7 +80,7 @@ public class MegaDHttpHelpers {
                 data[degreeIndex] = (byte) 0xdf;
             }
             output.write(data);
-            logger.info("LCD send: {}", data);
+            logger.trace("LCD send: {}", data);
         } catch (UnknownHostException ex) {
             logger.error("Server not found: {}", ex.getMessage());
         } catch (IOException ex) {

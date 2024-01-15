@@ -211,6 +211,7 @@ public class MegaDHardware {
                 port.gr = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gr");
                 port.clock = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "clock");
                 setInt(i, getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "inta"));
+                port.pwmm = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "pwmm");
                 if (port.pty == MegaDTypesEnum.I2C && (port.d.equals("20") || port.d.equals("21"))) {
                     for (int j = 0; j < 16; j++) {
                         megaDHTTPResponse = http
@@ -746,7 +747,7 @@ public class MegaDHardware {
         private String pidc = "";
     }
 
-    public class Port {
+    public static class Port {
         private Map<Integer, ExtPort> extPorts = new HashMap<>();
         private MegaDTypesEnum pty = MegaDTypesEnum.NC;
         private String ecmd = "";
@@ -764,6 +765,7 @@ public class MegaDHardware {
         private boolean mt = false;
         private String emt = "";
         private String grp = "";
+        private String pwmm = "";
         private String hst = "";
         private String gr = "";
         private String clock = "";
@@ -941,6 +943,14 @@ public class MegaDHardware {
 
         public String getLabel() {
             return emt;
+        }
+
+        public Integer getPwmm() {
+            if (pwmm.isBlank()) {
+                return 0;
+            } else {
+                return Integer.parseInt(pwmm);
+            }
         }
     }
 

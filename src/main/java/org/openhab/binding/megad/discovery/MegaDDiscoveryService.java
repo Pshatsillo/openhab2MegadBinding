@@ -13,6 +13,7 @@
 package org.openhab.binding.megad.discovery;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +35,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -56,6 +59,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
@@ -246,44 +250,100 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
                 }
             }
-            readSensorsFile();
+            readSensorsFile(false);
         } catch (Exception e) {
             logger.error("Discovery service error {}", e.getLocalizedMessage());
         }
     }
 
-    public static void readSensorsFile() {
-        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
-        if (!file.exists()) {
-            boolean createOk = file.getParentFile().mkdirs();
-            if (createOk) {
-                logger.debug("Folders {} created", file.getAbsolutePath());
+    static void createFile(File file) {
+        boolean createOk = file.getParentFile().mkdirs();
+        if (createOk) {
+            logger.debug("Folders {} created", file.getAbsolutePath());
+        }
+        try {
+            // TODO Download file from ab-log.ru
+            URL url = new URL("https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+            try (InputStream in = url.openStream()) {
+                Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                logger.error("Connect to json file error");
             }
+        } catch (IOException ignored) {
+        }
+    }
+
+    static boolean isMatchFile(File file) {
+        try {
+            byte[] data = Files.readAllBytes(file.toPath());
+            Checksum crc = new CRC32();
+            crc.update(data);
+            long crcExistingFile = crc.getValue();
+            long crcServerFile;
+            logger.debug("CRC32 Checksum of existing file: {}", crcExistingFile);
+            // TODO Download file from ab-log.ru
+            URL url = new URL("https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+            try (InputStream in = url.openStream()) {
+                data = in.readAllBytes();
+                crc.reset();
+                crc.update(data);
+                crcServerFile = crc.getValue();
+                logger.debug("CRC32 Checksum of server file: {}", crcServerFile);
+                if (crcExistingFile != crcServerFile) {
+                    boolean isDel = file.delete();
+                    if (isDel) {
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(data);
+                        }
+                    }
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Connect to json file error");
+            return false;
+        }
+    }
+
+    public static void readSensorsFile(boolean firstStart) {
+        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
+        File sensorsFolder = new File(
+                OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors" + File.separator);
+        if (sensorsFolder.listFiles() != null) {
             try {
-                // TODO Download file from ab-log.ru
-                URL url = new URL(
-                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                try (InputStream in = url.openStream()) {
-                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-                } catch (Exception e) {
-                    logger.error("Connect to json file error");
+                for (File fileList : sensorsFolder.listFiles()) {
+                    logger.debug("Reading sensor file {}", fileList.getName());
+                    List<String> lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
+                    if (lines != null) {
+                        JsonReader reader;
+                        try {
+                            reader = new JsonReader(new FileReader(fileList));
+                            JsonObject sensor = JsonParser.parseReader(reader).getAsJsonObject();
+                            reader.close();
+                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(), megaSensors);
+                            logger.debug(
+                                    "Json sensor read {} with label {} with address {} from \"sensors\" folder added",
+                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                                    megaSensors.getSensorAddress());
+                        } catch (Exception ignored) {
+                        }
+                    }
                 }
             } catch (IOException ignored) {
             }
         } else {
-            try {
-                // TODO Download file from ab-log.ru
-                URL url = new URL(
-                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-                try (InputStream in = url.openStream()) {
-                    boolean isDel = file.delete();
-                    if (isDel) {
-                        // Files.createFile(Path.of(file.toURI()));
-                        Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (Exception e) {
-                    logger.error("Connect to json file error");
-                }
+            boolean createOk = sensorsFolder.mkdirs();
+            if (!createOk) {
+                logger.warn("Cannot create folder {}", file.getAbsolutePath());
+            }
+        }
+        if (!file.exists()) {
+            createFile(file);
+        } else {
+            if (!isMatchFile(file) || Objects.requireNonNull(megaDI2CSensorsList).isEmpty() || firstStart) {
                 List<String> lines = null;
                 try {
                     lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
@@ -307,7 +367,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     } catch (Exception ignored) {
                     }
                 }
-            } catch (IOException ignored) {
             }
         }
     }
