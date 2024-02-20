@@ -44,6 +44,8 @@ import org.openhab.binding.megad.internal.MegaDHTTPCallback;
 import org.openhab.binding.megad.internal.MegaDHTTPResponse;
 import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.items.Item;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
@@ -58,9 +60,11 @@ import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.link.ItemChannelLinkRegistry;
 import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +76,9 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDPortsHandler extends BaseThingHandler {
     private int dimmervalue = 0;
-
+    private final ItemRegistry itemRegistry;
+    private final ItemChannelLinkRegistry link;
     private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
-
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     @Nullable
     public MegaDDeviceHandler bridgeDeviceHandler;
@@ -83,14 +87,28 @@ public class MegaDPortsHandler extends BaseThingHandler {
     String line2 = "";
     MegaDHardware.Port port = new MegaDHardware.Port();
 
-    public MegaDPortsHandler(Thing thing) {
+    public MegaDPortsHandler(Thing thing, ItemRegistry itemRegistry, ItemChannelLinkRegistry link) {
         super(thing);
+        this.itemRegistry = itemRegistry;
+        this.link = link;
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         int state = 0;
         String result = "";
+        Set<Item> li = link.getLinkedItems(channelUID);
+        String smooth = "";
+        Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString())).findFirst()
+                .get();
+        StateDescription triggeredStateDescription = triggeredItem.getStateDescription();
+        if (triggeredStateDescription != null) {
+            if (!triggeredStateDescription.getOptions().isEmpty()) {
+                smooth = triggeredStateDescription.getOptions().stream()
+                        .filter(sm -> sm.getLabel() != null && sm.getLabel().equals("smooth")).findFirst().get()
+                        .getValue();
+            }
+        }
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
             if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
@@ -145,10 +163,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 dimmervalue = resultInt;
                             }
                         }
-                        result = "http://"
-                                + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
-                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + resultInt;
+                        StringBuilder resBuild = new StringBuilder().append("http://")
+                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString())
+                                .append("/")
+                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString())
+                                .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                .append("&pwm=").append(resultInt);
+                        if (!smooth.isBlank()) {
+                            resBuild.append("&cnt=").append(smooth);
+                        } else
+                            resBuild.append("&cnt=").append("0");
+                        result = resBuild.toString();
                         logger.info("Dimmer: {}", result);
                         MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
                         int responseCode = httpRequest.request(result).getResponseCode();

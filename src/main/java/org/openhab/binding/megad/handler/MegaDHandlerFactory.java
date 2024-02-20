@@ -19,13 +19,17 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
+import org.openhab.core.thing.link.ItemChannelLinkRegistry;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +45,20 @@ import org.slf4j.LoggerFactory;
 public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
-
+    private final ItemRegistry itemRegistry;
+    private final ItemChannelLinkRegistry link;
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_RS485);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_PORT);
+    }
+
+    @Activate
+    public MegaDHandlerFactory(final @Reference ItemRegistry itemRegistry,
+            final @Reference ItemChannelLinkRegistry link) {
+        this.itemRegistry = itemRegistry;
+        this.link = link;
     }
 
     @Override
@@ -62,7 +74,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_RS485)) {
             return new MegaDRs485Handler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_PORT)) {
-            return new MegaDPortsHandler(thing);
+            return new MegaDPortsHandler(thing, itemRegistry, link);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
