@@ -111,8 +111,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     List<StateOption> options = triggeredStateDescription.getOptions();
                     options.forEach(op -> {
                         if (op.getLabel() != null) {
-                            if (op.getLabel().equals("smooth")) {
-                                opt.smooth = op.getValue();
+                            String label = op.getLabel();
+                            if (label != null) {
+                                if (label.equals("smooth")) {
+                                    opt.smooth = op.getValue();
+                                }
                             }
                         }
                     });
@@ -422,33 +425,63 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             properties.put("Mode:", "CLICK");
                         } else if (port.getM().equals(MegaDModesEnum.P) || port.getM().equals(MegaDModesEnum.R)
                                 || port.getM().equals(MegaDModesEnum.PR)) {
+                            List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                             ChannelUID inUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_IN);
                             Channel in = ChannelBuilder.create(inUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_IN))
                                     .withLabel(label + " Input").withAcceptedItemType("Switch").build();
-                            channelList.add(in);
+                            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(in.getUID()))) {
+                                Channel foundedChannel = existingChannelList.stream()
+                                        .filter(cn -> cn.getUID().equals(in.getUID())).findFirst().get();
+                                channelList.add(foundedChannel);
+                                existingChannelList.remove(foundedChannel);
+                            } else {
+                                channelList.add(in);
+                            }
                             ChannelUID lpUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_LONGPRESS);
                             Channel lp = ChannelBuilder.create(lpUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_LONGPRESS))
                                     .withLabel(label + " Long press Trigger").withKind(ChannelKind.TRIGGER)
                                     .withAcceptedItemType("String").build();
-                            channelList.add(lp);
+                            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(lp.getUID()))) {
+                                Channel foundedChannel = existingChannelList.stream()
+                                        .filter(cn -> cn.getUID().equals(lp.getUID())).findFirst().get();
+                                channelList.add(foundedChannel);
+                                existingChannelList.remove(foundedChannel);
+                            } else {
+                                channelList.add(lp);
+                            }
                             ChannelUID inCountUID = new ChannelUID(thing.getUID(),
                                     MegaDBindingConstants.CHANNEL_INCOUNT);
                             Channel inCount = ChannelBuilder.create(inCountUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_INCOUNT))
                                     .withLabel(label + " Counter").withAcceptedItemType("Number").build();
-                            channelList.add(inCount);
+                            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(inCount.getUID()))) {
+                                Channel foundedChannel = existingChannelList.stream()
+                                        .filter(cn -> cn.getUID().equals(inCount.getUID())).findFirst().get();
+                                channelList.add(foundedChannel);
+                                existingChannelList.remove(foundedChannel);
+                            } else {
+                                channelList.add(inCount);
+                            }
                             ChannelUID inContactUID = new ChannelUID(thing.getUID(),
                                     MegaDBindingConstants.CHANNEL_CONTACT);
                             Channel inContact = ChannelBuilder.create(inContactUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_CONTACT))
                                     .withLabel(label + " Contact").withAcceptedItemType("Contact").build();
-                            channelList.add(inContact);
+                            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(inContact.getUID()))) {
+                                Channel foundedChannel = existingChannelList.stream()
+                                        .filter(cn -> cn.getUID().equals(inContact.getUID())).findFirst().get();
+                                channelList.add(foundedChannel);
+                                existingChannelList.remove(foundedChannel);
+                            } else {
+                                channelList.add(inContact);
+                            }
+                            channelList.addAll(existingChannelList);
                             properties.put("Mode:", "P, R, P&R (checkbox enabled)");
                         }
 
@@ -465,12 +498,21 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     } else if (portType.equals(MegaDTypesEnum.OUT)) {
                         if (port.getM().equals(MegaDModesEnum.SW)) {
+                            List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                             ChannelUID outUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_OUT);
                             Channel out = ChannelBuilder.create(outUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_OUT))
                                     .withLabel(label + " Output").build();
-                            channelList.add(out);
+                            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(out.getUID()))) {
+                                Channel foundedChannel = existingChannelList.stream()
+                                        .filter(cn -> cn.getUID().equals(out.getUID())).findFirst().get();
+                                channelList.add(foundedChannel);
+                                existingChannelList.remove(foundedChannel);
+                            } else {
+                                channelList.add(out);
+                            }
+                            channelList.addAll(existingChannelList);
                         } else if (port.getM().equals(MegaDModesEnum.PWM)) {
                             ChannelUID pwmUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_PWM);
                             Channel pwm = ChannelBuilder.create(pwmUID)
@@ -878,9 +920,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         case MegaDBindingConstants.CHANNEL_IN:
                         case MegaDBindingConstants.CHANNEL_OUT:
                             if (value.contains("ON")) {
-                                updateState(channel.getUID().getId(), OnOffType.ON);
+                                if (channel.getConfiguration().get("invert").equals("false")) {
+                                    updateState(channel.getUID().getId(), OnOffType.ON);
+                                } else {
+                                    updateState(channel.getUID().getId(), OnOffType.OFF);
+                                }
                             } else if (value.contains("OFF")) {
-                                updateState(channel.getUID().getId(), OnOffType.OFF);
+                                if (channel.getConfiguration().get("invert").equals("false")) {
+                                    updateState(channel.getUID().getId(), OnOffType.OFF);
+                                } else {
+                                    updateState(channel.getUID().getId(), OnOffType.ON);
+                                }
                             }
                             break;
                         case MegaDBindingConstants.CHANNEL_INCOUNT:
@@ -888,9 +938,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             break;
                         case MegaDBindingConstants.CHANNEL_CONTACT:
                             if (value.contains("ON")) {
-                                updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                                if (channel.getConfiguration().get("invert").equals("false")) {
+                                    updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                                } else {
+                                    updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                                }
                             } else if (value.contains("OFF")) {
-                                updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                                if (channel.getConfiguration().get("invert").equals("false")) {
+                                    updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                                } else {
+                                    updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                                }
                             }
                             break;
                         case MegaDBindingConstants.CHANNEL_PWM:

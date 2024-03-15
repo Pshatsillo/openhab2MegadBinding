@@ -15,6 +15,7 @@
 		<item-type>Switch</item-type>
 		<label>Input</label>
 		<description>Port set as input signal for switch using</description>
+		<config-description-ref uri="channel-type:megad:inout"/>
 	</channel-type>
 	<channel-type id="incount">
 		<item-type>Number</item-type>
@@ -25,6 +26,7 @@
 		<item-type>Switch</item-type>
 		<label>Output</label>
 		<description>Port set as output for switch using</description>
+		<config-description-ref uri="channel-type:megad:inout"/>
 	</channel-type>
 	<channel-type id="ds2413">
 		<item-type>Switch</item-type>
@@ -142,6 +144,7 @@
 		<label>Closed OR Open</label>
 		<description>Indicates input as contact/ Closed when ON Open when OFF</description>
 		<state readOnly="true" pattern="%s"/>
+		<config-description-ref uri="channel-type:megad:inout"/>
 	</channel-type>
 	<channel-type id="i2cdisplay">
 		<item-type>Text</item-type>

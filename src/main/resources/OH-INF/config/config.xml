@@ -51,4 +51,10 @@
 			<label>Upgrade to beta</label>
 		</parameter>
 	</config-description>
+	<config-description uri="channel-type:megad:inout">
+		<parameter name="invert" type="boolean" required="false">
+			<default>false</default>
+			<label>Invert channel</label>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>
