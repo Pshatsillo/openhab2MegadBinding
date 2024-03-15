@@ -65,6 +65,7 @@ import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,15 +99,24 @@ public class MegaDPortsHandler extends BaseThingHandler {
         int state = 0;
         String result = "";
         Set<Item> li = link.getLinkedItems(channelUID);
-        String smooth = "";
-        Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString())).findFirst()
-                .get();
-        StateDescription triggeredStateDescription = triggeredItem.getStateDescription();
-        if (triggeredStateDescription != null) {
-            if (!triggeredStateDescription.getOptions().isEmpty()) {
-                smooth = triggeredStateDescription.getOptions().stream()
-                        .filter(sm -> sm.getLabel() != null && sm.getLabel().equals("smooth")).findFirst().get()
-                        .getValue();
+        var opt = new Object() {
+            String smooth = "";
+        };
+        if (li.stream().anyMatch(i -> i.getState().toString().equals(command.toString()))) {
+            Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString())).findFirst()
+                    .get();
+            StateDescription triggeredStateDescription = triggeredItem.getStateDescription();
+            if (triggeredStateDescription != null) {
+                if (!triggeredStateDescription.getOptions().isEmpty()) {
+                    List<StateOption> options = triggeredStateDescription.getOptions();
+                    options.forEach(op -> {
+                        if (op.getLabel() != null) {
+                            if (op.getLabel().equals("smooth")) {
+                                opt.smooth = op.getValue();
+                            }
+                        }
+                    });
+                }
             }
         }
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
@@ -169,8 +179,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString())
                                 .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
                                 .append("&pwm=").append(resultInt);
-                        if (!smooth.isBlank()) {
-                            resBuild.append("&cnt=").append(smooth);
+                        if (!opt.smooth.isBlank()) {
+                            resBuild.append("&cnt=").append(opt.smooth);
                         } else
                             resBuild.append("&cnt=").append("0");
                         result = resBuild.toString();
