@@ -24,6 +24,8 @@ import org.openhab.binding.megad.RS485.MegaDModbusPowermeterInterface;
 import org.openhab.binding.megad.RS485.MegaDRS485Interface;
 import org.openhab.binding.megad.RS485.MegaDSdm120;
 import org.openhab.binding.megad.RS485.MegaDWBMAP6S;
+import org.openhab.binding.megad.RS485.MegaDWindAnemometer;
+import org.openhab.binding.megad.RS485.MegaDWindDir;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -139,6 +141,30 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 final MegaDWBMAP6S modbusPowermeterInterface = (MegaDWBMAP6S) modbus;
                 if (modbusPowermeterInterface != null) {
                     thingBuilder.withChannels(modbusPowermeterInterface.getChannelsList(getThing()));
+                    updateThing(thingBuilder.build());
+                }
+            }
+        }
+        if (getThing().getConfiguration().get("type").toString().equals("winddir")) {
+            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+            if (bridgeHandler != null) {
+                rsi = new MegaDWindDir(bridgeHandler, address);
+                ThingBuilder thingBuilder = editThing();
+                final MegaDWindDir megaDWindDir = (MegaDWindDir) rsi;
+                if (megaDWindDir != null) {
+                    thingBuilder.withChannels(megaDWindDir.getChannelsList(getThing()));
+                    updateThing(thingBuilder.build());
+                }
+            }
+        }
+        if (getThing().getConfiguration().get("type").toString().equals("windanemometer")) {
+            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+            if (bridgeHandler != null) {
+                rsi = new MegaDWindAnemometer(bridgeHandler, address);
+                ThingBuilder thingBuilder = editThing();
+                final MegaDWindAnemometer megaDWindAnemometer = (MegaDWindAnemometer) rsi;
+                if (megaDWindAnemometer != null) {
+                    thingBuilder.withChannels(megaDWindAnemometer.getChannelsList(getThing()));
                     updateThing(thingBuilder.build());
                 }
             }
@@ -422,6 +448,54 @@ public class MegaDRs485Handler extends BaseThingHandler {
                                 }
                             } else {
                                 logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDANGLE)) {
+                    final MegaDRS485Interface megaDRS485Interface = rsi;
+                    if (megaDRS485Interface != null) {
+                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                        if (bridgeHandler != null) {
+                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                            if (answer.length == 9) {
+                                try {
+                                    int n = (int) Long.parseLong(answer[5] + answer[6], 16);
+                                    logger.debug("Wind Angle is : {}, hex {}", n, answer[5] + answer[6]);
+                                    updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDSEGMENT)) {
+                    final MegaDRS485Interface megaDRS485Interface = rsi;
+                    if (megaDRS485Interface != null) {
+                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                        if (bridgeHandler != null) {
+                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                            if (answer.length == 9) {
+                                try {
+                                    int n = (int) Long.parseLong(answer[3] + answer[4], 16);
+                                    logger.debug("Wind Segment is : {}, hex {}", n, answer[5] + answer[6]);
+                                    updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDSPED)) {
+                    final MegaDRS485Interface megaDRS485Interface = rsi;
+                    if (megaDRS485Interface != null) {
+                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                        if (bridgeHandler != null) {
+                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                            if (answer.length == 9) {
+                                try {
+                                    double n = (int) Long.parseLong(answer[3] + answer[4], 16);
+                                    logger.debug("Wind speed is : {}, hex {}", n / 10, answer[5] + answer[6]);
+                                    updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n / 10)));
+                                } catch (Exception ignored) {
+                                }
                             }
                         }
                     }

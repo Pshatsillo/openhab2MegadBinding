@@ -400,6 +400,21 @@
 		<description>temperature</description>
 		<state pattern="%d"/>
 	</channel-type>
+	<channel-type id="windangle">
+		<item-type>Number:Angle</item-type>
+		<label>Wind Angle</label>
+		<state pattern="%d"/>
+	</channel-type>
+	<channel-type id="windsegment">
+		<item-type>Number</item-type>
+		<label>Wind Segment</label>
+		<state pattern="%d"/>
+	</channel-type>
+	<channel-type id="windspeed">
+		<item-type>Number</item-type>
+		<label>Wind speed</label>
+		<state pattern="%d"/>
+	</channel-type>
 
 
 	<channel-type id="line1">

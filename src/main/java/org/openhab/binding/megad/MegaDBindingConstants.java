@@ -90,6 +90,11 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_MAXCURRENTDMD = "maxcurrentdmd";
     public static final String CHANNEL_TOTALACTNRG = "totalactnrg";
     public static final String CHANNEL_TOTALREACTNRG = "totalreactnrg";
+
+    // Wind meter
+    public static final String CHANNEL_WINDANGLE = "windangle";
+    public static final String CHANNEL_WINDSEGMENT = "windsegment";
+    public static final String CHANNEL_WINDSPED = "windspeed";
     // lcd 1609
     public static final String CHANNEL_LINE1 = "line1";
     public static final String CHANNEL_LINE2 = "line2";

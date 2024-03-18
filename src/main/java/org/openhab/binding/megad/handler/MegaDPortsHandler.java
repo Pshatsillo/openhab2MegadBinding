@@ -426,11 +426,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         } else if (port.getM().equals(MegaDModesEnum.P) || port.getM().equals(MegaDModesEnum.R)
                                 || port.getM().equals(MegaDModesEnum.PR)) {
                             List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
+                            Configuration configuration = new Configuration();
+                            configuration.put("invert", "false");
                             ChannelUID inUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_IN);
                             Channel in = ChannelBuilder.create(inUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_IN))
-                                    .withLabel(label + " Input").withAcceptedItemType("Switch").build();
+                                    .withLabel(label + " Input").withAcceptedItemType("Switch")
+                                    .withConfiguration(configuration).build();
                             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(in.getUID()))) {
                                 Channel foundedChannel = existingChannelList.stream()
                                         .filter(cn -> cn.getUID().equals(in.getUID())).findFirst().get();
@@ -472,7 +475,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             Channel inContact = ChannelBuilder.create(inContactUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_CONTACT))
-                                    .withLabel(label + " Contact").withAcceptedItemType("Contact").build();
+                                    .withLabel(label + " Contact").withAcceptedItemType("Contact")
+                                    .withConfiguration(configuration).build();
                             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(inContact.getUID()))) {
                                 Channel foundedChannel = existingChannelList.stream()
                                         .filter(cn -> cn.getUID().equals(inContact.getUID())).findFirst().get();
@@ -499,11 +503,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     } else if (portType.equals(MegaDTypesEnum.OUT)) {
                         if (port.getM().equals(MegaDModesEnum.SW)) {
                             List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
+                            Configuration configuration = new Configuration();
+                            configuration.put("invert", "false");
                             ChannelUID outUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_OUT);
                             Channel out = ChannelBuilder.create(outUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_OUT))
-                                    .withLabel(label + " Output").build();
+                                    .withLabel(label + " Output").withConfiguration(configuration).build();
                             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(out.getUID()))) {
                                 Channel foundedChannel = existingChannelList.stream()
                                         .filter(cn -> cn.getUID().equals(out.getUID())).findFirst().get();

@@ -41,6 +41,8 @@
 			<channel id="opermode" typeId="opermode"/>
 			<channel id="fanmode" typeId="fanmode"/>
 			<channel id="mideatemperature" typeId="mideatemperature"/>
+			<channel id="windsegment" typeId="windsegment"/>
+			<channel id="windangle" typeId="windangle"/>
 		</channels>
 	</channel-group-type>
 	<thing-type id="rs485">
@@ -65,6 +67,8 @@
 					<option value="dds238">DDS238-1 ZN energy meter</option>
 					<option value="wbmap6s">WirenBoard MAP-6S</option>
 					<option value="midea">Midea protocol</option>
+					<option value="winddir">Wind direction</option>
+					<option value="windanemometer">Wind anemometer</option>
 				</options>
 			</parameter>
 			<parameter name="address" type="text" required="true">
