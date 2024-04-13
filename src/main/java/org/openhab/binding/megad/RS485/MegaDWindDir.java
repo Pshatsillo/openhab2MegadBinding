@@ -62,7 +62,8 @@ public class MegaDWindDir implements MegaDRS485Interface {
                 + "/?uart_rx=1";
         String updateRequest = httpHelper.request(result).getResponseResult();
         logger.info("Wind angle answer is: {}", updateRequest);
-        return updateRequest.split("[|]");
+        String[] returnArr = updateRequest.split("[|]");
+        return returnArr;
     }
 
     @Override

@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MegaDPortsHandler extends BaseThingHandler {
     private int dimmervalue = 0;
-    private final ItemRegistry itemRegistry;
+    // private final ItemRegistry itemRegistry;
     private final ItemChannelLinkRegistry link;
     private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -90,7 +90,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     public MegaDPortsHandler(Thing thing, ItemRegistry itemRegistry, ItemChannelLinkRegistry link) {
         super(thing);
-        this.itemRegistry = itemRegistry;
+        // this.itemRegistry = itemRegistry;
         this.link = link;
     }
 
@@ -113,7 +113,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         if (op.getLabel() != null) {
                             String label = op.getLabel();
                             if (label != null) {
-                                if (label.equals("smooth")) {
+                                if ("smooth".equals(label)) {
                                     opt.smooth = op.getValue();
                                 }
                             }
@@ -1067,24 +1067,25 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                     } catch (Exception ignored) {
                                                     }
 
-                                                    int percent = 0;
-                                                    try {
-                                                        int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
-                                                        if (minval != 0) {
-                                                            if (minval == dimmervalue) {
-                                                                percent = 1;
-                                                            } else {
-                                                                int realval = (dimmervalue - minval);// * 0.01;
-                                                                double divVal = (4095 - minval) * 0.01;
-                                                                percent = (int) Math.round(realval / divVal);
-                                                            }
-                                                        } else {
-                                                            percent = (int) Math.round(dimmervalue / 40.95);
-                                                        }
-                                                    } catch (Exception ex) {
-                                                        logger.debug("Cannot convert to dimmer values. Error: '{}'",
-                                                                ex.toString());
-                                                    }
+                                                    // int percent = 0;
+                                                    // try {
+                                                    // int minval = port.getPwmm();//
+                                                    // Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
+                                                    // if (minval != 0) {
+                                                    // if (minval == dimmervalue) {
+                                                    // //percent = 1;
+                                                    // } else {
+                                                    // //int realval = (dimmervalue - minval);// * 0.01;
+                                                    // //double divVal = (4095 - minval) * 0.01;
+                                                    // //percent = (int) Math.round(realval / divVal);
+                                                    // }
+                                                    // } else {
+                                                    // //percent = (int) Math.round(dimmervalue / 40.95);
+                                                    // }
+                                                    // } catch (Exception ex) {
+                                                    // logger.debug("Cannot convert to dimmer values. Error: '{}'",
+                                                    // ex.toString());
+                                                    // }
                                                 }
                                             } else {
                                                 try {

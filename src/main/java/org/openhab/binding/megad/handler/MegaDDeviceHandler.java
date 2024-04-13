@@ -51,6 +51,7 @@ import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.binding.megad.internal.MegaDService;
 import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -91,6 +92,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     boolean beta = false;
     @Nullable
     InetAddress broadcastAddress;
+
+    Long lastRefresh = 0L;
 
     public MegaDDeviceHandler(Bridge bridge) {
         super(bridge);
@@ -179,6 +182,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_READ_CONF))
                     .withAcceptedItemType("Switch").build();
             channelList.add(readConf);
+
+            MegaDHTTPResponse tempchannel = httpHelper
+                    .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+            if (!tempchannel.getResponseResult().equals("0.00")) {
+                ChannelUID megaTempUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_TGET);
+                Channel megaTemp = ChannelBuilder.create(megaTempUID).withType(
+                        new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_TGET))
+                        .withAcceptedItemType("Number:Temperature").build();
+                channelList.add(megaTemp);
+            }
+
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withChannels(channelList);
             updateThing(thingBuilder.build());
@@ -200,7 +214,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_FLASH) && command.equals(OnOffType.ON)) {
-            int bl = 0;
+            // int bl = 0;
             readConf();
             logger.warn("Flashing mega!");
             firmwareUpdate = true;
@@ -226,14 +240,13 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             .request("http://" + config.hostname + "/" + config.password + "/?bl=1");
                     String broadcast_string = "";
                     if (response.getResponseResult().equals("1")) {
-                        bl = 1;
+                        // bl = 1;
                         // logger.warn("Flashing mega bl {}", bl);
                         checkData = "DACA";
                         Socket sck = new Socket(config.hostname, 80);
                         sck.close();
                         Thread.sleep(100);
-                        MegaDHTTPResponse modeResponse = httpHelper
-                                .request("http://" + config.hostname + "/" + config.password + "/?fwup=1");
+                        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?fwup=1");
                         Thread.sleep(100);
                         broadcast_string = "AA0000" + checkData;
                         byte[] buf = HexFormat.of().parseHex(broadcast_string);
@@ -513,37 +526,37 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         }
     }
 
-    private void eraseEEPROM() {
-        logger.warn("Erasing EEPROM");
-        byte[] buf;
-
-        String broadcast_string = "AA0009" + checkData;
-        try {
-            DatagramSocket socket = this.socket;
-            if (socket != null) {
-                buf = HexFormat.of().parseHex(broadcast_string);
-                byte[] eraseBuf = new byte[5];
-                DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
-                socket.send(erasePacket);
-                DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
-                socket.receive(rcvErasePacket);
-                broadcast_string = "AA0109" + checkData;
-                buf = HexFormat.of().parseHex(broadcast_string);
-                eraseBuf = new byte[5];
-                erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
-                socket.send(erasePacket);
-                rcvErasePacket = new DatagramPacket(eraseBuf, 5);
-                socket.receive(rcvErasePacket);
-                if (rcvErasePacket.getData() != null) {
-                    if (((eraseBuf[0] & 0xFF) == 0xAA) && ((eraseBuf[1] & 0xFF) == 0x01)) {
-                        logger.warn("EEPROM erased");
-                    }
-                }
-            }
-        } catch (IOException e) {
-            logger.error("EEPROM deleting error {}", e.getMessage());
-        }
-    }
+    // private void eraseEEPROM() {
+    // logger.warn("Erasing EEPROM");
+    // byte[] buf;
+    //
+    // String broadcast_string = "AA0009" + checkData;
+    // try {
+    // DatagramSocket socket = this.socket;
+    // if (socket != null) {
+    // buf = HexFormat.of().parseHex(broadcast_string);
+    // byte[] eraseBuf = new byte[5];
+    // DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+    // socket.send(erasePacket);
+    // DatagramPacket rcvErasePacket = new DatagramPacket(eraseBuf, 5);
+    // socket.receive(rcvErasePacket);
+    // broadcast_string = "AA0109" + checkData;
+    // buf = HexFormat.of().parseHex(broadcast_string);
+    // eraseBuf = new byte[5];
+    // erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
+    // socket.send(erasePacket);
+    // rcvErasePacket = new DatagramPacket(eraseBuf, 5);
+    // socket.receive(rcvErasePacket);
+    // if (rcvErasePacket.getData() != null) {
+    // if (((eraseBuf[0] & 0xFF) == 0xAA) && ((eraseBuf[1] & 0xFF) == 0x01)) {
+    // logger.warn("EEPROM erased");
+    // }
+    // }
+    // }
+    // } catch (IOException e) {
+    // logger.error("EEPROM deleting error {}", e.getMessage());
+    // }
+    // }
 
     private void refresh() {
         if (!firmwareUpdate) {
@@ -580,6 +593,19 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     }
                 } catch (Exception ignored) {
                 }
+            }
+            if ((now - lastRefresh) >= 30) {
+                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
+                if (channel != null) {
+                    if (isLinked(channel.getUID().getId())) {
+                        MegaDHTTPResponse tempchannel = httpHelper
+                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+                        if (!tempchannel.getResponseResult().equals("0.00")) {
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(tempchannel.getResponseResult()));
+                        }
+                    }
+                }
+                lastRefresh = now;
             }
         }
     }

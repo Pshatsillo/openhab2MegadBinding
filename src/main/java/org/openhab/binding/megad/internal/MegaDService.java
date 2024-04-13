@@ -77,6 +77,7 @@ public class MegaDService implements EventSubscriber {
 
         if (networkInterfaces != null) {
             while (networkInterfaces.hasMoreElements()) {
+                @Nullable
                 NetworkInterface iface = networkInterfaces.nextElement();
                 try {
                     if (iface.isUp() && !iface.isLoopback()) {
