@@ -60,7 +60,7 @@ public class MegaDHttpHelpers {
                 }
                 con.disconnect();
             } catch (IOException e) {
-                logger.error("Connect to megadevice error: {}", e.getLocalizedMessage());
+                logger.error("Connect to megadevice url {} error: {}", urlString, e.getLocalizedMessage());
             }
         }
         megaDHTTPResponse.setResponseResult(result.replace("\"", ""));

@@ -601,7 +601,12 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         MegaDHTTPResponse tempchannel = httpHelper
                                 .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
                         if (!tempchannel.getResponseResult().equals("0.00")) {
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(tempchannel.getResponseResult()));
+                            try {
+                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(tempLong)));
+                            } catch (Exception e) {
+                                logger.debug("Can't parse internal temperature {}", e.getLocalizedMessage());
+                            }
                         }
                     }
                 }

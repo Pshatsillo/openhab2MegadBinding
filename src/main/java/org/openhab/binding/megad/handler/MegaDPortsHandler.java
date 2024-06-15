@@ -125,21 +125,27 @@ public class MegaDPortsHandler extends BaseThingHandler {
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
             if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
-                if (!command.toString().equals("REFRESH")) {
-                    if (command.toString().equals("ON")) {
-                        state = 1;
-                    }
-                    result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
-                            + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
-                            + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + state;
-                    logger.debug("Switch: {}", result);
-                    MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                    int responseCode = httpRequest.request(result).getResponseCode();
-                    if (responseCode != 200) {
-                        logger.error("Send command at port {} error, check your mega {}", configuration.port,
-                                bridgeDeviceHandler.config.hostname);
+                Channel channel = thing.getChannel(MegaDBindingConstants.CHANNEL_OUT);
+                if (channel != null) {
+                    if (channel.getConfiguration().get("invert") != null) {
+                        if ((Boolean) channel.getConfiguration().get("invert")) {
+                            if (!command.toString().equals("REFRESH")) {
+                                if (command.toString().equals("OFF")) {
+                                    state = 1;
+                                }
+                                sendComandOnOffToMega(state, bridgeDeviceHandler);
+                            }
+                        } else {
+                            if (!command.toString().equals("REFRESH")) {
+                                if (command.toString().equals("ON")) {
+                                    state = 1;
+                                }
+                                sendComandOnOffToMega(state, bridgeDeviceHandler);
+                            }
+                        }
                     }
                 }
+
             } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DS2413)) {
                 if (command.toString().equals("ON")) {
                     state = 1;
@@ -380,6 +386,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
+    private void sendComandOnOffToMega(int state, MegaDDeviceHandler bridgeDeviceHandler) {
+        String result;
+        result = "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
+                + getThing().getConfiguration().get("port").toString() + ":" + state;
+        logger.debug("Switch: {}", result);
+        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+        int responseCode = httpRequest.request(result).getResponseCode();
+        if (responseCode != 200) {
+            logger.error("Send command at port {} error, check your mega {}", configuration.port,
+                    bridgeDeviceHandler.config.hostname);
+        }
+    }
+
     @Override
     protected ThingBuilder editThing() {
         return super.editThing();
@@ -407,7 +427,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 }
                 if (reconnect == 10) {
                     logger.error("Bridge is offline during 10 seconds");
-                    updateStatus(ThingStatus.UNINITIALIZED, ThingStatusDetail.BRIDGE_UNINITIALIZED,
+                    updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.BRIDGE_UNINITIALIZED,
                             "Bridge is offline during 10 seconds");
                     break;
                 }
@@ -451,7 +471,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 || port.getM().equals(MegaDModesEnum.PR)) {
                             List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                             Configuration configuration = new Configuration();
-                            configuration.put("invert", "false");
+                            configuration.put("invert", false);
                             ChannelUID inUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_IN);
                             Channel in = ChannelBuilder.create(inUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
@@ -949,17 +969,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     switch (channelName) {
                         case MegaDBindingConstants.CHANNEL_IN:
                         case MegaDBindingConstants.CHANNEL_OUT:
+                            if (channel.getConfiguration().get("invert") == null) {
+                                channel.getConfiguration().put("invert", false);
+                            }
                             if (value.contains("ON")) {
-                                if (channel.getConfiguration().get("invert").equals("false")) {
-                                    updateState(channel.getUID().getId(), OnOffType.ON);
-                                } else {
+                                if ((Boolean) channel.getConfiguration().get("invert")) {
                                     updateState(channel.getUID().getId(), OnOffType.OFF);
+                                } else {
+                                    updateState(channel.getUID().getId(), OnOffType.ON);
                                 }
                             } else if (value.contains("OFF")) {
-                                if (channel.getConfiguration().get("invert").equals("false")) {
-                                    updateState(channel.getUID().getId(), OnOffType.OFF);
-                                } else {
+                                if ((Boolean) channel.getConfiguration().get("invert")) {
                                     updateState(channel.getUID().getId(), OnOffType.ON);
+                                } else {
+                                    updateState(channel.getUID().getId(), OnOffType.OFF);
                                 }
                             }
                             break;
@@ -967,17 +990,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                             break;
                         case MegaDBindingConstants.CHANNEL_CONTACT:
+                            if (channel.getConfiguration().get("invert") == null) {
+                                channel.getConfiguration().put("invert", false);
+                            }
                             if (value.contains("ON")) {
-                                if (channel.getConfiguration().get("invert").equals("false")) {
-                                    updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
-                                } else {
+                                if ((Boolean) channel.getConfiguration().get("invert")) {
                                     updateState(channel.getUID().getId(), OpenClosedType.OPEN);
+                                } else {
+                                    updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
                                 }
                             } else if (value.contains("OFF")) {
-                                if (channel.getConfiguration().get("invert").equals("false")) {
-                                    updateState(channel.getUID().getId(), OpenClosedType.OPEN);
-                                } else {
+                                if ((Boolean) channel.getConfiguration().get("invert")) {
                                     updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
+                                } else {
+                                    updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                                 }
                             }
                             break;
@@ -1290,7 +1316,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         String acceptType = channel.getAcceptedItemType();
                         if (acceptType != null) {
                             if ("Switch".equals(acceptType)) {
-                                updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
+                                try {
+                                    updateChannel(channel.getUID().getId(), portsStatus[port.intValue()]);
+                                } catch (Exception e) {
+                                    logger.debug("Channel {} update failed with error {}", channel.getLabel(),
+                                            e.getLocalizedMessage());
+                                }
+
                             }
                         }
                     }
