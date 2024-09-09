@@ -73,6 +73,7 @@ import com.google.gson.stream.JsonReader;
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
+    public static @Nullable Map<Integer, Boolean> excludePortList = new HashMap<>();
     public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
@@ -165,13 +166,13 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startBackgroundDiscovery() {
-        logger.error("startBackgroundDiscovery");
+        // logger.error("startBackgroundDiscovery");
         backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
-        logger.error("stopBackgroundDiscovery");
+        // logger.error("stopBackgroundDiscovery");
         ScheduledFuture<?> scan = backgroundFuture;
         if (scan != null) {
             scan.cancel(true);
@@ -232,16 +233,22 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 if (!megaDDeviceHandlerList.isEmpty()) {
                     for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
                         for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
-                            MegaDHardware.Port port = mega.megaDHardware.getPort(i);
-                            if (port != null) {
-                                MegaDTypesEnum portType = port.getPty();
-                                if (portType != MegaDTypesEnum.NC) {
-                                    if (port.getM() != MegaDModesEnum.SCL) {
-                                        String label = "";
-                                        if (!mega.megaDHardware.getMdid().isEmpty()) {
-                                            label = mega.megaDHardware.getMdid();
+                            Map<Integer, Boolean> ep = excludePortList;
+                            if (ep != null) {
+                                if (!ep.containsKey(i)) {
+                                    MegaDHardware.Port port = mega.megaDHardware.getPortStatus(i);
+                                    if (port != null) {
+                                        logger.debug("Discovering port {}", i);
+                                        MegaDTypesEnum portType = port.getPty();
+                                        if (portType != MegaDTypesEnum.NC) {
+                                            if (port.getM() != MegaDModesEnum.SCL) {
+                                                String label = "";
+                                                if (!mega.megaDHardware.getMdid().isEmpty()) {
+                                                    label = mega.megaDHardware.getMdid();
+                                                }
+                                                addToDiscoverThing(mega, label, i);
+                                            }
                                         }
-                                        addToDiscoverThing(mega, label, i);
                                     }
                                 }
                             }

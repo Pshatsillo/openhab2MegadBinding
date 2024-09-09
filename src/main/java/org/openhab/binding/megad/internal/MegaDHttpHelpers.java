@@ -64,6 +64,11 @@ public class MegaDHttpHelpers {
             }
         }
         megaDHTTPResponse.setResponseResult(result.replace("\"", ""));
+        logger.debug("Http response from url {} is {}", urlString, megaDHTTPResponse.getResponseResult());
+        // try {
+        // Thread.sleep(100);
+        // } catch (InterruptedException e) {
+        // }
         return megaDHTTPResponse;
     }
 

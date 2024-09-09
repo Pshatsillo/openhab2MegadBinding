@@ -48,6 +48,10 @@ public class MegaDHardware {
     private String sct = "";
     private String emsk = "";
 
+    public String getHostname() {
+        return hostname;
+    }
+
     public String getMdid() {
         return mdid;
     }
@@ -188,6 +192,10 @@ public class MegaDHardware {
         // MegaDHTTPResponse megaDHTTPResponse;
         for (int i = 0; i <= getPortsCount(); i++) {
             getSinglePortStatus(hostname, password, http, i);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
             // megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?pt=" + i);
             // if (megaDHTTPResponse.getResponseCode() == 200) {
             // Port port = new Port();
@@ -610,9 +618,14 @@ public class MegaDHardware {
         return result;
     }
 
-    public @Nullable Port getPort(int i) {
+    public @Nullable Port getPortStatus(int i) {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
         getSinglePortStatus(hostname, password, http, i);
+        Map<Integer, Port> portList = this.portList;
+        return portList.get(i);
+    }
+
+    public @Nullable Port getPort(int i) {
         Map<Integer, Port> portList = this.portList;
         return portList.get(i);
     }
@@ -918,6 +931,23 @@ public class MegaDHardware {
 
         public String getD() {
             return d;
+        }
+
+        public String getSelectedDevName(String request) {
+            String result = "";
+            String tag = "<select name=d>";
+            if (request.contains(tag)) {
+                int dStartIndex = request.indexOf(tag) + tag.length();
+                int dEndIndex = request.substring(dStartIndex).indexOf("</select>") + dStartIndex;
+                String selectTag = request.substring(dStartIndex, dEndIndex);
+                String[] optionList = selectTag.split("<option");
+                for (String selectOption : optionList) {
+                    if (selectOption.contains("selected")) {
+                        result = selectOption.split(">")[1].toLowerCase();
+                    }
+                }
+            }
+            return result;
         }
 
         public MegaDExtendersEnum getExtenders() {
