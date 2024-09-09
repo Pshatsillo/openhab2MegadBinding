@@ -177,73 +177,14 @@ public class MegaDHardware {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
         readConfigPage1(hostname, password, http);
         readConfigPage2(hostname, password, http);
-        // readScreens(hostname, password, http);
-        // readElements(hostname, password, http);
-        // readCron(hostname, password, http);
-        // readKeys(hostname, password, http);
-        // readProgram(hostname, password, http);
-        // readPID(hostname, password, http);
         getActualFirmware(http);
         getMegaPortsAndType(hostname, password, http);
         getPortsStatus(hostname, password, http);
     }
 
     public void getPortsStatus(String hostname, String password, MegaDHttpHelpers http) {
-        // MegaDHTTPResponse megaDHTTPResponse;
         for (int i = 0; i <= getPortsCount(); i++) {
             getSinglePortStatus(hostname, password, http, i);
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ignored) {
-            }
-            // megaDHTTPResponse = http.request("http://" + hostname + "/" + password + "/?pt=" + i);
-            // if (megaDHTTPResponse.getResponseCode() == 200) {
-            // Port port = new Port();
-            // String pty = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "pty");
-            // if (pty.isBlank()) {
-            // port.pty = MegaDTypesEnum.NC;
-            // } else {
-            // port.pty = MegaDTypesEnum.setID(Integer.parseInt(pty));
-            // }
-            // port.ecmd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "ecmd");
-            // port.af = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "af");
-            // port.eth = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eth");
-            // port.naf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "naf");
-            // port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
-            // port.miscChecked = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
-            // port.setMisc(getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "misc"));
-            // port.dCheckbox = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
-            // port.mt = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "mt");
-            // port.emt = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emt");
-            // port.dSelect = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
-            // port.setD(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "d"));
-            // port.grp = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "grp");
-            // port.hst = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "hst");
-            // port.gr = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "gr");
-            // port.clock = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "clock");
-            // setInt(i, getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "inta"));
-            // port.pwmm = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "pwmm");
-            // if (port.pty == MegaDTypesEnum.I2C && (port.d.equals("20") || port.d.equals("21"))) {
-            // for (int j = 0; j < 16; j++) {
-            // megaDHTTPResponse = http
-            // .request("http://" + hostname + "/" + password + "/?pt=" + i + "&ext=" + j);
-            // if (megaDHTTPResponse.getResponseCode() == 200) {
-            // ExtPort extPort = new ExtPort(port.getExtenders());
-            // extPort.setEty(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "ety"));
-            // extPort.ept = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "ept");
-            // extPort.eact = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eact");
-            // extPort.epf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "epf");
-            // extPort.emode = getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "emode");
-            // extPort.emin = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emin");
-            // extPort.emax = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "emax");
-            // extPort.espd = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "espd");
-            // extPort.setEpwm(getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "epwm"));
-            // port.extPorts.put(j, extPort);
-            // }
-            // }
-            // }
-            // portList.put(i, port);
-            // }
         }
     }
 

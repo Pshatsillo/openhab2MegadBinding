@@ -794,10 +794,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             String[] splittedSensors = response.substring(dStartIndex).split("<br>");
                             for (String sensor : splittedSensors) {
                                 if (!sensor.isEmpty()) {
-                                    String sensor_type = Arrays.stream(sensor.split("&"))
-                                            .filter(par -> par.contains("i2c_dev")).findFirst().get().split("=")[1]
-                                            .split(">")[0];
-                                    // if
                                     sensor = sensor.substring(0, sensor.indexOf("-")).strip();
                                     if (Objects
                                             .requireNonNull(
