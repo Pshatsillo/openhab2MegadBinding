@@ -31,6 +31,7 @@ public class MegaDBindingConstants {
     public static final ThingTypeUID THING_TYPE_PORT = new ThingTypeUID(BINDING_ID, "port");
     public static final ThingTypeUID THING_TYPE_DEVICE = new ThingTypeUID(BINDING_ID, "device");
     public static final ThingTypeUID THING_TYPE_RS485 = new ThingTypeUID(BINDING_ID, "rs485");
+    public static final ThingTypeUID THING_TYPE_RGB = new ThingTypeUID(BINDING_ID, "rgb");
 
     // List of all Channel ids
     public static final String CHANNEL_IN = "in";
@@ -147,4 +148,7 @@ public class MegaDBindingConstants {
     public static final String CHANNEL_PAR1 = "par1";
     public static final String CHANNEL_PAR2 = "par2";
     public static final String CHANNEL_I2CRAW = "i2craw";
+
+    // RGB
+    public static final String CHANNEL_RGB = "rgbcolor";
 }

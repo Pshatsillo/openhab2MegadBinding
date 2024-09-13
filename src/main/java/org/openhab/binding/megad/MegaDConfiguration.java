@@ -32,4 +32,7 @@ public class MegaDConfiguration {
     public int refresh = 0;
     public boolean ping = true;
     public boolean setup = true;
+    public int red = 0;
+    public int green = 0;
+    public int blue = 0;
 }

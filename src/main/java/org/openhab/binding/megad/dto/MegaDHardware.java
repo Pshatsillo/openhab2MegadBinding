@@ -816,6 +816,11 @@ public class MegaDHardware {
             }
         }
 
+        /**
+         * Get Mode of selected port, PWM, SWITCH, etc returns {@link MegaDModesEnum}
+         * 
+         * @return Mode of selected port
+         */
         public MegaDModesEnum getM() {
             return m;
         }

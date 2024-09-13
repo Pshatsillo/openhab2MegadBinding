@@ -103,7 +103,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     public void initialize() {
         config = getConfigAs(MegaDConfiguration.class);
         megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
-        MegaDHTTPResponse response = httpHelper.request("http://" + config.hostname + "/" + config.password);
+        MegaDHTTPResponse response = httpHelper
+                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
         if (response.getResponseCode() >= 400) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
         } else if (response.getResponseCode() == 200) {
@@ -183,9 +184,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     .withAcceptedItemType("Switch").build();
             channelList.add(readConf);
 
-            MegaDHTTPResponse tempchannel = httpHelper
-                    .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
-            if (!tempchannel.getResponseResult().equals("0.00")) {
+            // MegaDHTTPResponse tempchannel = httpHelper
+            // .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+            if (!response.getResponseResult().equals("0.00")) {
                 ChannelUID megaTempUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_TGET);
                 Channel megaTemp = ChannelBuilder.create(megaTempUID).withType(
                         new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_TGET))
@@ -562,7 +563,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         if (!firmwareUpdate) {
             if (config.ping) {
                 MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                int response = httpRequest.request("http://" + config.hostname + "/" + config.password)
+                int response = httpRequest.request("http://" + config.hostname + "/" + config.password + "/?tget=1")
                         .getResponseCode();
                 if (response == 200) {
                     if (!thing.getStatus().equals(ThingStatus.ONLINE)) {

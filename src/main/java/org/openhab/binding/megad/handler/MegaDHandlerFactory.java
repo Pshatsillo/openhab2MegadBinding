@@ -52,6 +52,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_RS485);
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_PORT);
+        SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_RGB);
     }
 
     @Activate
@@ -75,6 +76,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
             return new MegaDRs485Handler(thing);
         } else if (thingTypeUID.equals(THING_TYPE_PORT)) {
             return new MegaDPortsHandler(thing, itemRegistry, link);
+        } else if (thingTypeUID.equals(THING_TYPE_RGB)) {
+            return new MegaDRGBHandler(thing);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

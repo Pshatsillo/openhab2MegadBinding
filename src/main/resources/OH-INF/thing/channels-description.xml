@@ -489,4 +489,12 @@
 		<label>Read configuration from mega</label>
 		<description>Writes configuration to mega</description>
 	</channel-type>
+
+
+	<channel-type id="rgbcolor">
+		<item-type>Color</item-type>
+		<label>RGB color palette</label>
+	</channel-type>
+
+
 </thing:thing-descriptions>
