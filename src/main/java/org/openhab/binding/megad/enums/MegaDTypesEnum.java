@@ -26,7 +26,7 @@ public enum MegaDTypesEnum {
     OUT(1),
     DSEN(3),
     I2C(4),
-    ADC(5);
+    ADC(2);
 
     private final int id;
 

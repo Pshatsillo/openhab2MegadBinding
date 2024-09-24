@@ -81,7 +81,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ScheduledFuture<?> backgroundFuture;
 
     public MegaDDiscoveryService() {
-        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, true);
+        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
     }
 
     @Override

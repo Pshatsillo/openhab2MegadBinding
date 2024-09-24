@@ -17,8 +17,8 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
-import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;

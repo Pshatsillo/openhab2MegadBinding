@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.internal;
+package org.openhab.binding.megad;
 
 import java.io.BufferedReader;
 import java.io.IOException;

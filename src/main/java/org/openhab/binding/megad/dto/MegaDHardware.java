@@ -19,14 +19,14 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.megad.MegaDHTTPResponse;
+import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.enums.MegaDDsenEnum;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.binding.megad.enums.MegaDExtendersEnum;
 import org.openhab.binding.megad.enums.MegaDI2CDevicesEnum;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
-import org.openhab.binding.megad.internal.MegaDHTTPResponse;
-import org.openhab.binding.megad.internal.MegaDHttpHelpers;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
