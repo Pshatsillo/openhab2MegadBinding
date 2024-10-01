@@ -61,9 +61,8 @@ public class MegaDWindAnemometer implements MegaDRS485Interface {
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
                 + "/?uart_rx=1";
         String updateRequest = httpHelper.request(result).getResponseResult();
-        logger.info("Wind speed answer is: {}", updateRequest);
-        String[] retArr = updateRequest.split("[|]");
-        return retArr;
+        logger.trace("Wind speed answer is: {}", updateRequest);
+        return updateRequest.split("[|]");
     }
 
     @Override

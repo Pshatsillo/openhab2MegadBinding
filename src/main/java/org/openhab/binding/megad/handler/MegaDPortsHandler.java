@@ -600,9 +600,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         properties.put("Mode:", port.getM().toString());
                     } else if (portType.equals(MegaDTypesEnum.ADC)) {
                         ChannelUID adcUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_ADC);
-                        Channel adc = ChannelBuilder.create(adcUID).withType(
-                                new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_ADC))
-                                .withLabel(label + " ADC").build();
+                        Channel adc = ChannelBuilder.create(adcUID)
+                                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
+                                        MegaDBindingConstants.CHANNEL_ADC))
+                                .withLabel(label + " ADC").withAcceptedItemType("Number").build();
                         channelList.add(adc);
                     } else if (portType.equals(MegaDTypesEnum.DSEN)) {
                         if (port.getSenType().equals(MegaDDsenEnum.DHT11)) {
@@ -1001,6 +1002,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                             break;
                         case MegaDBindingConstants.CHANNEL_INCOUNT:
+                        case MegaDBindingConstants.CHANNEL_ADC:
                             updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                             break;
                         case MegaDBindingConstants.CHANNEL_CONTACT:
@@ -1316,6 +1318,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                 }
+            } else if (portType.equals(MegaDTypesEnum.ADC)) {
+                String response = httpRequest
+                        .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
+                        .getResponseResult();
+                updateChannel(MegaDBindingConstants.CHANNEL_ADC, response);
             } else if (portType.equals(MegaDTypesEnum.I2C)) {
                 MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
                 if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
