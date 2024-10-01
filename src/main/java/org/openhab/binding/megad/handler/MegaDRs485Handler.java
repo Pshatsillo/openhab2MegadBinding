@@ -19,6 +19,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.RS485.MegaDDDs238;
+import org.openhab.binding.megad.RS485.MegaDGLTHTempHum;
 import org.openhab.binding.megad.RS485.MegaDMideaProtocol;
 import org.openhab.binding.megad.RS485.MegaDModbusPowermeterInterface;
 import org.openhab.binding.megad.RS485.MegaDRS485Interface;
@@ -165,6 +166,18 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 final MegaDWindAnemometer megaDWindAnemometer = (MegaDWindAnemometer) rsi;
                 if (megaDWindAnemometer != null) {
                     thingBuilder.withChannels(megaDWindAnemometer.getChannelsList(getThing()));
+                    updateThing(thingBuilder.build());
+                }
+            }
+        }
+        if (getThing().getConfiguration().get("type").toString().equals("glthtemphum")) {
+            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+            if (bridgeHandler != null) {
+                rsi = new MegaDGLTHTempHum(bridgeHandler, address);
+                ThingBuilder thingBuilder = editThing();
+                final MegaDGLTHTempHum MegaDGLTHTempHum = (MegaDGLTHTempHum) rsi;
+                if (MegaDGLTHTempHum != null) {
+                    thingBuilder.withChannels(MegaDGLTHTempHum.getChannelsList(getThing()));
                     updateThing(thingBuilder.build());
                 }
             }
@@ -483,16 +496,42 @@ public class MegaDRs485Handler extends BaseThingHandler {
                             }
                         }
                     }
-                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDSPED)) {
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TEMP)) {
                     final MegaDRS485Interface megaDRS485Interface = rsi;
                     if (megaDRS485Interface != null) {
                         final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
                         if (bridgeHandler != null) {
                             String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 9) {
+                            if (answer.length == 7) {
+                                try {
+                                    int n;
+                                    if (answer[5].charAt(0) == "f".toCharArray()[0]) {
+                                        n = (int) Long.parseLong(answer[5] + answer[6], 16);
+                                        n = n ^ 0xFFFF;
+                                        updateState(channel.getUID().getId(),
+                                                DecimalType.valueOf("-" + (double) (n + 1) / 10));
+                                    } else {
+                                        n = (int) Long.parseLong(answer[5] + answer[6], 16);
+                                        updateState(channel.getUID().getId(),
+                                                DecimalType.valueOf(String.valueOf((double) (n + 1) / 10)));
+                                    }
+                                    logger.debug("Temperature is : {}, hex {}", (n + 1) / 10, answer[5] + answer[6]);
+
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_HUM)) {
+                    final MegaDRS485Interface megaDRS485Interface = rsi;
+                    if (megaDRS485Interface != null) {
+                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                        if (bridgeHandler != null) {
+                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                            if (answer.length == 7) {
                                 try {
                                     double n = (int) Long.parseLong(answer[3] + answer[4], 16);
-                                    logger.debug("Wind speed is : {}, hex {}", n / 10, answer[5] + answer[6]);
+                                    logger.debug("Humidity is : {}, hex {}", n / 10, answer[3] + answer[4]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n / 10)));
                                 } catch (Exception ignored) {
                                 }

@@ -69,6 +69,7 @@
 					<option value="midea">Midea protocol</option>
 					<option value="winddir">Wind direction</option>
 					<option value="windanemometer">Wind anemometer</option>
+					<option value="glthtemphum">GL-TH(1,2,3,4) temperature sensor</option>
 				</options>
 			</parameter>
 			<parameter name="address" type="text" required="true">

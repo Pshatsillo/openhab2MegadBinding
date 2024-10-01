@@ -29,18 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegaDWindAnemometer} is responsible for rs485/modbus feature of megad
+ * The {@link MegaDGLTHTempHum} is responsible for rs485/modbus feature of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDWindAnemometer implements MegaDRS485Interface {
-    final Logger logger = LoggerFactory.getLogger(MegaDWindAnemometer.class);
+public class MegaDGLTHTempHum implements MegaDRS485Interface {
+    final Logger logger = LoggerFactory.getLogger(MegaDGLTHTempHum.class);
     String address;
     MegaDDeviceHandler bridgeHandler;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDWindAnemometer(MegaDDeviceHandler bridgeHandler, String address) {
+    public MegaDGLTHTempHum(MegaDDeviceHandler bridgeHandler, String address) {
         this.address = address;
         this.bridgeHandler = bridgeHandler;
     }
@@ -59,11 +59,11 @@ public class MegaDWindAnemometer implements MegaDRS485Interface {
         result = "http://"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("hostname").toString() + "/"
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
-                + "/?uart_rx=1";
+                + "/?uart_rx=1&mode=rs485";
         String updateRequest = httpHelper.request(result).getResponseResult();
-        logger.trace("Wind speed answer is: {}", updateRequest);
-        String[] request = updateRequest.split("[|]");
-        return request;
+        logger.trace("Temp/hum GL-TH answer is: {}", updateRequest);
+        String[] response = updateRequest.split("[|]");
+        return response;
     }
 
     @Override
@@ -73,11 +73,16 @@ public class MegaDWindAnemometer implements MegaDRS485Interface {
     @Override
     public List<Channel> getChannelsList(Thing thing) {
         List<Channel> channelList = new ArrayList<>();
-        ChannelUID windSpeedUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_WINDSPED);
-        Channel windSpeed = ChannelBuilder.create(windSpeedUID)
-                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_WINDSPED))
-                .withLabel("Скорость ветра").withAcceptedItemType("Number").build();
-        channelList.add(windSpeed);
+        ChannelUID temperature = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_TEMP);
+        Channel temperatureCH = ChannelBuilder.create(temperature)
+                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_TEMP))
+                .withLabel("Температура").withAcceptedItemType("Number:Temperature").build();
+        ChannelUID humidity = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_HUM);
+        Channel humidityCH = ChannelBuilder.create(humidity)
+                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_HUM))
+                .withLabel("Влажность").withAcceptedItemType("Number").build();
+        channelList.add(temperatureCH);
+        channelList.add(humidityCH);
         return channelList;
     }
 }
