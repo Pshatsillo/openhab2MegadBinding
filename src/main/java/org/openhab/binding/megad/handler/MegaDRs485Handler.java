@@ -486,11 +486,27 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
                         if (bridgeHandler != null) {
                             String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 9) {
+                            if (answer.length == 7) {
                                 try {
                                     int n = (int) Long.parseLong(answer[3] + answer[4], 16);
                                     logger.debug("Wind Segment is : {}, hex {}", n, answer[5] + answer[6]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        }
+                    }
+                } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDSPED)) {
+                    final MegaDRS485Interface megaDRS485Interface = rsi;
+                    if (megaDRS485Interface != null) {
+                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                        if (bridgeHandler != null) {
+                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                            if (answer.length == 7) {
+                                try {
+                                    double n = (int) Long.parseLong(answer[3] + answer[4], 16);
+                                    logger.debug("Wind speed is : {}, hex {}", n / 10, answer[5] + answer[6]);
+                                    updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n / 10)));
                                 } catch (Exception ignored) {
                                 }
                             }
