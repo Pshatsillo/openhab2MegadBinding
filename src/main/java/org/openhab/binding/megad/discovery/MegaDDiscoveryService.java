@@ -226,7 +226,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private synchronized void scan() {
-        //logger.info("Scanning...");
+        // logger.info("Scanning...");
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         try {
             if (megaDDeviceHandlerList != null) {
