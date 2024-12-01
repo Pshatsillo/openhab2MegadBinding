@@ -13,17 +13,17 @@
 			<channel id="rgbcolor" typeId="rgbcolor"/>
 		</channels>
 		<config-description>
-			<parameter name="red" type="integer" required="true">
+			<parameter name="red" type="text" required="true">
 				<label>Red color port</label>
 				<description>Port number red channel.</description>
 				<default>0</default>
 			</parameter>
-			<parameter name="green" type="integer" required="true">
+			<parameter name="green" type="text" required="true">
 				<label>Green color port</label>
 				<description>Port number green channel.</description>
 				<default>0</default>
 			</parameter>
-			<parameter name="blue" type="integer" required="true">
+			<parameter name="blue" type="text" required="true">
 				<label>Blue color port</label>
 				<description>Port number blue channel.</description>
 				<default>0</default>

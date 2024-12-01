@@ -26,6 +26,7 @@ import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDHardware;
+import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.Bridge;
@@ -86,26 +87,66 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 boolean isR = false;
                 boolean isG = false;
                 boolean isB = false;
-                MegaDHardware.Port r = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.red);
-                MegaDHardware.Port g = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.green);
-                MegaDHardware.Port b = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.blue);
+                boolean isRext = false;
+                boolean isGext = false;
+                boolean isBext = false;
+                MegaDHardware.Port r, g, b;
+                if (configuration.red.contains("e")) {
+                    r = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.red.split("e")[0]));
+                    isRext = true;
+                } else {
+                    r = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.red));
+                }
+                if (configuration.green.contains("e")) {
+                    g = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.green.split("e")[0]));
+                    isGext = true;
+                } else {
+                    g = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.green));
+                }
+                if (configuration.blue.contains("e")) {
+                    b = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.blue.split("e")[0]));
+                    isBext = true;
+                } else {
+                    b = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.blue));
+                }
                 if (r != null) {
-                    if (r.getM().equals(PWM)) {
-                        isR = true;
+                    if (isRext) {
+                        if (r.getExtPorts().get(Integer.parseInt(configuration.red.split("e")[1])).getEty()
+                                .equals(MegaDExtendedTypeEnum.PWM)) {
+                            isR = true;
+                        }
+                    } else {
+                        if (r.getM().equals(PWM)) {
+                            isR = true;
+                        }
                     }
                 } else {
                     logger.error("Port {} is not PWM", configuration.red);
                 }
                 if (g != null) {
-                    if (g.getM().equals(PWM)) {
-                        isG = true;
+                    if (isGext) {
+                        if (g.getExtPorts().get(Integer.parseInt(configuration.green.split("e")[1])).getEty()
+                                .equals(MegaDExtendedTypeEnum.PWM)) {
+                            isG = true;
+                        }
+                    } else {
+                        if (g.getM().equals(PWM)) {
+                            isG = true;
+                        }
                     }
                 } else {
                     logger.error("Port {} is not PWM", configuration.green);
                 }
                 if (b != null) {
-                    if (b.getM().equals(PWM)) {
-                        isB = true;
+                    if (isBext) {
+                        if (b.getExtPorts().get(Integer.parseInt(configuration.blue.split("e")[1])).getEty()
+                                .equals(MegaDExtendedTypeEnum.PWM)) {
+                            isB = true;
+                        }
+                    } else {
+                        if (b.getM().equals(PWM)) {
+                            isB = true;
+                        }
                     }
                 } else {
                     logger.error("Port {} is not PWM", configuration.blue);
@@ -113,9 +154,9 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 if (isR && isG && isB) {
                     Map<Integer, Boolean> ep = MegaDDiscoveryService.excludePortList;
                     if (ep != null) {
-                        ep.put(configuration.red, true);
-                        ep.put(configuration.green, true);
-                        ep.put(configuration.blue, true);
+                        ep.put(Integer.parseInt(configuration.red.split("e")[0]), true);
+                        ep.put(Integer.parseInt(configuration.green.split("e")[0]), true);
+                        ep.put(Integer.parseInt(configuration.blue.split("e")[0]), true);
 
                     }
                     ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
@@ -144,6 +185,18 @@ public class MegaDRGBHandler extends BaseThingHandler {
             String colorGreen = color.format("%rgb%").split(",")[1];
             String colorBlue = color.format("%rgb%").split(",")[2];
 
+            if (configuration.red.contains("e")) {
+                double rPercent = Integer.parseInt(colorRed) / 2.55;
+                colorRed = String.valueOf(Math.round(40.95 * rPercent));
+            }
+            if (configuration.green.contains("e")) {
+                double gPercent = Integer.parseInt(colorGreen) / 2.55;
+                colorGreen = String.valueOf(Math.round(40.95 * gPercent));
+            }
+            if (configuration.blue.contains("e")) {
+                double bPercent = Integer.parseInt(colorBlue) / 2.55;
+                colorBlue = String.valueOf(Math.round(40.95 * bPercent));
+            }
             MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
             if (bridgeDeviceHandler != null) {
                 httpRequest.request(
@@ -210,32 +263,58 @@ public class MegaDRGBHandler extends BaseThingHandler {
                         int red_color = 0;
                         int green_color = 0;
                         int blue_color = 0;
+                        String redPortConfig = configuration.red;
+                        String greenPortConfig = configuration.green;
+                        String bluePortConfig = configuration.blue;
+                        if (configuration.red.contains("e")) {
+                            redPortConfig = configuration.red.split("e")[0] + "&ext=" + configuration.red.split("e")[1];
+                        }
                         MegaDHTTPResponse red = httpRequest.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                + configuration.red + "?cmd=get");
+                                + redPortConfig + "&cmd=get");
                         if (red.getResponseCode() == 200) {
                             red_color = Integer.parseInt(red.getResponseResult());
                         } else {
                             logger.error("Cannot get red channel value");
                         }
+                        if (configuration.green.contains("e")) {
+                            greenPortConfig = configuration.green.split("e")[0] + "&ext="
+                                    + configuration.green.split("e")[1];
+                        }
                         MegaDHTTPResponse green = httpRequest.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                + configuration.green + "?cmd=get");
+                                + greenPortConfig + "&cmd=get");
                         if (green.getResponseCode() == 200) {
                             green_color = Integer.parseInt(green.getResponseResult());
                         } else {
                             logger.error("Cannot get green channel value");
                         }
+                        if (configuration.blue.contains("e")) {
+                            bluePortConfig = configuration.blue.split("e")[0] + "&ext="
+                                    + configuration.blue.split("e")[1];
+                        }
                         MegaDHTTPResponse blue = httpRequest.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                + configuration.blue + "?cmd=get");
+                                + bluePortConfig + "&cmd=get");
                         if (blue.getResponseCode() == 200) {
                             blue_color = Integer.parseInt(blue.getResponseResult());
                         } else {
                             logger.error("Cannot get blue channel value");
+                        }
+                        if (configuration.red.contains("e")) {
+                            double rPercent = red_color / 40.95;
+                            red_color = (int) Math.round(2.55 * rPercent);
+                        }
+                        if (configuration.green.contains("e")) {
+                            double gPercent = green_color / 40.95;
+                            green_color = (int) Math.round(2.55 * gPercent);
+                        }
+                        if (configuration.blue.contains("e")) {
+                            double bPercent = blue_color / 40.95;
+                            blue_color = (int) Math.round(2.55 * bPercent);
                         }
                         updateState(channel.getUID().getId(), HSBType.fromRGB(red_color, green_color, blue_color));
                     }

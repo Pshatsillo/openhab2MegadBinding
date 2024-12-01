@@ -322,7 +322,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             String minValString = extPort.getEmin();
                                             int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
                                             if (uivalue != 0) {
-                                                int minval = Integer.parseInt(minValString);
+                                                int minval = ((minValString.isEmpty()) ? 0
+                                                        : Integer.parseInt(minValString));
                                                 double getDiff = (4095.0 - minval) / 100.0;
                                                 int corrVal = (int) Math.round(uivalue * getDiff);
                                                 resultInt = corrVal + minval;
@@ -1003,8 +1004,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             break;
                         case MegaDBindingConstants.CHANNEL_INCOUNT:
                         case MegaDBindingConstants.CHANNEL_ADC:
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
-                            break;
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                                break;
+                            } catch (Exception ignored) {
+
+                            }
                         case MegaDBindingConstants.CHANNEL_CONTACT:
                             if (channel.getConfiguration().get("invert") == null) {
                                 channel.getConfiguration().put("invert", false);
