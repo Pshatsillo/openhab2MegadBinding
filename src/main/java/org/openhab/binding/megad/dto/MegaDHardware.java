@@ -203,7 +203,17 @@ public class MegaDHardware {
             port.af = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "af");
             port.eth = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "eth");
             port.naf = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "naf");
-            port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
+            if (("MegaD-328".equals(type)) && (port.pty.equals(MegaDTypesEnum.OUT))) {
+                if (portNo == 6) {
+                    port.setM("1");
+                } else if ((portNo == 10) || (portNo == 12) || (portNo == 13)) {
+                    port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
+                } else {
+                    port.setM("0");
+                }
+            } else {
+                port.setM(getSelectedByHTMLName(megaDHTTPResponse.getResponseResult(), "m"));
+            }
             port.miscChecked = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "misc");
             port.setMisc(getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "misc"));
             port.dCheckbox = getCheckedByHTMLName(megaDHTTPResponse.getResponseResult(), "d");
@@ -253,7 +263,11 @@ public class MegaDHardware {
                     || megaDHTTPResponse.getResponseResult().contains("pt=44")) {
                 setPortsCount(46);
             } else {
-                setPortsCount(37);
+                if ("MegaD-328".equals(type)) {
+                    setPortsCount(14);
+                } else {
+                    setPortsCount(37);
+                }
             }
         }
     }
@@ -783,6 +797,7 @@ public class MegaDHardware {
         private MegaDDsenEnum senType = MegaDDsenEnum.NC;
         private int scl = -1;
         private MegaDI2CDevicesEnum megaDI2CDevicesEnum = MegaDI2CDevicesEnum.NONE;
+        private boolean exclude = false;
 
         public Map<Integer, ExtPort> getExtPorts() {
             return extPorts;
@@ -984,6 +999,14 @@ public class MegaDHardware {
             } else {
                 return Integer.parseInt(pwmm);
             }
+        }
+
+        public boolean isExclude() {
+            return exclude;
+        }
+
+        public void setScanExclude(boolean exclude) {
+            this.exclude = exclude;
         }
     }
 

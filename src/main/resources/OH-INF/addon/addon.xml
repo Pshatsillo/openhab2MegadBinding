@@ -6,5 +6,6 @@
 	<type>binding</type>
 	<name>MegaD Binding</name>
 	<description>This is the binding for MegaDevice.</description>
+	<connection>local</connection>
 
 </addon:addon>

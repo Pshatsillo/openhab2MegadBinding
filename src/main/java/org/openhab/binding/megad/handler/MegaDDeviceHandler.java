@@ -689,9 +689,12 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         if (file.exists()) {
             file.delete();
         }
-        boolean createOk = file.getParentFile().mkdirs();
-        if (createOk) {
-            logger.debug("Folders {} created", file.getAbsolutePath());
+        File parent = file.getParentFile();
+        if (parent != null) {
+            boolean createOk = parent.mkdirs();
+            if (createOk) {
+                logger.debug("Folders {} created", file.getAbsolutePath());
+            }
         }
         try {
             StringBuilder cfgLine = new StringBuilder("cf=1&" + "eip=" + config.hostname + "&emsk="
@@ -868,21 +871,24 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             File file = new File(
                     OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "cfg" + File.separator);
             if (file.listFiles() != null) {
-                for (File fileList : file.listFiles()) {
-                    logger.debug("file {}", fileList.getName());
-                    List<String> lines;
-                    lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
-                    if (lines != null) {
-                        if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
-                            for (String line : lines) {
-                                MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                                // logger.warn("line is {}", line);
-                                int response = httpRequest.request(
-                                        "http://" + config.hostname + "/" + config.password + "/?" + line.trim())
-                                        .getResponseCode();
-                                if (response == 200) {
-                                    logger.warn("line written {}", line);
-                                    Thread.sleep(100);
+                File[] listFiles = file.listFiles();
+                if (listFiles != null) {
+                    for (File fileList : listFiles) {
+                        logger.debug("file {}", fileList.getName());
+                        List<String> lines;
+                        lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
+                        if (lines != null) {
+                            if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
+                                for (String line : lines) {
+                                    MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+                                    // logger.warn("line is {}", line);
+                                    int response = httpRequest.request(
+                                            "http://" + config.hostname + "/" + config.password + "/?" + line.trim())
+                                            .getResponseCode();
+                                    if (response == 200) {
+                                        logger.warn("line written {}", line);
+                                        Thread.sleep(100);
+                                    }
                                 }
                             }
                         }

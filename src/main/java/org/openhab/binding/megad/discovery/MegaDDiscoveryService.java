@@ -73,7 +73,6 @@ import com.google.gson.stream.JsonReader;
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
-    public static @Nullable Map<Integer, Boolean> excludePortList = new HashMap<>();
     public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
@@ -105,6 +104,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startScan() {
         logger.info("StartScan");
+        removeOlderResults(getTimestampOfLastScan());
         scan();
         try {
             socket = new DatagramSocket(42000);
@@ -183,7 +183,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private Runnable createScanner() {
         return () -> {
-            long timestampOfLastScan = getTimestampOfLastScan();
+            // long timestampOfLastScan = getTimestampOfLastScan();
             try {
                 DatagramSocket socket = new DatagramSocket();
                 byte[] buf = { (byte) 170, 0, 12, (byte) 218, (byte) 202 };
@@ -196,7 +196,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             } catch (IOException e) {
                 logger.warn("{}", e.getMessage());
             }
-            removeOlderResults(timestampOfLastScan);
+            // removeOlderResults(timestampOfLastScan);
         };
     }
 
@@ -233,12 +233,12 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 if (!megaDDeviceHandlerList.isEmpty()) {
                     for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
                         for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
-                            Map<Integer, Boolean> ep = excludePortList;
-                            if (ep != null) {
-                                if (!ep.containsKey(i)) {
-                                    MegaDHardware.Port port = mega.megaDHardware.getPortStatus(i);
+                            MegaDHardware.Port port = mega.megaDHardware.getPort(i);
+                            if (port != null) {
+                                if (!port.isExclude()) {
+                                    logger.debug("Discovering port {}", i);
+                                    port = mega.megaDHardware.getPortStatus(i);
                                     if (port != null) {
-                                        logger.debug("Discovering port {}", i);
                                         MegaDTypesEnum portType = port.getPty();
                                         if (portType != MegaDTypesEnum.NC) {
                                             if (port.getM() != MegaDModesEnum.SCL) {
@@ -254,7 +254,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                             }
                         }
                     }
-                    MegaDDiscoveryService.megaDDeviceHandlerList = megaDDeviceHandlerList;
                 }
             }
             readSensorsFile(false);
@@ -264,19 +263,23 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     static void createFile(File file) {
-        boolean createOk = file.getParentFile().mkdirs();
-        if (createOk) {
-            logger.debug("Folders {} created", file.getAbsolutePath());
-        }
-        try {
-            // TODO Download file from ab-log.ru
-            URL url = new URL("https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
-            try (InputStream in = url.openStream()) {
-                Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
-            } catch (Exception e) {
-                logger.error("Connect to json file error");
+        File parent = file.getParentFile();
+        if (parent != null) {
+            boolean createOk = parent.mkdirs();
+            if (createOk) {
+                logger.debug("Folders {} created", file.getAbsolutePath());
             }
-        } catch (IOException ignored) {
+            try {
+                // TODO Download file from ab-log.ru
+                URL url = new URL(
+                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                try (InputStream in = url.openStream()) {
+                    Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                } catch (Exception e) {
+                    logger.error("Connect to json file error");
+                }
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -318,9 +321,10 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
         File sensorsFolder = new File(
                 OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors" + File.separator);
-        if (sensorsFolder.listFiles() != null) {
+        File[] listFiles = sensorsFolder.listFiles();
+        if (listFiles != null) {
             try {
-                for (File fileList : sensorsFolder.listFiles()) {
+                for (File fileList : listFiles) {
                     logger.debug("Reading sensor file {}", fileList.getName());
                     List<String> lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
                     if (lines != null) {

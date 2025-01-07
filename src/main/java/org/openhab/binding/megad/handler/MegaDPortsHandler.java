@@ -437,6 +437,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
             if (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
                 MegaDHardware.Port mega = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.port);
                 if (mega != null) {
+                    mega.setScanExclude(true);
+                    // int index = megaDDeviceHandlerList.indexOf(bridgeDeviceHandler);
+                    // bridgeDeviceHandler.megaDHardware.getPort(configuration.port).setScanExclude(true);
+                    // megaDDeviceHandlerList.set(index, bridgeDeviceHandler);
                     port = mega;
                     MegaDHTTPCallback.portListener.add(this);
                     ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
@@ -450,10 +454,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                     String label = port.getEmt();
-                    Map<Integer, Boolean> ep = MegaDDiscoveryService.excludePortList;
-                    if (ep != null) {
-                        ep.put(configuration.port, true);
-                    }
                     MegaDTypesEnum portType = port.getPty();
                     if (portType.equals(MegaDTypesEnum.IN)) {
                         if (port.getM().equals(MegaDModesEnum.C)) {
@@ -1463,10 +1463,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
         this.refreshPollingJob = refreshPollingJob;
         this.refreshPollingJob = null;
         MegaDHTTPCallback.portListener.remove(this);
-        Map<Integer, Boolean> ep = MegaDDiscoveryService.excludePortList;
-        if (ep != null) {
-            ep.remove(configuration.port);
-        }
         super.dispose();
     }
 }

@@ -14,7 +14,6 @@ package org.openhab.binding.megad.handler;
 
 import static org.openhab.binding.megad.enums.MegaDModesEnum.PWM;
 
-import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +23,6 @@ import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
 import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
-import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.core.library.types.HSBType;
@@ -111,9 +109,12 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 }
                 if (r != null) {
                     if (isRext) {
-                        if (r.getExtPorts().get(Integer.parseInt(configuration.red.split("e")[1])).getEty()
-                                .equals(MegaDExtendedTypeEnum.PWM)) {
-                            isR = true;
+                        MegaDHardware.ExtPort red = r.getExtPorts()
+                                .get(Integer.parseInt(configuration.red.split("e")[1]));
+                        if (red != null) {
+                            if (red.getEty().equals(MegaDExtendedTypeEnum.PWM)) {
+                                isR = true;
+                            }
                         }
                     } else {
                         if (r.getM().equals(PWM)) {
@@ -125,9 +126,12 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 }
                 if (g != null) {
                     if (isGext) {
-                        if (g.getExtPorts().get(Integer.parseInt(configuration.green.split("e")[1])).getEty()
-                                .equals(MegaDExtendedTypeEnum.PWM)) {
-                            isG = true;
+                        MegaDHardware.ExtPort green = g.getExtPorts()
+                                .get(Integer.parseInt(configuration.green.split("e")[1]));
+                        if (green != null) {
+                            if (green.getEty().equals(MegaDExtendedTypeEnum.PWM)) {
+                                isG = true;
+                            }
                         }
                     } else {
                         if (g.getM().equals(PWM)) {
@@ -139,9 +143,12 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 }
                 if (b != null) {
                     if (isBext) {
-                        if (b.getExtPorts().get(Integer.parseInt(configuration.blue.split("e")[1])).getEty()
-                                .equals(MegaDExtendedTypeEnum.PWM)) {
-                            isB = true;
+                        MegaDHardware.ExtPort blue = b.getExtPorts()
+                                .get(Integer.parseInt(configuration.blue.split("e")[1]));
+                        if (blue != null) {
+                            if (blue.getEty().equals(MegaDExtendedTypeEnum.PWM)) {
+                                isB = true;
+                            }
                         }
                     } else {
                         if (b.getM().equals(PWM)) {
@@ -152,12 +159,14 @@ public class MegaDRGBHandler extends BaseThingHandler {
                     logger.error("Port {} is not PWM", configuration.blue);
                 }
                 if (isR && isG && isB) {
-                    Map<Integer, Boolean> ep = MegaDDiscoveryService.excludePortList;
-                    if (ep != null) {
-                        ep.put(Integer.parseInt(configuration.red.split("e")[0]), true);
-                        ep.put(Integer.parseInt(configuration.green.split("e")[0]), true);
-                        ep.put(Integer.parseInt(configuration.blue.split("e")[0]), true);
-
+                    if (r != null) {
+                        r.setScanExclude(true);
+                    }
+                    if (g != null) {
+                        g.setScanExclude(true);
+                    }
+                    if (b != null) {
+                        b.setScanExclude(true);
                     }
                     ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
                     if (configuration.refresh != 0) {
