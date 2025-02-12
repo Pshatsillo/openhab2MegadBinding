@@ -1160,6 +1160,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                                 PercentType.valueOf(
                                                                                         Integer.toString(percent)));
                                                                     }
+                                                                } else {
+                                                                    int percent = 0;
+                                                                    percent = (int) Math.round(dimmervalue / 40.95);
+                                                                    updateState(channel.getUID().getId(), PercentType
+                                                                            .valueOf(Integer.toString(percent)));
                                                                 }
                                                             }
                                                         }

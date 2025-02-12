@@ -27,6 +27,8 @@ import org.openhab.binding.megad.enums.MegaDExtendersEnum;
 import org.openhab.binding.megad.enums.MegaDI2CDevicesEnum;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -38,7 +40,7 @@ import org.openhab.binding.megad.enums.MegaDTypesEnum;
 public class MegaDHardware {
     private String hostname = "";
     private String password = "";
-    // private Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
+    private Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     // private final Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     private String firmware = "";
     private String actualFirmware = "";
@@ -276,10 +278,14 @@ public class MegaDHardware {
         MegaDHTTPResponse megaDHTTPResponse;
         megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
         if (megaDHTTPResponse.getResponseCode() == 200) {
-            actualFirmware = megaDHTTPResponse.getResponseResult().substring(
-                    megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
-                    megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
-            actualFirmware = actualFirmware.split("ver")[1].trim().strip();
+            try {
+                actualFirmware = megaDHTTPResponse.getResponseResult().substring(
+                        megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
+                        megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
+                actualFirmware = actualFirmware.split("ver")[1].trim().strip();
+            } catch (Exception e) {
+                logger.error("Error getting actual firmware");
+            }
         }
     }
 
