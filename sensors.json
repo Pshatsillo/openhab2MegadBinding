@@ -64,6 +64,21 @@
       }
     },
     {
+      "opt3001": {
+        "Label": "OPT3001",
+        "Address": "0x44",
+        "Parameters": {
+          "light": {
+            "name": "Освещенность",
+            "path": "i2c_par=0",
+            "OH": "Number:Illuminance",
+            "HASS": "Illuminance"
+          }
+        },
+        "Init": true
+      }
+    },
+    {
       "scd4x": {
         "Label": "SCD4x",
         "Address": "0x62",

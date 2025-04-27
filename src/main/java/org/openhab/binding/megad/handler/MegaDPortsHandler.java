@@ -1382,15 +1382,23 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 && (channel.getConfiguration().get("path") != null)) {
                             String sensortype = channel.getConfiguration().get("type").toString();
                             String sensorPath = channel.getConfiguration().get("path").toString();
-                            String response = httpRequest
-                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                            + "&scl="
-                                            + Objects.requireNonNull(
-                                                    bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
-                                                    .getScl()
-                                            + "&i2c_dev=" + sensortype + "&" + sensorPath)
-                                    .getResponseResult();
+                            MegaDI2CSensors sensor = Objects.requireNonNull(megaDI2CSensorsList).get(sensortype);
+                            String response = "";
+                            if (!sensor.isSensorInitRequired()) {
+                                response = httpRequest
+                                        .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                                + "&scl="
+                                                + Objects.requireNonNull(
+                                                        bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
+                                                        .getScl()
+                                                + "&i2c_dev=" + sensortype + "&" + sensorPath)
+                                        .getResponseResult();
+                            } else {
+                                response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                        + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                        + "&cmd=get").getResponseResult();
+                            }
                             try {
                                 Thread.sleep(200);
                             } catch (InterruptedException ignored) {
