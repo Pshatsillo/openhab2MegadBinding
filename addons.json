@@ -8,6 +8,5 @@
   "link": "https://github.com/Pshatsillo/openhab2MegadBinding/blob/V4_n/README.md",
   "url": "https://github.com/Pshatsillo/openhab2MegadBinding/releases/download/4.3.4/org.openhab.binding.megad-4.3.4-SNAPSHOT.jar",
   "title": "Ab-log.ru MegaD Binding installation",
-  "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB",
-  "compatible_versions": "[4.3.0.0;4.3.999)"
+  "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB"
 }]
