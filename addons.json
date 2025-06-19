@@ -6,7 +6,7 @@
   "version": "4.3.4",
   "author": "Petr Shatsillo",
   "maturity": "stable",
-  "content_type": "application/vnd.openhab.bundle",
+  "content_type": "application/vnd.openhab.feature",
   "link": "https://github.com/Pshatsillo/openhab2MegadBinding/blob/V4_n/README.md",
   "url": "https://github.com/Pshatsillo/openhab2MegadBinding/releases/download/4.3.4/org.openhab.binding.megad-4.3.4-SNAPSHOT.jar",
   "title": "Ab-log.ru MegaD Binding alt installation",
