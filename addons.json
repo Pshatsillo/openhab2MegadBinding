@@ -1,6 +1,6 @@
 [
   {
-  "uid": "org-smarthome-binding-megad",
+  "uid": "org-openhab-binding-megad",
   "id": "megad",
   "type": "binding",
   "version": "4.3.4",
