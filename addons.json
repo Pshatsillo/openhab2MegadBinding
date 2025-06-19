@@ -13,5 +13,5 @@
   "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB",
   "compatible_versions": "[4.3.0.0;4.3.999)",
   "logger_packages": [ "org.openhab.binding.megad" ]
-}
+ }
 ]
