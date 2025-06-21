@@ -13,5 +13,19 @@
   "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB",
   "compatible_versions": "[4.3.0.0;4.3.999)",
   "logger_packages": [ "org.openhab.binding.megad" ]
- }
+ }, {
+      "uid":"org-openhab-io-yandexalice",
+  "id": "yandexalice",
+  "type": "binding",
+  "version": "4.3.4",
+  "author": "Petr Shatsillo",
+  "maturity": "stable",
+  "content_type": "application/vnd.openhab.bundle",
+  "link": "https://community.openhab.org/t/yandex-alice-binding-4-1-0-5-0-0/146122",
+  "url": "https://github.com/Pshatsillo/OpenhabYandexAlice/releases/download/4.3.5.1/org.openhab.io.yandexalice-4.3.6-SNAPSHOT.jar",
+  "title": "Yandex Alice custom binding",
+  "description": "This binding is designed to integrate Yandex Alice into the OpenHAB",
+  "compatible_versions": "[4.3.0.0;4.3.999)",
+  "logger_packages": [ "org.openhab.io.yandexalice" ]
+  }
 ]
