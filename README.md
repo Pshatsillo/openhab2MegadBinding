@@ -1,4 +1,4 @@
 
-# OpenHAB 4 MegaD binding
+# OpenHAB 5 MegaD binding
 
 https://github.com/Pshatsillo/openhab2MegadBinding/wiki
