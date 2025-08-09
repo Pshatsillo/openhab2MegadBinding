@@ -128,7 +128,7 @@
 		<state readOnly="true" pattern="%s"/>
 	</channel-type>
 	<channel-type id="wiegand">
-		<item-type>Text</item-type>
+		<item-type>String</item-type>
 		<label>Wiegand</label>
 		<description>Wiegand-26 protocol input </description>
 		<state readOnly="true" pattern="%s"/>
@@ -147,7 +147,7 @@
 		<config-description-ref uri="channel-type:megad:inout"/>
 	</channel-type>
 	<channel-type id="i2cdisplay">
-		<item-type>Text</item-type>
+		<item-type>String</item-type>
 		<label>i2cdisplay</label>
 		<description>i2cdisplay </description>
 		<state readOnly="true" pattern="%s"/>
