@@ -1,5 +1,5 @@
 {
-  "sensors": [
+  "sensors": {
    
       "htu21d": {
         "Label": "HTU21D",
@@ -141,5 +141,5 @@
         "Init": false
       
     }
-  ]
+  }
 }
