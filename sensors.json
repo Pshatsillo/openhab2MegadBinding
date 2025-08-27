@@ -111,7 +111,7 @@
             "OH": "Number:Temperature",
             "HASS": "Temperature"
           },
-          "ppm2.5": {
+          "ppm25": {
             "name": "Количество частиц 2.5 микрон",
             "path": "pm2.5",
             "OH": "Number:Temperature",
