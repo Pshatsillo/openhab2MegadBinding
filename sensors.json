@@ -1,6 +1,5 @@
 {
   "sensors": {
-   
       "htu21d": {
         "Label": "HTU21D",
         "Address": "0x40",
@@ -19,9 +18,7 @@
           }
         },
         "Init": false
-     
     },
-  
       "bmx280": {
         "Label": "BMP280/BME280",
         "Address": "0x76",
@@ -46,9 +43,7 @@
           }
         },
         "Init": false
-     
     },
-   
       "max44009": {
         "Label": "MAX44009",
         "Address": "0x4a",
@@ -61,9 +56,7 @@
           }
         },
         "Init": false
-     
     },
-    
       "opt3001": {
         "Label": "OPT3001",
         "Address": "0x44",
@@ -76,7 +69,6 @@
           }
         },
         "Init": true
-      
     },
    
       "scd4x": {
@@ -102,8 +94,7 @@
             "HASS": "Pressure"
           }
         },
-        "Init": false
-      
+        "Init": false  
     },
     
       "hm3301": {
@@ -118,9 +109,7 @@
           }
         },
         "Init": true
-      
-    },
-   
+    }, 
       "sht31": {
         "Label": "SHT31",
         "Address": "0x44",
@@ -139,7 +128,6 @@
           }
         },
         "Init": false
-      
     }
   }
 }
