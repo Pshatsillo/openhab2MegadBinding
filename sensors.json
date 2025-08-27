@@ -105,13 +105,25 @@
         "Address": "0x40",
         "MegaID": "",
         "Parameters": {
-          "ppm": {
-            "name": "Количество частиц",
-            "path": "i2c_par=1",
+          "ppm1": {
+            "name": "Количество частиц 1 микрон",
+            "path": "pm1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+          "ppm2.5": {
+            "name": "Количество частиц 2.5 микрон",
+            "path": "pm2.5",
             "OH": "Number:Temperature",
             "HASS": "Temperature"
           }
         },
+        "ppm10": {
+            "name": "Количество частиц 10 микрон",
+            "path": "pm10",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          }
         "Init": true
     }, 
       "sht31": {
