@@ -123,7 +123,7 @@
             "OH": "Number:Temperature",
             "HASS": "Temperature"
           }
-      }
+      },
         "Init": true
     }, 
       "sht31": {
