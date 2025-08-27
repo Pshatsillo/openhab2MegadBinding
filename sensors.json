@@ -116,8 +116,7 @@
             "path": "pm2.5",
             "OH": "Number:Temperature",
             "HASS": "Temperature"
-          }
-        },
+          },
         "ppm10": {
             "name": "Количество частиц 10 микрон",
             "path": "pm10",
