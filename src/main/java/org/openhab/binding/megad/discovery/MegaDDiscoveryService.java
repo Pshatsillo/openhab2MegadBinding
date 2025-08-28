@@ -57,9 +57,7 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
@@ -323,27 +321,32 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors" + File.separator);
         File[] listFiles = sensorsFolder.listFiles();
         if (listFiles != null) {
-            try {
-                for (File fileList : listFiles) {
-                    logger.debug("Reading sensor file {}", fileList.getName());
-                    List<String> lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
-                    if (lines != null) {
-                        JsonReader reader;
-                        try {
-                            reader = new JsonReader(new FileReader(fileList));
-                            JsonObject sensor = JsonParser.parseReader(reader).getAsJsonObject();
-                            reader.close();
-                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
-                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(), megaSensors);
-                            logger.debug(
-                                    "Json sensor read {} with label {} with address {} from \"sensors\" folder added",
-                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
-                                    megaSensors.getSensorAddress());
-                        } catch (Exception ignored) {
+            if (listFiles.length > 0) {
+                try {
+                    for (File fileList : listFiles) {
+                        logger.debug("Reading sensor file {}", fileList.getName());
+                        List<String> lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
+                        if (lines != null) {
+                            JsonReader reader;
+                            try {
+                                reader = new JsonReader(new FileReader(fileList));
+                                Map<String, JsonElement> sensor = JsonParser.parseReader(reader).getAsJsonObject()
+                                        .asMap();
+                                reader.close();
+                                sensor.forEach((k, v) -> {
+                                    MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
+                                    Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+                                    logger.debug(
+                                            "Json sensor read {} with label {} with address {} from \"sensors\" folder added",
+                                            megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                                            megaSensors.getSensorAddress());
+                                });
+                            } catch (Exception ignored) {
+                            }
                         }
                     }
+                } catch (IOException ignored) {
                 }
-            } catch (IOException ignored) {
             }
         } else {
             boolean createOk = sensorsFolder.mkdirs();
@@ -364,18 +367,25 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     JsonReader reader;
                     try {
                         reader = new JsonReader(new FileReader(file));
-                        JsonArray sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
-                                .getAsJsonArray("sensors");
+                        Map<String, JsonElement> sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
+                                .getAsJsonObject("sensors").asMap();
                         reader.close();
 
-                        for (JsonElement sensor : sensorsList) {
-                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                        sensorsList.forEach((k, v) -> {
+                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
                             logger.debug("Json sensor read {} with label {} with address {}",
                                     megaSensors.getSensorType(), megaSensors.getSensorLabel(),
                                     megaSensors.getSensorAddress());
-                            Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(), megaSensors);
-                        }
-                    } catch (Exception ignored) {
+                            Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+                        });
+                        // MegaDI2CSensors megaSensors = new MegaDI2CSensors(sensor);
+                        // logger.debug("Json sensor read {} with label {} with address {}",
+                        // megaSensors.getSensorType(), megaSensors.getSensorLabel(),
+                        // megaSensors.getSensorAddress());
+                        // Objects.requireNonNull(megaDI2CSensorsList).put(megaSensors.getSensorType(), megaSensors);
+                        // }
+                    } catch (Exception e) {
+                        logger.error("json parsing error {}", e.getLocalizedMessage());
                     }
                 }
             }
