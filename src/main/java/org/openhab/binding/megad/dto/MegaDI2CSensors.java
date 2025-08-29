@@ -42,7 +42,7 @@ public class MegaDI2CSensors {
             this.sensorType = sensorType;
             sensorLabel = sensor.getAsJsonObject().get("Label").getAsString();
             sensorAddress = sensor.getAsJsonObject().get("Address").getAsString();
-            //megaID = sensor.getAsJsonObject().get("MegaID").getAsString();
+            // megaID = sensor.getAsJsonObject().get("MegaID").getAsString();
             sensorInitRequired = sensor.getAsJsonObject().get("Init").getAsBoolean();
             Set<String> sensorParameters = sensor.getAsJsonObject().getAsJsonObject("Parameters").keySet();
             for (String parameter : sensorParameters) {

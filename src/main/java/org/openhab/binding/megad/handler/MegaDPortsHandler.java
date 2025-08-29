@@ -1410,7 +1410,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             + "&scl="
                                             + Objects.requireNonNull(
                                                     bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
-                                            .getScl()
+                                                    .getScl()
                                             + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
                                 }
                                 try {
