@@ -21,6 +21,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +77,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Nullable
     DatagramSocket socket;
     private @Nullable ScheduledFuture<?> backgroundFuture;
+    static String urlString = "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/refs/heads/jsons/sensors.json";
 
     public MegaDDiscoveryService() {
         super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
@@ -123,7 +125,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         @Nullable
         Runnable scanner1 = createScanner();
         scanner1.run();
-        logger.error("StartScan");
+        logger.debug("StartScan");
         try {
             Thread.sleep(10000);
         } catch (InterruptedException ignored) {
@@ -143,7 +145,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     try {
                         loSock.receive(packet);
                     } catch (IOException e) {
-                        logger.error("Scan socket closed: {}", e.getLocalizedMessage());
+                        logger.debug("Scan socket closed: {}", e.getLocalizedMessage());
                         break;
                     }
                     byte[] received = packet.getData();
@@ -206,7 +208,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 .withRepresentationProperty("hostname").withLabel("megad " + ips).build();
         thingDiscovered(resultS);
 
-        logger.error("Found MegaD at: {}", ips);
+        logger.debug("Found MegaD at: {}", ips);
     }
 
     private List<InetAddress> getBroadcastAddresses() {
@@ -269,8 +271,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             }
             try {
                 // TODO Download file from ab-log.ru
-                URL url = new URL(
-                        "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+                URL url = URI.create(urlString).toURL();
                 try (InputStream in = url.openStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                 } catch (Exception e) {
@@ -290,7 +291,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             long crcServerFile;
             logger.debug("CRC32 Checksum of existing file: {}", crcExistingFile);
             // TODO Download file from ab-log.ru
-            URL url = new URL("https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/V4_n/sensors.json");
+            URL url = URI.create(urlString).toURL();
             try (InputStream in = url.openStream()) {
                 data = in.readAllBytes();
                 crc.reset();
@@ -310,7 +311,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 }
             }
         } catch (Exception e) {
-            logger.error("Connect to json file error");
+            logger.error("Connect to json file error {}", e.getLocalizedMessage());
             return false;
         }
     }

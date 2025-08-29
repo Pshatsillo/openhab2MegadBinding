@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +41,7 @@ public class MegaDHttpHelpers {
         String result = "";
         if (!urlString.isEmpty()) {
             try {
-                URL url = new URL(urlString);
+                URL url = URI.create(urlString).toURL();
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setReadTimeout(1500);

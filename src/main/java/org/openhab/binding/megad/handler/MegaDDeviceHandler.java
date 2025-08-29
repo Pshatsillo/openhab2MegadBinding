@@ -22,6 +22,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -352,15 +353,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     } else {
                         dl_fw_fname = "megad-2561.hex";
                     }
-                    url = new URL("https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dl_fw_fname);
+                    String urlString = "https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dl_fw_fname;
+                    url = URI.create(urlString).toURL();
                     logger.warn("Beta {}, firmware filename is {}", beta, dl_fw_fname);
                 } else {
                     if (beta) {
                         dl_fw_fname = "megad-328-beta.hex";
                     } else {
-                        dl_fw_fname = "megad-328-beta.hex";
+                        dl_fw_fname = "megad-328.hex";
                     }
-                    url = new URL("https://ab-log.ru/files/File/megad-firmware/latest/" + dl_fw_fname);
+                    String urlString = "https://ab-log.ru/files/File/megad-firmware/latest/" + dl_fw_fname;
+                    url = URI.create(urlString).toURL();
                 }
                 logger.warn("Downloading firmware... {}", dl_fw_fname);
                 // updateState(channelUID, OnOffType.OFF);
