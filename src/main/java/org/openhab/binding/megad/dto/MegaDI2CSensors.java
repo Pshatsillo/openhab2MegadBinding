@@ -37,19 +37,17 @@ public class MegaDI2CSensors {
     boolean sensorInitRequired;
     private Logger logger = LoggerFactory.getLogger(MegaDI2CSensors.class);
 
-    public MegaDI2CSensors(JsonElement sensor) {
+    public MegaDI2CSensors(String sensorType, JsonElement sensor) {
         try {
-            if (sensor.getAsJsonObject().keySet().stream().findFirst().isPresent()) {
-                sensorType = sensor.getAsJsonObject().keySet().stream().findFirst().get();
-            }
-            sensorLabel = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Label").getAsString();
-            sensorAddress = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Address").getAsString();
-            sensorInitRequired = sensor.getAsJsonObject().getAsJsonObject(sensorType).get("Init").getAsBoolean();
-            Set<String> sensorParameters = sensor.getAsJsonObject().getAsJsonObject(sensorType)
-                    .getAsJsonObject("Parameters").keySet();
+            this.sensorType = sensorType;
+            sensorLabel = sensor.getAsJsonObject().get("Label").getAsString();
+            sensorAddress = sensor.getAsJsonObject().get("Address").getAsString();
+            //megaID = sensor.getAsJsonObject().get("MegaID").getAsString();
+            sensorInitRequired = sensor.getAsJsonObject().get("Init").getAsBoolean();
+            Set<String> sensorParameters = sensor.getAsJsonObject().getAsJsonObject("Parameters").keySet();
             for (String parameter : sensorParameters) {
-                JsonObject paramObj = sensor.getAsJsonObject().getAsJsonObject(sensorType).getAsJsonObject("Parameters")
-                        .getAsJsonObject(parameter).getAsJsonObject();
+                JsonObject paramObj = sensor.getAsJsonObject().getAsJsonObject("Parameters").getAsJsonObject(parameter)
+                        .getAsJsonObject();
                 I2CSensorParams paramClass = new I2CSensorParams();
                 paramClass.setId(parameter);
                 paramClass.setName(paramObj.get("name").getAsString());

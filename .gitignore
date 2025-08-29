@@ -1,7 +1,3 @@
 /target/
-org.openhab.binding.megad.iml
-/.history/
-.classpath
-/.idea/
 src/main/history/dependencies.xml
 resp.html

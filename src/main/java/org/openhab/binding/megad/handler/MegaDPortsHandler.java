@@ -821,19 +821,26 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                     .withAcceptedItemType("String").build();
                                             channelList.add(lcd1602Line2);
                                         } else {
+                                            String getDevName = httpRequest
+                                                    .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                                            + bridgeDeviceHandler.config.password + "/?pt="
+                                                            + configuration.port)
+                                                    .getResponseResult();
+                                            MegaDI2CSensors initedSensor = Objects.requireNonNull(megaDI2CSensorsList)
+                                                    .get(port.getSelectedDevName(getDevName).toLowerCase());
                                             Objects.requireNonNull(megaDI2CSensorsList).forEach((k, v) -> {
                                                 if (v.getSensorAddress().equals(finalSensor)) {
-                                                    if (v.isSensorInitRequired()) {
-                                                        String getDevName = httpRequest
-                                                                .request("http://" + bridgeDeviceHandler.config.hostname
-                                                                        + "/" + bridgeDeviceHandler.config.password
-                                                                        + "/?pt=" + configuration.port)
-                                                                .getResponseResult();
-                                                        if (k.equals(port.getSelectedDevName(getDevName))) {
+                                                    if (initedSensor != null) {
+                                                        if (initedSensor.equals(v)) {
                                                             registerI2CChannel(v, label, lambdaCannel);
+                                                        } else {
+                                                            if (!initedSensor.getSensorAddress()
+                                                                    .equals(v.getSensorAddress())) {
+                                                                if (!v.isSensorInitRequired()) {
+                                                                    registerI2CChannel(v, label, lambdaCannel);
+                                                                }
+                                                            }
                                                         }
-                                                    } else {
-                                                        registerI2CChannel(v, label, lambdaCannel);
                                                     }
                                                 }
                                             });
@@ -1384,26 +1391,34 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             String sensorPath = channel.getConfiguration().get("path").toString();
                             MegaDI2CSensors sensor = Objects.requireNonNull(megaDI2CSensorsList).get(sensortype);
                             String response = "";
-                            if (!sensor.isSensorInitRequired()) {
-                                response = httpRequest
-                                        .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                                + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                                + "&scl="
-                                                + Objects.requireNonNull(
-                                                        bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
-                                                        .getScl()
-                                                + "&i2c_dev=" + sensortype + "&" + sensorPath)
-                                        .getResponseResult();
-                            } else {
-                                response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                        + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
-                                        + "&cmd=get").getResponseResult();
+                            if (sensor != null) {
+                                if (sensor.isSensorInitRequired()) {
+                                    response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                            + "&cmd=get").getResponseResult();
+                                    String[] splitResponse = response.split("/");
+                                    for (int i = 0; i < splitResponse.length; i++) {
+                                        String[] value = splitResponse[i].split(":");
+                                        if (value[0].equals(sensorPath)) {
+                                            response = value[1];
+                                            logger.debug("Inited sensor channel {}", response);
+                                        }
+                                    }
+                                } else {
+                                    response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                            + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
+                                            + "&scl="
+                                            + Objects.requireNonNull(
+                                                    bridgeDeviceHandler.megaDHardware.getPort(configuration.port))
+                                            .getScl()
+                                            + "&i2c_dev=" + sensortype + "&" + sensorPath).getResponseResult();
+                                }
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException ignored) {
+                                }
+                                updateChannel(channel.getUID().getId(), response);
                             }
-                            try {
-                                Thread.sleep(200);
-                            } catch (InterruptedException ignored) {
-                            }
-                            updateChannel(channel.getUID().getId(), response);
                         }
                         if (channel.getConfiguration().get("port") != null) {
                             String response = httpRequest
