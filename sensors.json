@@ -1,9 +1,9 @@
 {
-  "sensors": [
-    {
+  "sensors": {
       "htu21d": {
         "Label": "HTU21D",
         "Address": "0x40",
+        "MegaID": "",
         "Parameters": {
           "temperature": {
             "name": "Температура",
@@ -19,12 +19,11 @@
           }
         },
         "Init": false
-      }
     },
-    {
       "bmx280": {
         "Label": "BMP280/BME280",
         "Address": "0x76",
+        "MegaID": "",
         "Parameters": {
           "temperature": {
             "name": "Температура",
@@ -46,12 +45,11 @@
           }
         },
         "Init": false
-      }
     },
-    {
       "max44009": {
         "Label": "MAX44009",
         "Address": "0x4a",
+        "MegaID": "",
         "Parameters": {
           "light": {
             "name": "Освещенность",
@@ -61,12 +59,11 @@
           }
         },
         "Init": false
-      }
     },
-    {
       "opt3001": {
         "Label": "OPT3001",
         "Address": "0x44",
+        "MegaID": "70",
         "Parameters": {
           "light": {
             "name": "Освещенность",
@@ -76,12 +73,11 @@
           }
         },
         "Init": true
-      }
     },
-    {
       "scd4x": {
         "Label": "SCD4x",
         "Address": "0x62",
+        "MegaID": "",
         "Parameters": {
           "temperature": {
             "name": "Температура",
@@ -102,28 +98,38 @@
             "HASS": "Pressure"
           }
         },
-        "Init": false
-      }
+        "Init": false  
     },
-    {
       "hm3301": {
         "Label": "HM3301",
         "Address": "0x40",
+        "MegaID": "",
         "Parameters": {
-          "ppm": {
-            "name": "Количество частиц",
-            "path": "i2c_par=1",
+          "ppm1": {
+            "name": "Количество частиц 1 микрон",
+            "path": "pm1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+          "ppm25": {
+            "name": "Количество частиц 2.5 микрон",
+            "path": "pm2.5",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature"
+          },
+        "ppm10": {
+            "name": "Количество частиц 10 микрон",
+            "path": "pm10",
             "OH": "Number:Temperature",
             "HASS": "Temperature"
           }
-        },
+      },
         "Init": true
-      }
-    },
-    {
+    }, 
       "sht31": {
         "Label": "SHT31",
         "Address": "0x44",
+        "MegaID": "",
         "Parameters": {
           "temperature": {
             "name": "Температура",
@@ -139,7 +145,6 @@
           }
         },
         "Init": false
-      }
     }
-  ]
+  }
 }
