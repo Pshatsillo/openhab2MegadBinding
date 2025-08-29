@@ -67,7 +67,7 @@
         "Parameters": {
           "light": {
             "name": "Освещенность",
-            "path": "i2c_par=0",
+            "path": "",
             "OH": "Number:Illuminance",
             "HASS": "Illuminance"
           }
