@@ -10,7 +10,7 @@
             "path": "i2c_par=1",
             "OH": "Number:Temperature",
             "HASS": "Temperature",
-            "measurement": "CELSIUS"
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
           "humidity": {
             "name": "Влажность",
