@@ -15,7 +15,7 @@
             "name": "Влажность",
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
-            "HASS": "Temperature"
+            "HASS": "HUMIDITY"
           }
         },
         "Init": false
