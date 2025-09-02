@@ -31,19 +31,22 @@
             "name": "Температура",
             "path": "i2c_par=1",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=2",
             "OH": "Number:Dimensionless",
-            "HASS": "Humidity"
+            "HASS": "Humidity",
+            "measurement": "PERCENTAGE"
           },
           "pressure": {
             "name": "Давление",
             "path": "i2c_par=0",
             "OH": "Number:Pressure",
-            "HASS": "Pressure"
+            "HASS": "ATMOSPHERIC_PRESSURE",
+            "measurement": "UnitOfPressure.MMHG"
           }
         },
         "Init": false
@@ -57,7 +60,8 @@
             "name": "Освещенность",
             "path": "i2c_par=0",
             "OH": "Number:Illuminance",
-            "HASS": "Illuminance"
+            "HASS": "Illuminance",
+            "measurement": "LIGHT_LUX"
           }
         },
         "Init": false
@@ -71,7 +75,8 @@
             "name": "Освещенность",
             "path": "",
             "OH": "Number:Illuminance",
-            "HASS": "Illuminance"
+            "HASS": "Illuminance",
+            "measurement": "LIGHT_LUX"
           }
         },
         "Init": true
@@ -85,19 +90,22 @@
             "name": "Температура",
             "path": "i2c_par=2",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=3",
             "OH": "Number:Dimensionless",
-            "HASS": "Humidity"
+            "HASS": "Humidity",
+            "measurement": "PERCENTAGE"
           },
           "CO2": {
             "name": "CO2",
             "path": "i2c_par=1",
             "OH": "Number:Dimensionless",
-            "HASS": "Pressure"
+            "HASS": "CO2",
+             "measurement": "CONCENTRATION_PARTS_PER_MILLION"
           }
         },
         "Init": false  
@@ -111,19 +119,22 @@
             "name": "Количество частиц 1 микрон",
             "path": "pm1",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
           "ppm25": {
             "name": "Количество частиц 2.5 микрон",
             "path": "pm2.5",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
         "ppm10": {
             "name": "Количество частиц 10 микрон",
             "path": "pm10",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           }
       },
         "Init": true
@@ -137,13 +148,15 @@
             "name": "Температура",
             "path": "i2c_par=1",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
-            "HASS": "Humidity"
+            "HASS": "Humidity",
+            "measurement": "PERCENTAGE"
           }
         },
         "Init": false
