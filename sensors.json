@@ -9,13 +9,15 @@
             "name": "Температура",
             "path": "i2c_par=1",
             "OH": "Number:Temperature",
-            "HASS": "Temperature"
+            "HASS": "Temperature",
+            "measurement": "CELSIUS"
           },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
-            "HASS": "HUMIDITY"
+            "HASS": "HUMIDITY",
+            "measurement": "PERCENTAGE"
           }
         },
         "Init": false
