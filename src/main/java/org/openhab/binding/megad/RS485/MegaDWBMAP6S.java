@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2010-2025 Contributors to the openHAB project
- *
- * See the NOTICE file(s) distributed with this work for additional
- * information.
- *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0
- *
- * SPDX-License-Identifier: EPL-2.0
- */
 package org.openhab.binding.megad.RS485;
 
 import java.util.ArrayList;
@@ -105,6 +93,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
                 value = getValueFromWBMAP6S("1416", 2);
                 yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
             }
+            case 4 -> {
+                value = getValueFromWBMAP6S("241A", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("2418", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("2416", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 2.44141E-07)).replace(",", ".");
+            }
             default -> "ERR";
         };
     }
@@ -123,6 +123,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
             }
             case 3 -> {
                 value = getValueFromWBMAP6S("1302", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 4 -> {
+                value = getValueFromWBMAP6S("2306", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("2304", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("2302", 2);
                 yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
             }
             default -> "ERR";
@@ -145,6 +157,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
                 value = getValueFromWBMAP6S("1312", 2);
                 yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
             }
+            case 4 -> {
+                value = getValueFromWBMAP6S("2316", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("2314", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("2312", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
             default -> "ERR";
         };
     }
@@ -163,6 +187,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
             }
             case 3 -> {
                 value = getValueFromWBMAP6S("130A", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 4 -> {
+                value = getValueFromWBMAP6S("230E", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("230C", 2);
+                yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("230A", 2);
                 yield String.format("%.2f", (float) ((int) Long.parseLong(value, 16) * 0.000244141)).replace(",", ".");
             }
             default -> "ERR";
@@ -185,6 +221,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
                 value = getValueFromWBMAP6S("10BD", 1);
                 yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
             }
+            case 4 -> {
+                value = getValueFromWBMAP6S("20BF", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("20BE", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("20BD", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.001)).replace(",", ".");
+            }
             default -> "ERR";
         };
     }
@@ -203,6 +251,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
             }
             case 3 -> {
                 value = getValueFromWBMAP6S("10F9", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            }
+            case 4 -> {
+                value = getValueFromWBMAP6S("20FB", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("20FA", 1);
+                yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("20F9", 1);
                 yield String.format("%.2f", (float) ((short) Integer.parseInt(value, 16) * 0.1)).replace(",", ".");
             }
             default -> "ERR";
@@ -296,6 +356,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
                 value = getValueFromWBMAP6S("1204", 4);
                 yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
             }
+            case 4 -> {
+                value = getValueFromWBMAP6S("220C", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("2208", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("2204", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
             default -> "ERR";
         };
     }
@@ -314,6 +386,18 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
             }
             case 3 -> {
                 value = getValueFromWBMAP6S("1224", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
+            case 4 -> {
+                value = getValueFromWBMAP6S("222C", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
+            case 5 -> {
+                value = getValueFromWBMAP6S("2228", 4);
+                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+            }
+            case 6 -> {
+                value = getValueFromWBMAP6S("2224", 4);
                 yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
             }
             default -> "ERR";
