@@ -5,19 +5,19 @@
         "Address": "0x40",
         "MegaID": "",
         "Parameters": {
-          "temperature": {
-            "name": "Температура",
-            "path": "i2c_par=1",
-            "OH": "Number:Temperature",
-            "HASS": "Temperature",
-            "measurement": "UnitOfTemperature.CELSIUS"
-          },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
             "HASS": "HUMIDITY",
             "measurement": "PERCENTAGE"
+          },
+           "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           }
         },
         "Init": false
