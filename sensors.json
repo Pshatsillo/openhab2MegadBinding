@@ -27,6 +27,13 @@
         "Address": "0x76",
         "MegaID": "",
         "Parameters": {
+          "pressure": {
+            "name": "Давление",
+            "path": "i2c_par=0",
+            "OH": "Number:Pressure",
+            "HASS": "ATMOSPHERIC_PRESSURE",
+            "measurement": "UnitOfPressure.MMHG"
+          },
           "temperature": {
             "name": "Температура",
             "path": "i2c_par=1",
@@ -40,13 +47,35 @@
             "OH": "Number:Dimensionless",
             "HASS": "Humidity",
             "measurement": "PERCENTAGE"
-          },
+          }
+        },
+        "Init": false
+    },
+    "bmp180": {
+        "Label": "BMP180",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
           "pressure": {
             "name": "Давление",
             "path": "i2c_par=0",
             "OH": "Number:Pressure",
             "HASS": "ATMOSPHERIC_PRESSURE",
             "measurement": "UnitOfPressure.MMHG"
+          },
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          },
+          "humidity": {
+            "name": "Влажность",
+            "path": "i2c_par=2",
+            "OH": "Number:Dimensionless",
+            "HASS": "Humidity",
+            "measurement": "PERCENTAGE"
           }
         },
         "Init": false
@@ -54,6 +83,36 @@
       "max44009": {
         "Label": "MAX44009",
         "Address": "0x4a",
+        "MegaID": "",
+        "Parameters": {
+          "light": {
+            "name": "Освещенность",
+            "path": "i2c_par=0",
+            "OH": "Number:Illuminance",
+            "HASS": "Illuminance",
+            "measurement": "LIGHT_LUX"
+          }
+        },
+        "Init": false
+    },
+      "bh1750": {
+        "Label": "BH1750",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "light": {
+            "name": "Освещенность",
+            "path": "i2c_par=0",
+            "OH": "Number:Illuminance",
+            "HASS": "Illuminance",
+            "measurement": "LIGHT_LUX"
+          }
+        },
+        "Init": false
+    },
+      "tsl2591": {
+        "Label": "TSL2591",
+        "Address": "0x00",
         "MegaID": "",
         "Parameters": {
           "light": {
@@ -86,6 +145,13 @@
         "Address": "0x62",
         "MegaID": "",
         "Parameters": {
+          "CO2": {
+            "name": "CO2",
+            "path": "i2c_par=1",
+            "OH": "Number:Dimensionless",
+            "HASS": "CO2",
+             "measurement": "CONCENTRATION_PARTS_PER_MILLION"
+          },
           "temperature": {
             "name": "Температура",
             "path": "i2c_par=2",
@@ -99,13 +165,6 @@
             "OH": "Number:Dimensionless",
             "HASS": "Humidity",
             "measurement": "PERCENTAGE"
-          },
-          "CO2": {
-            "name": "CO2",
-            "path": "i2c_par=1",
-            "OH": "Number:Dimensionless",
-            "HASS": "CO2",
-             "measurement": "CONCENTRATION_PARTS_PER_MILLION"
           }
         },
         "Init": false  
@@ -144,19 +203,56 @@
         "Address": "0x44",
         "MegaID": "",
         "Parameters": {
-          "temperature": {
-            "name": "Температура",
-            "path": "i2c_par=1",
-            "OH": "Number:Temperature",
-            "HASS": "Temperature",
-            "measurement": "UnitOfTemperature.CELSIUS"
-          },
           "humidity": {
             "name": "Влажность",
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
             "HASS": "Humidity",
             "measurement": "PERCENTAGE"
+          },
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number:Temperature",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          }
+        },
+        "Init": false
+    },
+      "dps368": {
+        "Label": "dps368",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "pressure": {
+            "name": "Давление",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "PRESSURE",
+            "measurement": "UnitOfPressure.BAR"
+          }
+        },
+        "Init": false
+    },
+      "mlx90614": {
+        "Label": "mlx90614",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=1",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          },
+          "object": {
+            "name": "Температура объект",
+            "path": "i2c_par=2",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
           }
         },
         "Init": false
