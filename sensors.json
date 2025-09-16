@@ -208,7 +208,8 @@
             "path": "i2c_par=0",
             "OH": "Number:Dimensionless",
             "HASS": "Humidity",
-            "measurement": "PERCENTAGE"
+            "measurement": "PERCENTAGE",
+            "delay": "1.5"
           },
           "temperature": {
             "name": "Температура",
@@ -218,8 +219,7 @@
             "measurement": "UnitOfTemperature.CELSIUS"
           }
         },
-        "Init": false,
-        "delay": "1.5"
+        "Init": false
     },
       "dps368": {
         "Label": "dps368",
