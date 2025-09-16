@@ -218,7 +218,8 @@
             "measurement": "UnitOfTemperature.CELSIUS"
           }
         },
-        "Init": false
+        "Init": false,
+        "delay": "1.5"
     },
       "dps368": {
         "Label": "dps368",
@@ -253,6 +254,159 @@
             "OH": "Number",
             "HASS": "Temperature",
             "measurement": "UnitOfTemperature.CELSIUS"
+          }
+        },
+        "Init": false
+    },
+      "mcp9600": {
+        "Label": "mcp9600",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура термопары",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          },
+          "inttemperature": {
+            "name": "Температура встроенная",
+            "path": "i2c_par=1",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          }
+        },
+        "Init": false
+    },
+      "t67xx": {
+        "Label": "t67xx",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "co2": {
+            "name": "CO2",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "CO2",
+            "measurement": "CONCENTRATION_PARTS_PER_MILLION"
+          }
+        },
+        "Init": false
+    },
+      "tmp117": {
+        "Label": "t67xx",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          }
+        },
+        "Init": false
+    },
+      "ptsensor": {
+        "Label": "ptsensor",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "request": {
+            "name": "3",
+            "path": "i2c_par=1",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "temperature": {
+            "name": "Температура",
+            "path": "i2c_par=3",
+            "OH": "Number",
+            "HASS": "Temperature",
+            "measurement": "UnitOfTemperature.CELSIUS"
+          },
+          "pressure": {
+            "name": "Давление",
+            "path": "i2c_par=2",
+            "OH": "Number",
+            "HASS": "PRESSURE",
+            "measurement": "UnitOfPressure.BAR"
+          }
+        },
+        "Init": false
+    },
+      "ads1115": {
+        "Label": "ads1115",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "ch0": {
+            "name": "Канал 0",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch1": {
+            "name": "Канал 1",
+            "path": "i2c_par=1",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch2": {
+            "name": "Канал 2",
+            "path": "i2c_par=2",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch3": {
+            "name": "Канал 3",
+            "path": "i2c_par=3",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          }
+        },
+        "Init": false
+    },
+      "ads1015": {
+        "Label": "ads1015",
+        "Address": "0x00",
+        "MegaID": "",
+        "Parameters": {
+          "ch0": {
+            "name": "Канал 0",
+            "path": "i2c_par=0",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch1": {
+            "name": "Канал 1",
+            "path": "i2c_par=1",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch2": {
+            "name": "Канал 2",
+            "path": "i2c_par=2",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
+          },
+          "ch3": {
+            "name": "Канал 3",
+            "path": "i2c_par=3",
+            "OH": "Number",
+            "HASS": "",
+            "measurement": ""
           }
         },
         "Init": false
