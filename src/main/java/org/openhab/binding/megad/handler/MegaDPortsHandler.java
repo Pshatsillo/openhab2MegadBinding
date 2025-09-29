@@ -558,7 +558,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             Channel out = ChannelBuilder.create(outUID)
                                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
                                             MegaDBindingConstants.CHANNEL_OUT))
-                                    .withLabel(label + " Output").withConfiguration(configuration).build();
+                                    .withLabel(label + " Output").withAcceptedItemType("Switch")
+                                    .withConfiguration(configuration).build();
                             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(out.getUID()))) {
                                 Channel foundedChannel = existingChannelList.stream()
                                         .filter(cn -> cn.getUID().equals(out.getUID())).findFirst().get();
