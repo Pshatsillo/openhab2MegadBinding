@@ -51,7 +51,7 @@
   "maturity": "stable",
   "content_type": "application/vnd.openhab.bundle",
   "link": "https://community.openhab.org/t/yandex-alice-binding-4-1-0-5-0-0/146122",
-  "url": "https://github.com/Pshatsillo/OpenhabYandexAlice/releases/download/4.3.5.1/org.openhab.io.yandexalice-4.3.6-SNAPSHOT.jar",
+  "url": "https://github.com/Pshatsillo/OpenhabYandexAlice/releases/download/5.0.1/org.openhab.io.yandexalice-5.0.2-SNAPSHOT.jar",
   "title": "Yandex Alice custom binding",
   "description": "This binding is designed to integrate Yandex Alice into the OpenHAB",
   "compatible_versions": "[5.0.0.0;5.0.999)",
