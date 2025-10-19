@@ -142,12 +142,12 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_FLASH))
                     .withAcceptedItemType("Switch").withConfiguration(channelConfiguration).build();
             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(flash.getUID()))) {
-                var findChannel =  existingChannelList.stream().filter(cn -> cn.getUID().equals(flash.getUID()))
+                var findChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(flash.getUID()))
                         .findFirst();
                 if (findChannel.isPresent()) {
-                    Channel foundedChannel =  findChannel.get();
-                channelList.add(foundedChannel);
-                existingChannelList.remove(foundedChannel);
+                    Channel foundedChannel = findChannel.get();
+                    channelList.add(foundedChannel);
+                    existingChannelList.remove(foundedChannel);
                 }
             } else {
                 channelList.add(flash);
@@ -156,7 +156,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 var findChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(start.getUID()))
                         .findFirst();
                 if (findChannel.isPresent()) {
-                    Channel foundedChannel =  findChannel.get();
+                    Channel foundedChannel = findChannel.get();
                     channelList.add(foundedChannel);
                     existingChannelList.remove(foundedChannel);
                 }
@@ -242,7 +242,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
                     MegaDHTTPResponse response = httpHelper
                             .request("http://" + config.hostname + "/" + config.password + "/?bl=1");
-                    String broadcast_string = "";
+                    String broadcast_string;
                     if (response.getResponseResult().equals("1")) {
                         // bl = 1;
                         // logger.warn("Flashing mega bl {}", bl);
@@ -381,7 +381,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 try (InputStream in = url.openStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
                 }
-                List<String> lines = null;
+                List<String> lines;
                 lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
                 if (lines != null) {
                     StringBuilder firmware = new StringBuilder();
@@ -481,8 +481,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                 HexFormat.of().parseHex(checkData)[1] };
                                         byte[] bufPack = new byte[preamble.length + fwPacket[i].length];
                                         int cell = 0;
-                                        for (int j = 0; j < preamble.length; j++) {
-                                            bufPack[cell] = preamble[j];
+                                        for (byte b : preamble) {
+                                            bufPack[cell] = b;
                                             cell++;
                                         }
                                         for (int j = 0; j < fwPacket[i].length; j++) {
@@ -703,7 +703,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "cfg"
                 + File.separator + config.hostname + ".cfg");
         if (file.exists()) {
-            file.delete();
+            var result = file.delete();
+            logger.debug("Delete megad config file {}", result);
         }
         File parent = file.getParentFile();
         if (parent != null) {
@@ -893,6 +894,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         logger.debug("file {}", fileList.getName());
                         List<String> lines;
                         lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
+                        //noinspection ConstantConditions
                         if (lines != null) {
                             if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
                                 for (String line : lines) {
