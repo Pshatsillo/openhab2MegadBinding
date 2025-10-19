@@ -894,7 +894,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         logger.debug("file {}", fileList.getName());
                         List<String> lines;
                         lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
-                        //noinspection ConstantConditions
                         if (lines != null) {
                             if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
                                 for (String line : lines) {
