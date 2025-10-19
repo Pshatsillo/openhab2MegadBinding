@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDDeviceHandler extends BaseBridgeHandler {
-    private Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -110,12 +110,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
         } else if (response.getResponseCode() == 200) {
             updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.CONFIGURATION_PENDING);
-            Map<String, String> properties = new HashMap<>();
-            properties.put("Type:", megaDHardware.getType());
-            properties.put("Ports count:", String.valueOf(megaDHardware.getPortsCount()));
-            properties.put("Firmware:", megaDHardware.getFirmware());
-            properties.put("Actual Firmware:", megaDHardware.getActualFirmware());
-            updateProperties(properties);
+            fillProperties();
             if (config.setup) {
                 String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
                 for (InetAddress address : MegaDService.interfacesAddresses) {
@@ -147,18 +142,25 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_FLASH))
                     .withAcceptedItemType("Switch").withConfiguration(channelConfiguration).build();
             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(flash.getUID()))) {
-                Channel foundedChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(flash.getUID()))
-                        .findFirst().get();
+                var findChannel =  existingChannelList.stream().filter(cn -> cn.getUID().equals(flash.getUID()))
+                        .findFirst();
+                if (findChannel.isPresent()) {
+                    Channel foundedChannel =  findChannel.get();
                 channelList.add(foundedChannel);
                 existingChannelList.remove(foundedChannel);
+                }
             } else {
                 channelList.add(flash);
             }
             if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(start.getUID()))) {
-                Channel foundedChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(start.getUID()))
-                        .findFirst().get();
-                channelList.add(foundedChannel);
-                existingChannelList.remove(foundedChannel);
+                var findChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(start.getUID()))
+                        .findFirst();
+                if (findChannel.isPresent()) {
+                    Channel foundedChannel =  findChannel.get();
+                    channelList.add(foundedChannel);
+                    existingChannelList.remove(foundedChannel);
+                }
+
             } else {
                 channelList.add(start);
             }
@@ -615,8 +617,19 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     }
                 }
                 lastRefresh = now;
+            } else if ((now - lastRefresh) >= 1800) {
+                fillProperties();
             }
         }
+    }
+
+    private void fillProperties() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("Type:", megaDHardware.getType());
+        properties.put("Ports count:", String.valueOf(megaDHardware.getPortsCount()));
+        properties.put("Firmware:", megaDHardware.getFirmware());
+        properties.put("Actual Firmware:", MegaDDiscoveryService.actualFirmware);
+        updateProperties(properties);
     }
 
     // RS485

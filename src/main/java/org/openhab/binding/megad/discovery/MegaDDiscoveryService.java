@@ -42,6 +42,8 @@ import java.util.zip.Checksum;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
+import org.openhab.binding.megad.MegaDHTTPResponse;
+import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.dto.MegaDI2CSensors;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
@@ -77,7 +79,9 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     @Nullable
     DatagramSocket socket;
     private @Nullable ScheduledFuture<?> backgroundFuture;
+    private @Nullable ScheduledFuture<?> backgroundCheckFirmwareFuture;
     static String urlString = "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/refs/heads/jsons/sensors.json";
+    public static String actualFirmware = "";
 
     public MegaDDiscoveryService() {
         super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
@@ -168,15 +172,21 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     protected void startBackgroundDiscovery() {
         // logger.error("startBackgroundDiscovery");
         backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
+        backgroundCheckFirmwareFuture = scheduler.scheduleWithFixedDelay(this::checkFirmware, 0, 30, TimeUnit.MINUTES);
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
         // logger.error("stopBackgroundDiscovery");
         ScheduledFuture<?> scan = backgroundFuture;
+        ScheduledFuture<?> firmware = backgroundCheckFirmwareFuture;
         if (scan != null) {
             scan.cancel(true);
             backgroundFuture = null;
+        }
+        if (firmware != null) {
+            firmware.cancel(true);
+            backgroundCheckFirmwareFuture = null;
         }
         super.stopBackgroundDiscovery();
     }
@@ -400,5 +410,21 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i).withLabel(label)
                 .withBridge(mega.getThing().getUID()).build();
         thingDiscovered(resultS);
+    }
+
+    private void checkFirmware() {
+        MegaDHttpHelpers http = new MegaDHttpHelpers();
+        MegaDHTTPResponse megaDHTTPResponse;
+        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
+        if (megaDHTTPResponse.getResponseCode() == 200) {
+            try {
+                actualFirmware = megaDHTTPResponse.getResponseResult().substring(
+                        megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
+                        megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
+                actualFirmware = actualFirmware.split("ver")[1].trim().strip();
+            } catch (Exception e) {
+                logger.error("Error getting actual firmware");
+            }
+        }
     }
 }

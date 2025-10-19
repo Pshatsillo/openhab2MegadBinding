@@ -21,14 +21,13 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
+import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.enums.MegaDDsenEnum;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.binding.megad.enums.MegaDExtendersEnum;
 import org.openhab.binding.megad.enums.MegaDI2CDevicesEnum;
 import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The {@link MegaDHardware} is responsible for creating things and thing
@@ -40,8 +39,6 @@ import org.slf4j.LoggerFactory;
 public class MegaDHardware {
     private String hostname = "";
     private String password = "";
-    private Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
-    // private final Logger logger = LoggerFactory.getLogger(MegaDHardware.class);
     private String firmware = "";
     private String actualFirmware = "";
     private String type = "";
@@ -118,33 +115,33 @@ public class MegaDHardware {
         return portList;
     }
 
-    public Map<Integer, MegaDTypesEnum> getPortsType() {
-        return portsType;
-    }
+    // public Map<Integer, MegaDTypesEnum> getPortsType() {
+    // return portsType;
+    // }
 
-    public Map<Integer, MegaDModesEnum> getPortsMode() {
-        return portsMode;
-    }
+    // public Map<Integer, MegaDModesEnum> getPortsMode() {
+    // return portsMode;
+    // }
 
-    public Map<Integer, MegaDDsenEnum> getdSensorType() {
-        return dSensorType;
-    }
+    // public Map<Integer, MegaDDsenEnum> getdSensorType() {
+    // return dSensorType;
+    // }
 
     // public Map<Integer, Integer> getScl() {
     // return scl;
     // }
 
-    public Map<Integer, MegaDExtendersEnum> getdI2cType() {
-        return dI2cType;
-    }
+    // public Map<Integer, MegaDExtendersEnum> getdI2cType() {
+    // return dI2cType;
+    // }
 
-    public Map<Integer, MegaDExtendedTypeEnum> getEtyType() {
-        return etyType;
-    }
+    // public Map<Integer, MegaDExtendedTypeEnum> getEtyType() {
+    // return etyType;
+    // }
 
-    public Map<Integer, Integer> getInta() {
-        return inta;
-    }
+    // public Map<Integer, Integer> getInta() {
+    // return inta;
+    // }
 
     private String gw = "";
     private String pr = "";
@@ -161,12 +158,12 @@ public class MegaDHardware {
     List<Program> programList = new ArrayList<>();
     List<PID> pidList = new ArrayList<>();
     Map<Integer, Port> portList = new HashMap<>();
-    private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
-    private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
-    private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
+    // private final Map<Integer, MegaDTypesEnum> portsType = new HashMap<>();
+    // private final Map<Integer, MegaDModesEnum> portsMode = new HashMap<>();
+    // private final Map<Integer, MegaDDsenEnum> dSensorType = new HashMap<>();
     // private final Map<Integer, Integer> scl = new HashMap<>();
-    private final Map<Integer, MegaDExtendersEnum> dI2cType = new HashMap<>();
-    private final Map<Integer, MegaDExtendedTypeEnum> etyType = new HashMap<>();
+    // private final Map<Integer, MegaDExtendersEnum> dI2cType = new HashMap<>();
+    // private final Map<Integer, MegaDExtendedTypeEnum> etyType = new HashMap<>();
     private final Map<Integer, Integer> inta = new HashMap<>();
 
     public String getSct() {
@@ -179,7 +176,7 @@ public class MegaDHardware {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
         readConfigPage1(hostname, password, http);
         readConfigPage2(hostname, password, http);
-        getActualFirmware(http);
+        setActualFirmware();
         getMegaPortsAndType(hostname, password, http);
         getPortsStatus(hostname, password, http);
     }
@@ -274,19 +271,8 @@ public class MegaDHardware {
         }
     }
 
-    private void getActualFirmware(MegaDHttpHelpers http) {
-        MegaDHTTPResponse megaDHTTPResponse;
-        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
-        if (megaDHTTPResponse.getResponseCode() == 200) {
-            try {
-                actualFirmware = megaDHTTPResponse.getResponseResult().substring(
-                        megaDHTTPResponse.getResponseResult().indexOf("<ul><li>") + "<ul><li>".length(),
-                        megaDHTTPResponse.getResponseResult().indexOf("</font><br>"));
-                actualFirmware = actualFirmware.split("ver")[1].trim().strip();
-            } catch (Exception e) {
-                logger.error("Error getting actual firmware");
-            }
-        }
+    private void setActualFirmware() {
+        actualFirmware = MegaDDiscoveryService.actualFirmware;
     }
 
     public void readPID(String hostname, String password, MegaDHttpHelpers http) {
@@ -449,9 +435,9 @@ public class MegaDHardware {
         return this.portsCount;
     }
 
-    public void setPortType(int portNum, MegaDTypesEnum megaDTypesEnum) {
-        portsType.put(portNum, megaDTypesEnum);
-    }
+    // public void setPortType(int portNum, MegaDTypesEnum megaDTypesEnum) {
+    // portsType.put(portNum, megaDTypesEnum);
+    // }
 
     // public @Nullable MegaDTypesEnum getPortsType(int portNum) {
     // Map<Integer, Port> portList = this.portList;
@@ -567,7 +553,7 @@ public class MegaDHardware {
 
     private boolean getCheckedByHTMLName(String request, String name) {
         boolean result = false;
-        String tag = "";
+        String tag;
         if (request.contains("name=" + name)) {
             tag = request.substring(request.indexOf("name=" + name));
             tag = tag.substring(tag.indexOf("name=" + name), tag.indexOf(">"));
@@ -591,7 +577,7 @@ public class MegaDHardware {
         return portList.get(i);
     }
 
-    public class Screen {
+    public static class Screen {
         public String getScrnt() {
             return scrnt;
         }
@@ -606,10 +592,10 @@ public class MegaDHardware {
 
         private String scrnt = "";
         private String scrnc = "";
-        private boolean[] e = new boolean[16];
+        private final boolean[] e = new boolean[16];
     }
 
-    public class Elements {
+    public static class Elements {
         public String getElemt() {
             return elemt;
         }
@@ -662,7 +648,7 @@ public class MegaDHardware {
         }
     }
 
-    public class Cron {
+    public static class Cron {
         public String getStime() {
             return stime;
         }
@@ -686,19 +672,19 @@ public class MegaDHardware {
         private String stime = "";
         private String cscl = "";
         private String csda = "";
-        private String[] crnt = new String[5];
-        private String[] crna = new String[5];
+        private final String[] crnt = new String[5];
+        private final String[] crna = new String[5];
     }
 
-    public class IbuttonKeys {
+    public static class IbuttonKeys {
         public String[] getKey() {
             return key;
         }
 
-        private String[] key = new String[5];
+        private final String[] key = new String[5];
     }
 
-    public class Program {
+    public static class Program {
         public String getPrp() {
             return prp;
         }
@@ -730,7 +716,7 @@ public class MegaDHardware {
         private boolean prs = false;
     }
 
-    public class PID {
+    public static class PID {
         public String getPidt() {
             return pidt;
         }
@@ -779,7 +765,7 @@ public class MegaDHardware {
     }
 
     public static class Port {
-        private Map<Integer, ExtPort> extPorts = new HashMap<>();
+        private final Map<Integer, ExtPort> extPorts = new HashMap<>();
         private MegaDTypesEnum pty = MegaDTypesEnum.NC;
         private String ecmd = "";
         private boolean af = false;
@@ -896,9 +882,9 @@ public class MegaDHardware {
             }
         }
 
-        public String getD() {
-            return d;
-        }
+        // public String getD() {
+        // return d;
+        // }
 
         public String getSelectedDevName(String request) {
             String result = "";
@@ -1016,7 +1002,7 @@ public class MegaDHardware {
         }
     }
 
-    public class ExtPort {
+    public static class ExtPort {
         private MegaDExtendedTypeEnum ety = MegaDExtendedTypeEnum.NA;
         private String ept = "";
         private String eact = "";
