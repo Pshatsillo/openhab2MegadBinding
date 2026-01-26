@@ -912,6 +912,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         triggerChannel(MegaDBindingConstants.CHANNEL_IB, inputValue.split("=")[1]);
                     }
                 }
+            } else if (input.contains("click=1")) {
+                triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "CLICK");
+            } else if (input.contains("click=2")) {
+                triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "DOUBLECLICK");
             } else if (input.contains("&ext")) {
                 List<String> extportslist = Arrays.stream(input.split("&")).filter(ep -> ep.contains("ext")).toList();
                 extportslist.forEach(port -> {
