@@ -902,7 +902,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
             if (input.contains("m=1")) {
                 updateChannel(MegaDBindingConstants.CHANNEL_IN, "OFF");
                 updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, "OFF");
-                triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "CLICK");
+                // triggerChannel(MegaDBindingConstants.CHANNEL_CLICK, "CLICK");
             } else if (input.contains("m=2")) {
                 triggerChannel(MegaDBindingConstants.CHANNEL_LONGPRESS, "LONGPRESS");
             } else if (input.contains("ib=")) {
