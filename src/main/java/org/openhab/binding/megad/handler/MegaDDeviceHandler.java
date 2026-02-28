@@ -119,16 +119,14 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 String ip = config.hostname.substring(0, config.hostname.lastIndexOf("."));
                 for (InetAddress address : MegaDService.interfacesAddresses) {
                     if (address.getHostAddress().startsWith(ip)) {
-                        if (MegaDService.interfacesAddresses.stream().findFirst().isPresent()) {
-                            if ((!megaDHardware.getSip()
-                                    .equals(MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
-                                            + ":" + MegaDService.port))
-                                    || (!megaDHardware.getSct().equals("megad"))) {
-                                httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                        + MegaDService.interfacesAddresses.stream().findFirst().get().getHostAddress()
-                                        + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
-                            }
+                        if ((!megaDHardware.getSip()
+                                .equals(address.getHostAddress() + ":" + MegaDService.port))
+                                || (!megaDHardware.getSct().equals("megad"))) {
+                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
+                                    + address.getHostAddress()
+                                    + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
                         }
+                        break;
                     }
                 }
             }
