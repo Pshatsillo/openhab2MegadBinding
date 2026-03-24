@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDPortsHandler extends BaseThingHandler {
-    private int dimmervalue = 0;
+    private int dimmervalue = 100;
     // private final ItemRegistry itemRegistry;
     private final ItemChannelLinkRegistry link;
     private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
@@ -121,6 +121,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     });
                 }
             }
+            triggeredItem.getTags().forEach(tag -> {
+                if (tag.contains("smooth=")) {
+                    opt.smooth = tag.split("=")[1];
+                }
+            });
         }
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
@@ -202,10 +207,25 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     } catch (Exception e) {
                         if (command.toString().equals("OFF")) {
-                            result = "http://"
-                                    + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                                    + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
-                                    + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":0";
+
+                            StringBuilder resBuild = new StringBuilder().append("http://")
+                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname")
+                                            .toString())
+                                    .append("/")
+                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("password")
+                                            .toString())
+                                    .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                    .append("&pwm=").append(0);
+                            if (!opt.smooth.isBlank()) {
+                                resBuild.append("&cnt=").append(opt.smooth);
+                            } else
+                                resBuild.append("&cnt=").append("0");
+                            result = resBuild.toString();
+
+                            // result = "http://"
+                            // + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                            // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                            // + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":0";
                             logger.info("Dimmer set to OFF");
                             MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
                             int responseCode = httpRequest.request(result).getResponseCode();
@@ -215,11 +235,25 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                             updateState(channelUID.getId(), PercentType.valueOf("0"));
                         } else if (command.toString().equals("ON")) {
-                            result = "http://"
-                                    + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
-                                    + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
-                                    + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":"
-                                    + dimmervalue;
+                            StringBuilder resBuild = new StringBuilder().append("http://")
+                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname")
+                                            .toString())
+                                    .append("/")
+                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("password")
+                                            .toString())
+                                    .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                    .append("&pwm=").append(dimmervalue);
+                            if (!opt.smooth.isBlank()) {
+                                resBuild.append("&cnt=").append(opt.smooth);
+                            } else
+                                resBuild.append("&cnt=").append("0");
+                            result = resBuild.toString();
+
+                            // result = "http://"
+                            // + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
+                            // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
+                            // + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":"
+                            // + dimmervalue;
                             logger.info("Dimmer restored to previous value: {}", result);
                             MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
                             int responseCode = httpRequest.request(result).getResponseCode();
@@ -282,7 +316,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
                         String cmd = "";
                         if (command.equals(OnOffType.ON)) {
-                            cmd = "1";
+                            cmd = String.valueOf(dimmervalue);
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
                         }
@@ -302,7 +336,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
                         String cmd = "";
                         if (command.equals(OnOffType.ON)) {
-                            cmd = "1";
+                            cmd = String.valueOf(dimmervalue);
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
                         } else if ((!command.toString().equals("REFRESH")) || (!command.toString().equals("ADDED"))) {
