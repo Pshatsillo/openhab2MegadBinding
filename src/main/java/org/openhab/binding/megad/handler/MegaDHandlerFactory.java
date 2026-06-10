@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
@@ -47,6 +48,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
     private final ItemRegistry itemRegistry;
     private final ItemChannelLinkRegistry link;
+    private final HttpClientFactory httpClientFactory;
+
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
         SUPPORTED_THING_TYPES_UIDS.add(THING_TYPE_DEVICE);
@@ -57,9 +60,10 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     @Activate
     public MegaDHandlerFactory(final @Reference ItemRegistry itemRegistry,
-            final @Reference ItemChannelLinkRegistry link) {
+            final @Reference ItemChannelLinkRegistry link, @Reference HttpClientFactory httpClientFactory) {
         this.itemRegistry = itemRegistry;
         this.link = link;
+        this.httpClientFactory = httpClientFactory;
     }
 
     @Override
@@ -71,13 +75,13 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_DEVICE)) {
-            return new MegaDDeviceHandler((Bridge) thing);
+            return new MegaDDeviceHandler((Bridge) thing, httpClientFactory);
         } else if (thingTypeUID.equals(THING_TYPE_RS485)) {
-            return new MegaDRs485Handler(thing);
+            return new MegaDRs485Handler(thing, httpClientFactory);
         } else if (thingTypeUID.equals(THING_TYPE_PORT)) {
-            return new MegaDPortsHandler(thing, itemRegistry, link);
+            return new MegaDPortsHandler(thing, itemRegistry, link, httpClientFactory);
         } else if (thingTypeUID.equals(THING_TYPE_RGB)) {
-            return new MegaDRGBHandler(thing);
+            return new MegaDRGBHandler(thing, httpClientFactory);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());

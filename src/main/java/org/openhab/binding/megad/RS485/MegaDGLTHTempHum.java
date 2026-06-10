@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -40,9 +41,10 @@ public class MegaDGLTHTempHum implements MegaDRS485Interface {
     MegaDDeviceHandler bridgeHandler;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDGLTHTempHum(MegaDDeviceHandler bridgeHandler, String address) {
+    public MegaDGLTHTempHum(MegaDDeviceHandler bridgeHandler, String address, HttpClientFactory httpClientFactory) {
         this.address = address;
         this.bridgeHandler = bridgeHandler;
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     @Override

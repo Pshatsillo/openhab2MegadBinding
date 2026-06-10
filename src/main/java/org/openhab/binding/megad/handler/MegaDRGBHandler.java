@@ -25,6 +25,7 @@ import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.Bridge;
@@ -55,10 +56,12 @@ public class MegaDRGBHandler extends BaseThingHandler {
     int colorRed = 0;
     int colorGreen = 0;
     int colorBlue = 0;
+    private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
     // MegaDHardware.Port port = new MegaDHardware.Port();
-    public MegaDRGBHandler(Thing thing) {
+    public MegaDRGBHandler(Thing thing, HttpClientFactory httpClientFactory) {
         super(thing);
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     @Override
@@ -93,19 +96,22 @@ public class MegaDRGBHandler extends BaseThingHandler {
                     r = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.red.split("e")[0]));
                     isRext = true;
                 } else {
-                    r = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.red));
+                    r = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.red),
+                            httpHelper);
                 }
                 if (configuration.green.contains("e")) {
                     g = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.green.split("e")[0]));
                     isGext = true;
                 } else {
-                    g = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.green));
+                    g = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.green),
+                            httpHelper);
                 }
                 if (configuration.blue.contains("e")) {
                     b = bridgeDeviceHandler.megaDHardware.getPort(Integer.parseInt(configuration.blue.split("e")[0]));
                     isBext = true;
                 } else {
-                    b = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.blue));
+                    b = bridgeDeviceHandler.megaDHardware.getPortStatus(Integer.parseInt(configuration.blue),
+                            httpHelper);
                 }
                 if (r != null) {
                     if (isRext) {
@@ -188,7 +194,6 @@ public class MegaDRGBHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
         if (command instanceof HSBType color) {
             String colorRed = color.format("%rgb%").split(",")[0];
             String colorGreen = color.format("%rgb%").split(",")[1];
@@ -208,15 +213,15 @@ public class MegaDRGBHandler extends BaseThingHandler {
             }
             MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
             if (bridgeDeviceHandler != null) {
-                httpRequest.request(
+                httpHelper.request(
                         "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + configuration.red + ":" + colorRed);
-                httpRequest.request(
+                httpHelper.request(
                         "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + configuration.green + ":" + colorGreen);
-                httpRequest.request(
+                httpHelper.request(
                         "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + configuration.blue + ":" + colorBlue);
@@ -229,28 +234,28 @@ public class MegaDRGBHandler extends BaseThingHandler {
             MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
             if (bridgeDeviceHandler != null) {
                 if (colorSwitch == OnOffType.OFF) {
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.red + ":" + 0);
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.green + ":" + 0);
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.blue + ":" + 0);
                 } else if (colorSwitch == OnOffType.ON) {
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.red + ":" + this.colorRed);
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.green + ":" + this.colorGreen);
-                    httpRequest.request(
+                    httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?cmd=" + configuration.blue + ":" + this.colorBlue);
@@ -262,7 +267,6 @@ public class MegaDRGBHandler extends BaseThingHandler {
     }
 
     public void refresh() {
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
         MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if ((bridgeDeviceHandler != null) && (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE))) {
             logger.debug("Refresh port {} at {}", configuration.port, thing.getLabel());
@@ -278,7 +282,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
                         if (configuration.red.contains("e")) {
                             redPortConfig = configuration.red.split("e")[0] + "&ext=" + configuration.red.split("e")[1];
                         }
-                        MegaDHTTPResponse red = httpRequest.request("http://"
+                        MegaDHTTPResponse red = httpHelper.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + redPortConfig + "&cmd=get");
@@ -291,7 +295,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
                             greenPortConfig = configuration.green.split("e")[0] + "&ext="
                                     + configuration.green.split("e")[1];
                         }
-                        MegaDHTTPResponse green = httpRequest.request("http://"
+                        MegaDHTTPResponse green = httpHelper.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + greenPortConfig + "&cmd=get");
@@ -304,7 +308,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
                             bluePortConfig = configuration.blue.split("e")[0] + "&ext="
                                     + configuration.blue.split("e")[1];
                         }
-                        MegaDHTTPResponse blue = httpRequest.request("http://"
+                        MegaDHTTPResponse blue = httpHelper.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + bluePortConfig + "&cmd=get");

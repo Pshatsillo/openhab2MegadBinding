@@ -27,6 +27,7 @@ import org.openhab.binding.megad.RS485.MegaDSdm120;
 import org.openhab.binding.megad.RS485.MegaDWBMAP6S;
 import org.openhab.binding.megad.RS485.MegaDWindAnemometer;
 import org.openhab.binding.megad.RS485.MegaDWindDir;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 public class MegaDRs485Handler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(MegaDRs485Handler.class);
+    private final HttpClientFactory httpClient;
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     @Nullable
     MegaDDeviceHandler bridgeDeviceHandler;
@@ -61,9 +63,10 @@ public class MegaDRs485Handler extends BaseThingHandler {
     MegaDModbusPowermeterInterface modbus;
     int powerLines;
 
-    public MegaDRs485Handler(Thing thing) {
+    public MegaDRs485Handler(Thing thing, HttpClientFactory httpClientFactory) {
         super(thing);
         bridgeDeviceHandler = null;
+        this.httpClient = httpClientFactory;
     }
 
     @Override
@@ -101,7 +104,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
             address = getThing().getConfiguration().get("address").toString();
         }
         if (getThing().getConfiguration().get("type").toString().equals("midea")) {
-            rsi = new MegaDMideaProtocol(address);
+            rsi = new MegaDMideaProtocol(address, httpClient);
             ThingBuilder thingBuilder = editThing();
             final MegaDMideaProtocol megaDRS485Interface = (MegaDMideaProtocol) rsi;
             if (megaDRS485Interface != null) {
@@ -112,7 +115,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("dds238")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                modbus = new MegaDDDs238(bridgeHandler, address);
+                modbus = new MegaDDDs238(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDDDs238 modbusPowermeterInterface = (MegaDDDs238) modbus;
                 if (modbusPowermeterInterface != null) {
@@ -124,7 +127,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("sdm120")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                modbus = new MegaDSdm120(bridgeHandler, address);
+                modbus = new MegaDSdm120(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDSdm120 modbusPowermeterInterface = (MegaDSdm120) modbus;
                 if (modbusPowermeterInterface != null) {
@@ -137,7 +140,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
             powerLines = 6;
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                modbus = new MegaDWBMAP6S(bridgeHandler, address);
+                modbus = new MegaDWBMAP6S(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDWBMAP6S modbusPowermeterInterface = (MegaDWBMAP6S) modbus;
                 if (modbusPowermeterInterface != null) {
@@ -149,7 +152,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("winddir")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                rsi = new MegaDWindDir(bridgeHandler, address);
+                rsi = new MegaDWindDir(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDWindDir megaDWindDir = (MegaDWindDir) rsi;
                 if (megaDWindDir != null) {
@@ -161,7 +164,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("windanemometer")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                rsi = new MegaDWindAnemometer(bridgeHandler, address);
+                rsi = new MegaDWindAnemometer(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDWindAnemometer megaDWindAnemometer = (MegaDWindAnemometer) rsi;
                 if (megaDWindAnemometer != null) {
@@ -173,7 +176,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
         if (getThing().getConfiguration().get("type").toString().equals("glthtemphum")) {
             final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
             if (bridgeHandler != null) {
-                rsi = new MegaDGLTHTempHum(bridgeHandler, address);
+                rsi = new MegaDGLTHTempHum(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
                 final MegaDGLTHTempHum MegaDGLTHTempHum = (MegaDGLTHTempHum) rsi;
                 if (MegaDGLTHTempHum != null) {

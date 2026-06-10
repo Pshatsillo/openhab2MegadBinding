@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
@@ -37,9 +38,10 @@ public class MegaDSdm120 implements MegaDModbusPowermeterInterface {
     MegaDDeviceHandler bridgeHandler;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDSdm120(MegaDDeviceHandler bridgeHandler, String address) {
+    public MegaDSdm120(MegaDDeviceHandler bridgeHandler, String address, HttpClientFactory httpClientFactory) {
         this.address = address;
         this.bridgeHandler = bridgeHandler;
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     private String getValueFromSDM120(String valueByte) {

@@ -15,6 +15,7 @@ package org.openhab.binding.megad.handler;
 import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.megaDI2CSensorsList;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDHTTPCallback;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.types.DecimalType;
@@ -66,6 +68,7 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.StateOption;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,8 +79,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class MegaDPortsHandler extends BaseThingHandler {
-    private int dimmervalue = 100;
-    // private final ItemRegistry itemRegistry;
+    private int dimmervalue = 255;
     private final ItemChannelLinkRegistry link;
     private Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
     private @Nullable ScheduledFuture<?> refreshPollingJob;
@@ -87,49 +89,85 @@ public class MegaDPortsHandler extends BaseThingHandler {
     String line1 = "";
     String line2 = "";
     MegaDHardware.Port port = new MegaDHardware.Port();
+    MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDPortsHandler(Thing thing, ItemRegistry itemRegistry, ItemChannelLinkRegistry link) {
+    public MegaDPortsHandler(Thing thing, final @Reference ItemRegistry itemRegistry, ItemChannelLinkRegistry link,
+            HttpClientFactory httpClientFactory) {
         super(thing);
-        // this.itemRegistry = itemRegistry;
         this.link = link;
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        logger.trace("handleCommand execute with channelUID: {} and command: {}", channelUID, command);
         int state = 0;
         String result = "";
         Set<Item> li = link.getLinkedItems(channelUID);
         var opt = new Object() {
             String smooth = "";
         };
-        if (li.stream().anyMatch(i -> i.getState().toString().equals(command.toString()))) {
-            Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString())).findFirst()
-                    .get();
-            StateDescription triggeredStateDescription = triggeredItem.getStateDescription();
-            if (triggeredStateDescription != null) {
-                if (!triggeredStateDescription.getOptions().isEmpty()) {
-                    List<StateOption> options = triggeredStateDescription.getOptions();
-                    options.forEach(op -> {
-                        if (op.getLabel() != null) {
-                            String label = op.getLabel();
-                            if (label != null) {
-                                if ("smooth".equals(label)) {
-                                    opt.smooth = op.getValue();
+        ZonedDateTime timestamp = ZonedDateTime.now();
+        long seconds = timestamp.toEpochSecond();
+        li.forEach(item -> {
+            ZonedDateTime changed = item.getLastStateChange();
+            assert changed != null;
+            long changedSec = changed.toEpochSecond();
+            logger.debug("Item {} changed {} seconds ago, now {} seconds, diff is {}", item.getName(), changedSec,
+                    seconds, seconds - changedSec);
+            if ((seconds - changedSec) <= 0) {
+                StateDescription triggeredStateDescription = item.getStateDescription();
+                if (triggeredStateDescription != null) {
+                    if (!triggeredStateDescription.getOptions().isEmpty()) {
+                        List<StateOption> options = triggeredStateDescription.getOptions();
+                        options.forEach(op -> {
+                            if (op.getLabel() != null) {
+                                String label = op.getLabel();
+                                if (label != null) {
+                                    if ("smooth".equals(label)) {
+                                        opt.smooth = op.getValue();
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
+                item.getTags().forEach(tag -> {
+                    if (tag.contains("smooth=")) {
+                        opt.smooth = tag.split("=")[1];
+                    }
+                });
             }
-            triggeredItem.getTags().forEach(tag -> {
-                if (tag.contains("smooth=")) {
-                    opt.smooth = tag.split("=")[1];
-                }
-            });
-        }
+        });
+        // if (li.stream().anyMatch(i -> i.getState().toString().equals(command.toString()))) {
+        // Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString())).findFirst()
+        // .get();
+        // StateDescription triggeredStateDescription = triggeredItem.getStateDescription();
+        // if (triggeredStateDescription != null) {
+        // if (!triggeredStateDescription.getOptions().isEmpty()) {
+        // List<StateOption> options = triggeredStateDescription.getOptions();
+        // options.forEach(op -> {
+        // if (op.getLabel() != null) {
+        // String label = op.getLabel();
+        // if (label != null) {
+        // if ("smooth".equals(label)) {
+        // opt.smooth = op.getValue();
+        // }
+        // }
+        // }
+        // });
+        // }
+        // }
+        // triggeredItem.getTags().forEach(tag -> {
+        // if (tag.contains("smooth=")) {
+        // opt.smooth = tag.split("=")[1];
+        // }
+        // });
+        // }
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if (bridgeDeviceHandler != null) {
             if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_OUT)) {
+                logger.trace("CHANNEL_OUT");
                 Channel channel = thing.getChannel(MegaDBindingConstants.CHANNEL_OUT);
                 if (channel != null) {
                     if (channel.getConfiguration().get("invert") != null) {
@@ -149,6 +187,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                         }
                     }
+                } else {
+                    logger.trace("channel is null");
                 }
 
             } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DS2413)) {
@@ -160,8 +200,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         + getThing().getConfiguration().get("port").toString()
                         + getThing().getConfiguration().get("ds2413_ch") + ":" + state;
                 logger.info("Switch: {}", result);
-                MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                int responseCode = httpRequest.request(result).getResponseCode();
+                int responseCode = httpHelper.request(result).getResponseCode();
                 if (responseCode != 200) {
                     logger.error("Send command at port {} error, check your mega {}", configuration.port,
                             bridgeDeviceHandler.config.hostname);
@@ -190,36 +229,33 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         StringBuilder resBuild = new StringBuilder().append("http://")
                                 .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString())
                                 .append("/")
-                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString())
-                                .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
-                                .append("&pwm=").append(resultInt);
+                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString());
                         if (!opt.smooth.isBlank()) {
-                            resBuild.append("&cnt=").append(opt.smooth);
+
+                            resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                    .append("&pwm=").append(resultInt).append("&cnt=").append(opt.smooth);
                         } else
-                            resBuild.append("&cnt=").append("0");
+                            resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
+                                    .append(":").append(resultInt);
                         result = resBuild.toString();
                         logger.info("Dimmer: {}", result);
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(result).getResponseCode();
+                        int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
                         }
                     } catch (Exception e) {
+                        StringBuilder resBuild = new StringBuilder().append("http://")
+                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString())
+                                .append("/")
+                                .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString());
                         if (command.toString().equals("OFF")) {
-
-                            StringBuilder resBuild = new StringBuilder().append("http://")
-                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname")
-                                            .toString())
-                                    .append("/")
-                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("password")
-                                            .toString())
-                                    .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
-                                    .append("&pwm=").append(0);
                             if (!opt.smooth.isBlank()) {
-                                resBuild.append("&cnt=").append(opt.smooth);
+                                resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                        .append("&pwm=").append(0).append("&cnt=").append(opt.smooth);
                             } else
-                                resBuild.append("&cnt=").append("0");
+                                resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
+                                        .append(":").append("0");
                             result = resBuild.toString();
 
                             // result = "http://"
@@ -227,26 +263,20 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                             // + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":0";
                             logger.info("Dimmer set to OFF");
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int responseCode = httpRequest.request(result).getResponseCode();
+                            int responseCode = httpHelper.request(result).getResponseCode();
                             if (responseCode != 200) {
                                 logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                         bridgeDeviceHandler.config.hostname);
                             }
                             updateState(channelUID.getId(), PercentType.valueOf("0"));
                         } else if (command.toString().equals("ON")) {
-                            StringBuilder resBuild = new StringBuilder().append("http://")
-                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("hostname")
-                                            .toString())
-                                    .append("/")
-                                    .append(bridgeDeviceHandler.getThing().getConfiguration().get("password")
-                                            .toString())
-                                    .append("/?pt=").append(getThing().getConfiguration().get("port").toString())
-                                    .append("&pwm=").append(dimmervalue);
                             if (!opt.smooth.isBlank()) {
+                                resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
+                                        .append("&pwm=").append(dimmervalue);
                                 resBuild.append("&cnt=").append(opt.smooth);
                             } else
-                                resBuild.append("&cnt=").append("0");
+                                resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
+                                        .append(":").append(dimmervalue);
                             result = resBuild.toString();
 
                             // result = "http://"
@@ -255,8 +285,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             // + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":"
                             // + dimmervalue;
                             logger.info("Dimmer restored to previous value: {}", result);
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int responseCode = httpRequest.request(result).getResponseCode();
+                            int responseCode = httpHelper.request(result).getResponseCode();
                             if (responseCode != 200) {
                                 logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                         bridgeDeviceHandler.config.hostname);
@@ -284,8 +313,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + uivalue;
                         logger.info("PWM: {}", result);
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(result).getResponseCode();
+                        int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
@@ -296,8 +324,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
                         logger.info("PWM restored to previous value: {}", result);
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(result).getResponseCode();
+                        int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
@@ -322,8 +349,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                         String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + port + ":" + cmd;
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(request).getResponseCode();
+                        int responseCode = httpHelper.request(request).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
@@ -388,8 +414,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + portNum + ":"
                                 + cmd;
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(request).getResponseCode();
+                        int responseCode = httpHelper.request(request).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
@@ -404,15 +429,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                         String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&disp_cmd=1";
-                        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                        int responseCode = httpRequest.request(request).getResponseCode();
+                        int responseCode = httpHelper.request(request).getResponseCode();
                         if (responseCode == 200) {
                             request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                     + "&text=" + line1.replace(" ", "_");
-                            httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
+                            httpHelper.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
                             request = "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                     + "&text=" + line2.replace(" ", "_") + "&col=0&row=1";
-                            httpRequest.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
+                            httpHelper.sendToLCDrawStream(bridgeDeviceHandler.config.hostname, request);
                         }
                         logger.debug("LCD1602 request to mega: {}", request);
                     }
@@ -427,8 +451,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                 + getThing().getConfiguration().get("port").toString() + ":" + state;
         logger.debug("Switch: {}", result);
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-        int responseCode = httpRequest.request(result).getResponseCode();
+        int responseCode = httpHelper.request(result).getResponseCode();
         if (responseCode != 200) {
             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                     bridgeDeviceHandler.config.hostname);
@@ -453,6 +476,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
         configuration = getConfigAs(MegaDConfiguration.class);
         bridgeDeviceHandler = getBridgeHandler();
         final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
+        logger.debug("initializing thing");
         if (bridgeDeviceHandler != null) {
             int reconnect = 0;
             while (!bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
@@ -469,7 +493,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 reconnect++;
             }
             if (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
-                MegaDHardware.Port mega = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.port);
+                MegaDHardware.Port mega = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.port,
+                        httpHelper);
                 if (mega != null) {
                     mega.setScanExclude(true);
                     // int index = megaDDeviceHandlerList.indexOf(bridgeDeviceHandler);
@@ -477,15 +502,18 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     // megaDDeviceHandlerList.set(index, bridgeDeviceHandler);
                     port = mega;
                     MegaDHTTPCallback.portListener.add(this);
-                    ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+                    // ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
                     if (configuration.refresh != 0) {
                         logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(),
                                 configuration.refresh);
-                        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                            refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10,
-                                    configuration.refresh, TimeUnit.SECONDS);
-                            this.refreshPollingJob = refreshPollingJob;
-                        }
+                        freeRefreshJob();
+                        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, configuration.refresh,
+                                TimeUnit.SECONDS);
+                        // if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                        // refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10,
+                        // configuration.refresh, TimeUnit.SECONDS);
+                        // this.refreshPollingJob = refreshPollingJob;
+                        // }
                     }
                     String label = port.getEmt();
                     MegaDTypesEnum portType = port.getPty();
@@ -574,8 +602,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
                         if (!port.isMiscChecked().contains("1")) {
                             logger.debug("Set mode checkbox at port {}", configuration.port);
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            int checkbox = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                            int checkbox = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&misc=1")
                                     .getResponseCode();
                             if (checkbox != 200) {
@@ -673,8 +700,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     .build();
                             channelList.add(dhtHum);
                         } else if (port.getSenType().equals(MegaDDsenEnum.ONEWIREBUS)) {
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                            String response = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=list")
                                     .getResponseResult();
                             String[] sensorsList = response.split(";");
@@ -823,8 +849,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                         }
                         try {
-                            MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                            String response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                            String response = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
                                     .getResponseResult();
                             int dStartIndex = response.indexOf("<br>") + "<br>".length();
@@ -856,7 +881,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                     .withAcceptedItemType("String").build();
                                             channelList.add(lcd1602Line2);
                                         } else {
-                                            String getDevName = httpRequest
+                                            String getDevName = httpHelper
                                                     .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                                             + bridgeDeviceHandler.config.password + "/?pt="
                                                             + configuration.port)
@@ -1275,7 +1300,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
     }
 
     public void refresh() {
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+        logger.debug("Trying to refresh port {} at {} with UID {}", configuration.port, thing.getLabel(),
+                thing.getUID());
         MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
         if ((bridgeDeviceHandler != null) && (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE))) {
             logger.debug("Refresh port {} at {}", configuration.port, thing.getLabel());
@@ -1284,7 +1310,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 MegaDDsenEnum dDenType = port.getSenType();
                 if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
                     List<Channel> channels = thing.getChannels();
-                    int responseCode = httpRequest.request(
+                    int responseCode = httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?pt=" + configuration.port + "?cmd=conv")
@@ -1294,7 +1320,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             Thread.sleep(1000);
                         } catch (InterruptedException ignored) {
                         }
-                        String response = httpRequest.request("http://"
+                        String response = httpHelper.request("http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + configuration.port + "?cmd=list").getResponseResult();
@@ -1318,7 +1344,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString());
                     }
                 } else if (dDenType.equals(MegaDDsenEnum.ONEWIRE)) {
-                    MegaDHTTPResponse response = httpRequest.request(
+                    MegaDHTTPResponse response = httpHelper.request(
                             "http://" + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString()
                                     + "/" + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                     + "/?pt=" + configuration.port + "?cmd=get");
@@ -1334,7 +1360,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else if (portType.equals(MegaDTypesEnum.IN)) {
-                String response = httpRequest
+                String response = httpHelper
                         .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                         .getResponseResult();
@@ -1354,7 +1380,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else if (portType.equals(MegaDTypesEnum.OUT)) {
-                String response = httpRequest
+                String response = httpHelper
                         .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                         .getResponseResult();
@@ -1375,7 +1401,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else if (portType.equals(MegaDTypesEnum.ADC)) {
-                String response = httpRequest
+                String response = httpHelper
                         .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                         .getResponseResult();
@@ -1383,7 +1409,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
             } else if (portType.equals(MegaDTypesEnum.I2C)) {
                 MegaDExtendersEnum megaDExtendersEnum = port.getExtenders();
                 if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
-                    String response = httpRequest
+                    String response = httpHelper
                             .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                             .getResponseResult();
@@ -1405,7 +1431,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         }
                     }
                 } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
-                    String response = httpRequest
+                    String response = httpHelper
                             .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=get")
                             .getResponseResult();
@@ -1432,7 +1458,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             String response = "";
                             if (sensor != null) {
                                 if (sensor.isSensorInitRequired()) {
-                                    response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    response = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                             + "&cmd=get").getResponseResult();
                                     String[] splitResponse = response.split("/");
@@ -1444,7 +1470,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         }
                                     }
                                 } else {
-                                    response = httpRequest.request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    response = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                             + "&scl="
                                             + Objects.requireNonNull(
@@ -1460,7 +1486,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                         }
                         if (channel.getConfiguration().get("port") != null) {
-                            String response = httpRequest
+                            String response = httpHelper
                                     .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port
                                             + "&ext=" + channel.getConfiguration().get("port").toString() + "cmg=get")
@@ -1523,13 +1549,23 @@ public class MegaDPortsHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
-        ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-        if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
-            refreshPollingJob.cancel(true);
-        }
-        this.refreshPollingJob = refreshPollingJob;
-        this.refreshPollingJob = null;
+        logger.debug("disposing {}", getThing().getLabel());
+        freeRefreshJob();
+        // ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+        // if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
+        // refreshPollingJob.cancel(true);
+        // }
+        // this.refreshPollingJob = refreshPollingJob;
+        // this.refreshPollingJob = null;
         MegaDHTTPCallback.portListener.remove(this);
-        super.dispose();
+        // super.dispose();
+    }
+
+    private void freeRefreshJob() {
+        ScheduledFuture<?> job = this.refreshPollingJob;
+        if (job != null && !job.isCancelled()) {
+            job.cancel(true);
+            refreshPollingJob = null;
+        }
     }
 }

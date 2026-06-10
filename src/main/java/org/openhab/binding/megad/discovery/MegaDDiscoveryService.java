@@ -41,6 +41,7 @@ import java.util.zip.Checksum;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
@@ -54,9 +55,12 @@ import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.config.discovery.DiscoveryService;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.net.NetUtil;
 import org.openhab.core.thing.ThingUID;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +86,12 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ScheduledFuture<?> backgroundCheckFirmwareFuture;
     static String urlString = "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/refs/heads/jsons/sensors.json";
     public static String actualFirmware = "";
+    private final HttpClient httpClient;
 
-    public MegaDDiscoveryService() {
-        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, false);
+    @Activate
+    public MegaDDiscoveryService(@Reference HttpClientFactory httpClientFactory) {
+        super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, true);
+        httpClient = httpClientFactory.getCommonHttpClient();
     }
 
     @Override
@@ -247,19 +254,19 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                             if (port != null) {
                                 if (!port.isExclude()) {
                                     logger.debug("Discovering port {}", i);
-                                    port = mega.megaDHardware.getPortStatus(i);
-                                    if (port != null) {
-                                        MegaDTypesEnum portType = port.getPty();
-                                        if (portType != MegaDTypesEnum.NC) {
-                                            if (port.getM() != MegaDModesEnum.SCL) {
-                                                String label = "";
-                                                if (!mega.megaDHardware.getMdid().isEmpty()) {
-                                                    label = mega.megaDHardware.getMdid();
-                                                }
-                                                addToDiscoverThing(mega, label, i);
+                                    // port = mega.megaDHardware.getPortStatus(i);
+                                    // if (port != null) {
+                                    MegaDTypesEnum portType = port.getPty();
+                                    if (portType != MegaDTypesEnum.NC) {
+                                        if (port.getM() != MegaDModesEnum.SCL) {
+                                            String label = "";
+                                            if (!mega.megaDHardware.getMdid().isEmpty()) {
+                                                label = mega.megaDHardware.getMdid();
                                             }
+                                            addToDiscoverThing(mega, label, i);
                                         }
                                     }
+                                    // }
                                 }
                             }
                         }
@@ -414,6 +421,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private void checkFirmware() {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
+        http.setHttpClient(httpClient);
         MegaDHTTPResponse megaDHTTPResponse;
         megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
         if (megaDHTTPResponse.getResponseCode() == 200) {

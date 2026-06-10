@@ -52,6 +52,7 @@ import org.openhab.binding.megad.enums.MegaDTypesEnum;
 import org.openhab.binding.megad.internal.MegaDService;
 import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
@@ -81,6 +82,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
     private @Nullable ScheduledFuture<?> refreshPollingJob;
+    private @Nullable ScheduledFuture<?> refreshPollingJobTest;
     // protected long lastRefresh = 0;
     public MegaDHardware megaDHardware = new MegaDHardware();
     public MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
@@ -95,15 +97,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     InetAddress broadcastAddress;
 
     Long lastRefresh = 0L;
+    Long lastRefreshTest = 0L;
 
-    public MegaDDeviceHandler(Bridge bridge) {
+    public MegaDDeviceHandler(Bridge bridge, HttpClientFactory httpClientFactory) {
         super(bridge);
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     @Override
     public void initialize() {
         config = getConfigAs(MegaDConfiguration.class);
-        megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password);
+        megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password, httpHelper);
         MegaDHTTPResponse response = httpHelper
                 .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
         if (response.getResponseCode() >= 400) {
@@ -199,6 +203,11 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.ONLINE);
 
             Objects.requireNonNull(megaDDeviceHandlerList).add(this);
+            final ScheduledFuture<?> refreshPollingJobTest = this.refreshPollingJobTest;
+            if (refreshPollingJobTest == null || refreshPollingJobTest.isCancelled()) {
+                this.refreshPollingJobTest = scheduler.scheduleWithFixedDelay(this::refreshTest, 0, 1000,
+                        TimeUnit.MILLISECONDS);
+            }
             final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
             if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
                 this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000,
@@ -560,11 +569,65 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     // }
     // }
 
+    private void refreshTest() {
+        long now = System.currentTimeMillis();
+        if (!firmwareUpdate) {
+            logger.debug("refresh handlerTest IP {}", config.hostname);
+            ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
+            if (!megaDRs485HandlerMap.isEmpty()) {
+                logger.debug("megaDRs485HandlerMap not isEmpty ");
+                try {
+                    for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
+                        int interval = Integer
+                                .parseInt(handler.getThing().getConfiguration().get("refresh").toString());
+                        if (interval != 0) {
+                            if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
+                                logger.debug("megaDRs485HandlerMap is {}", handler.getThing().getUID());
+                                // handler.updateData();
+                                // handler.lastrefreshAdd(now);
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException e) {
+                                    logger.error("Interrupted while waiting for refresh {}", e.getMessage());
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                    logger.error("MegaDRs485Handler refreshing error");
+                }
+            } else {
+                logger.debug("megaDRs485HandlerMap isEmpty ");
+            }
+            if ((now - lastRefresh) >= 30) {
+                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
+                if (channel != null) {
+                    if (isLinked(channel.getUID().getId())) {
+                        MegaDHTTPResponse tempchannel = httpHelper
+                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+                        if (!tempchannel.getResponseResult().equals("0.00")) {
+                            try {
+                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(tempLong)));
+                            } catch (Exception e) {
+                                logger.error("Can't parse internal temperature {}", e.getLocalizedMessage());
+                            }
+                        }
+                    }
+                }
+                lastRefresh = now;
+            } else if ((now - lastRefresh) >= 1800) {
+                fillProperties();
+            }
+        }
+    }
+
     private void refresh() {
         if (!firmwareUpdate) {
+            logger.debug("refreshing firmware version, ip {} ...", config.hostname);
             if (config.ping) {
-                MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-                int response = httpRequest.request("http://" + config.hostname + "/" + config.password + "/?tget=1")
+
+                int response = httpHelper.request("http://" + config.hostname + "/" + config.password + "/?tget=1")
                         .getResponseCode();
                 if (response == 200) {
                     if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
@@ -588,12 +651,14 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 handler.lastrefreshAdd(now);
                                 try {
                                     Thread.sleep(200);
-                                } catch (InterruptedException ignored) {
+                                } catch (InterruptedException e) {
+                                    logger.error("Interrupted while waiting for refresh {}", e.getMessage());
                                 }
                             }
                         }
                     }
                 } catch (Exception ignored) {
+                    logger.error("MegaDRs485Handler refreshing error");
                 }
             }
             if ((now - lastRefresh) >= 30) {
@@ -607,7 +672,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(tempLong)));
                             } catch (Exception e) {
-                                logger.debug("Can't parse internal temperature {}", e.getLocalizedMessage());
+                                logger.error("Can't parse internal temperature {}", e.getLocalizedMessage());
                             }
                         }
                     }
@@ -655,10 +720,16 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     @Override
     public void dispose() {
+        logger.error("disposing megadHandler");
         ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
             this.refreshPollingJob = null;
+        }
+        ScheduledFuture<?> refreshPollingJobTest = this.refreshPollingJobTest;
+        if (refreshPollingJobTest != null && !refreshPollingJobTest.isCancelled()) {
+            refreshPollingJobTest.cancel(true);
+            this.refreshPollingJobTest = null;
         }
         DatagramSocket socket = this.socket;
         if (socket != null) {
@@ -674,9 +745,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     public void started() {
         triggerChannel(MegaDBindingConstants.CHANNEL_ST, "START");
-        MegaDHttpHelpers http = new MegaDHttpHelpers();
-        megaDHardware.getMegaPortsAndType(config.hostname, config.password, http);
-        megaDHardware.getPortsStatus(config.hostname, config.password, http);
+
+        megaDHardware.getMegaPortsAndType(config.hostname, config.password, httpHelper);
+        megaDHardware.getPortsStatus(config.hostname, config.password, httpHelper);
     }
 
     private void readConf() {
@@ -685,17 +756,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateState(statusChannel.getUID(), StringType.valueOf("Reading full configuration!"));
         }
         logger.warn("Reading full configuration!");
-        MegaDHttpHelpers http = new MegaDHttpHelpers();
-        megaDHardware.readConfigPage1(config.hostname, config.password, http);
-        megaDHardware.readConfigPage2(config.hostname, config.password, http);
-        megaDHardware.readScreens(config.hostname, config.password, http);
-        megaDHardware.readElements(config.hostname, config.password, http);
-        megaDHardware.readCron(config.hostname, config.password, http);
-        megaDHardware.readKeys(config.hostname, config.password, http);
-        megaDHardware.readProgram(config.hostname, config.password, http);
-        megaDHardware.readPID(config.hostname, config.password, http);
+
+        megaDHardware.readConfigPage1(config.hostname, config.password, httpHelper);
+        megaDHardware.readConfigPage2(config.hostname, config.password, httpHelper);
+        megaDHardware.readScreens(config.hostname, config.password, httpHelper);
+        megaDHardware.readElements(config.hostname, config.password, httpHelper);
+        megaDHardware.readCron(config.hostname, config.password, httpHelper);
+        megaDHardware.readKeys(config.hostname, config.password, httpHelper);
+        megaDHardware.readProgram(config.hostname, config.password, httpHelper);
+        megaDHardware.readPID(config.hostname, config.password, httpHelper);
         // megaDHardware.getMegaPortsAndType(config.hostname, config.password, http);
-        megaDHardware.getPortsStatus(config.hostname, config.password, http);
+        megaDHardware.getPortsStatus(config.hostname, config.password, httpHelper);
         File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "cfg"
                 + File.separator + config.hostname + ".cfg");
         if (file.exists()) {
@@ -893,9 +964,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         if (lines != null) {
                             if (lines.stream().anyMatch(ip -> ip.contains("eip=" + config.hostname))) {
                                 for (String line : lines) {
-                                    MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
+
                                     // logger.warn("line is {}", line);
-                                    int response = httpRequest.request(
+                                    int response = httpHelper.request(
                                             "http://" + config.hostname + "/" + config.password + "/?" + line.trim())
                                             .getResponseCode();
                                     if (response == 200) {
@@ -917,7 +988,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             logger.warn("error write config...{}", err.getLocalizedMessage());
         } catch (InterruptedException ignored) {
         }
-        MegaDHttpHelpers httpRequest = new MegaDHttpHelpers();
-        httpRequest.request("http://" + config.hostname + "/" + config.password + "/?restart=1");
+        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?restart=1");
     }
 }

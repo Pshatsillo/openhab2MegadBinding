@@ -170,10 +170,9 @@ public class MegaDHardware {
         return sct;
     }
 
-    public MegaDHardware(String hostname, String password) {
+    public MegaDHardware(String hostname, String password, MegaDHttpHelpers http) {
         this.hostname = hostname;
         this.password = password;
-        MegaDHttpHelpers http = new MegaDHttpHelpers();
         readConfigPage1(hostname, password, http);
         readConfigPage2(hostname, password, http);
         setActualFirmware();
@@ -565,8 +564,7 @@ public class MegaDHardware {
         return result;
     }
 
-    public @Nullable Port getPortStatus(int i) {
-        MegaDHttpHelpers http = new MegaDHttpHelpers();
+    public @Nullable Port getPortStatus(int i, MegaDHttpHelpers http) {
         getSinglePortStatus(hostname, password, http, i);
         Map<Integer, Port> portList = this.portList;
         return portList.get(i);

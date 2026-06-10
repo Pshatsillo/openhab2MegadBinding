@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.handler.MegaDDeviceHandler;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
@@ -37,8 +38,9 @@ public class MegaDMideaProtocol implements MegaDRS485Interface {
     String address;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDMideaProtocol(String address) {
+    public MegaDMideaProtocol(String address, HttpClientFactory httpClientFactory) {
         this.address = address;
+        httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
     private void request(MegaDDeviceHandler bridgeHandler) {
