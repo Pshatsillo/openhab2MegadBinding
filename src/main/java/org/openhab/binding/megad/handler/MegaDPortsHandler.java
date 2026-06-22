@@ -191,7 +191,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 } else {
                     logger.trace("channel is null");
                 }
-
             } else if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_DS2413)) {
                 if (command.toString().equals("ON")) {
                     state = 1;
@@ -232,12 +231,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 .append("/")
                                 .append(bridgeDeviceHandler.getThing().getConfiguration().get("password").toString());
                         if (!opt.smooth.isBlank()) {
-
                             resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
                                     .append("&pwm=").append(resultInt).append("&cnt=").append(opt.smooth);
-                        } else
+                        } else {
                             resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
                                     .append(":").append(resultInt);
+                        }
                         result = resBuild.toString();
                         logger.info("Dimmer: {}", result);
                         int responseCode = httpHelper.request(result).getResponseCode();
@@ -254,9 +253,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             if (!opt.smooth.isBlank()) {
                                 resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
                                         .append("&pwm=").append(0).append("&cnt=").append(opt.smooth);
-                            } else
+                            } else {
                                 resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
                                         .append(":").append("0");
+                            }
                             result = resBuild.toString();
 
                             // result = "http://"
@@ -275,11 +275,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
                                         .append("&pwm=").append(dimmervalue);
                                 resBuild.append("&cnt=").append(opt.smooth);
-                            } else
+                            } else {
                                 resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
                                         .append(":").append(dimmervalue);
-                            result = resBuild.toString();
-
+                                result = resBuild.toString();
+                            }
                             // result = "http://"
                             // + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                             // + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
@@ -1080,7 +1080,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 updateState(channel.getUID().getId(), DecimalType.valueOf(value));
                                 break;
                             } catch (Exception ignored) {
-
                             }
                         case MegaDBindingConstants.CHANNEL_CONTACT:
                             if (channel.getConfiguration().get("invert") == null) {

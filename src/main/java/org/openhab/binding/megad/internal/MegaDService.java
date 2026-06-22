@@ -59,7 +59,6 @@ public class MegaDService implements EventSubscriber {
     @Activate
     public MegaDService(final @Reference EventPublisher eventPublisher, final @Reference HttpService httpService,
             ComponentContext context) {
-
         MegaDService.eventPublisher = eventPublisher;
         MegaDHTTPCallback megaDHTTPCallback = new MegaDHTTPCallback();
         try {

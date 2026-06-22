@@ -19,15 +19,15 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
-import org.openhab.binding.megad.RS485.MegaDDDs238;
-import org.openhab.binding.megad.RS485.MegaDGLTHTempHum;
-import org.openhab.binding.megad.RS485.MegaDMideaProtocol;
-import org.openhab.binding.megad.RS485.MegaDModbusPowermeterInterface;
-import org.openhab.binding.megad.RS485.MegaDRS485Interface;
-import org.openhab.binding.megad.RS485.MegaDSdm120;
-import org.openhab.binding.megad.RS485.MegaDWBMAP6S;
-import org.openhab.binding.megad.RS485.MegaDWindAnemometer;
-import org.openhab.binding.megad.RS485.MegaDWindDir;
+import org.openhab.binding.megad.rs485.MegaDDDs238;
+import org.openhab.binding.megad.rs485.MegaDGLTHTempHum;
+import org.openhab.binding.megad.rs485.MegaDMideaProtocol;
+import org.openhab.binding.megad.rs485.MegaDModbusPowermeterInterface;
+import org.openhab.binding.megad.rs485.MegaDRS485Interface;
+import org.openhab.binding.megad.rs485.MegaDSdm120;
+import org.openhab.binding.megad.rs485.MegaDWBMAP6S;
+import org.openhab.binding.megad.rs485.MegaDWindAnemometer;
+import org.openhab.binding.megad.rs485.MegaDWindDir;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
@@ -179,9 +179,9 @@ public class MegaDRs485Handler extends BaseThingHandler {
             if (bridgeHandler != null) {
                 rsi = new MegaDGLTHTempHum(bridgeHandler, address, httpClient);
                 ThingBuilder thingBuilder = editThing();
-                final MegaDGLTHTempHum MegaDGLTHTempHum = (MegaDGLTHTempHum) rsi;
-                if (MegaDGLTHTempHum != null) {
-                    thingBuilder.withChannels(MegaDGLTHTempHum.getChannelsList(getThing()));
+                final MegaDGLTHTempHum megaDGLTHTempHum = (MegaDGLTHTempHum) rsi;
+                if (megaDGLTHTempHum != null) {
+                    thingBuilder.withChannels(megaDGLTHTempHum.getChannelsList(getThing()));
                     updateThing(thingBuilder.build());
                 }
             }
@@ -544,7 +544,6 @@ public class MegaDRs485Handler extends BaseThingHandler {
                             if (bridgeHandler != null) {
                                 String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
                                 if (answer.length == 32) {
-
                                     int n = (int) Long.parseLong(answer[10], 16);
                                     logger.debug("Midea temperature is : {}, hex {}", n, answer[10]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
@@ -564,7 +563,6 @@ public class MegaDRs485Handler extends BaseThingHandler {
                             if (bridgeHandler != null) {
                                 String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
                                 if (answer.length == 9) {
-
                                     int n = (int) Long.parseLong(answer[5] + answer[6], 16);
                                     logger.debug("Wind Angle is : {}, hex {}", n, answer[5] + answer[6]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));

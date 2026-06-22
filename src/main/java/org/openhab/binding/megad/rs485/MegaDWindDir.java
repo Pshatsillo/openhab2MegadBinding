@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.RS485;
+package org.openhab.binding.megad.rs485;
 
 import java.util.ArrayList;
 import java.util.List;

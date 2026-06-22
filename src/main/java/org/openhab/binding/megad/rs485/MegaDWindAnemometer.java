@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.megad.RS485;
+package org.openhab.binding.megad.rs485;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +30,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegaDGLTHTempHum} is responsible for rs485/modbus feature of megad
+ * The {@link MegaDWindAnemometer} is responsible for rs485/modbus feature of megad
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDGLTHTempHum implements MegaDRS485Interface {
-    final Logger logger = LoggerFactory.getLogger(MegaDGLTHTempHum.class);
+public class MegaDWindAnemometer implements MegaDRS485Interface {
+    final Logger logger = LoggerFactory.getLogger(MegaDWindAnemometer.class);
     String address;
     MegaDDeviceHandler bridgeHandler;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
 
-    public MegaDGLTHTempHum(MegaDDeviceHandler bridgeHandler, String address, HttpClientFactory httpClientFactory) {
+    public MegaDWindAnemometer(MegaDDeviceHandler bridgeHandler, String address, HttpClientFactory httpClientFactory) {
         this.address = address;
         this.bridgeHandler = bridgeHandler;
         httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
@@ -63,9 +63,9 @@ public class MegaDGLTHTempHum implements MegaDRS485Interface {
                 + Objects.requireNonNull(bridgeHandler).getThing().getConfiguration().get("password").toString()
                 + "/?uart_rx=1&mode=rs485";
         String updateRequest = httpHelper.request(result).getResponseResult();
-        logger.trace("Temp/hum GL-TH answer is: {}", updateRequest);
-        String[] response = updateRequest.split("[|]");
-        return response;
+        logger.trace("Wind speed answer is: {}", updateRequest);
+        String[] request = updateRequest.split("[|]");
+        return request;
     }
 
     @Override
@@ -75,16 +75,11 @@ public class MegaDGLTHTempHum implements MegaDRS485Interface {
     @Override
     public List<Channel> getChannelsList(Thing thing) {
         List<Channel> channelList = new ArrayList<>();
-        ChannelUID temperature = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_TEMP);
-        Channel temperatureCH = ChannelBuilder.create(temperature)
-                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_TEMP))
-                .withLabel("Температура").withAcceptedItemType("Number:Temperature").build();
-        ChannelUID humidity = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_HUM);
-        Channel humidityCH = ChannelBuilder.create(humidity)
-                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_HUM))
-                .withLabel("Влажность").withAcceptedItemType("Number").build();
-        channelList.add(temperatureCH);
-        channelList.add(humidityCH);
+        ChannelUID windSpeedUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_WINDSPED);
+        Channel windSpeed = ChannelBuilder.create(windSpeedUID)
+                .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_WINDSPED))
+                .withLabel("Скорость ветра").withAcceptedItemType("Number").build();
+        channelList.add(windSpeed);
         return channelList;
     }
 }

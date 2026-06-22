@@ -173,7 +173,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     channelList.add(foundedChannel);
                     existingChannelList.remove(foundedChannel);
                 }
-
             } else {
                 channelList.add(start);
             }
@@ -252,7 +251,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 logger.debug("{} rs485 queue length {}", config.hostname, sendRs485Queue.size());
                 MegaDRs485Handler pooler = sendRs485Queue.take();
                 pooler.updateData();
-
             } catch (InterruptedException e) {
                 logger.error("Refresh rs485 thread interrupted");
             }
@@ -399,7 +397,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                 logger.debug("Channel {} update failed with error {}",
                                                         channel.getLabel(), e.getLocalizedMessage());
                                             }
-
                                         }
                                     }
                                 }
@@ -484,7 +481,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         if (!firmwareUpdate) {
                             logger.debug("refreshing firmware version, ip {} ...", config.hostname);
                             if (config.ping) {
-
                                 int response = httpHelper
                                         .request("http://" + config.hostname + "/" + config.password + "/?tget=1")
                                         .getResponseCode();
@@ -582,7 +578,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
                     MegaDHTTPResponse response = httpHelper
                             .request("http://" + config.hostname + "/" + config.password + "/?bl=1");
-                    String broadcast_string;
+                    String broadcastString;
                     if (response.getResponseResult().equals("1")) {
                         // bl = 1;
                         // logger.warn("Flashing mega bl {}", bl);
@@ -592,8 +588,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         Thread.sleep(100);
                         httpHelper.request("http://" + config.hostname + "/" + config.password + "/?fwup=1");
                         Thread.sleep(100);
-                        broadcast_string = "AA0000" + checkData;
-                        byte[] buf = HexFormat.of().parseHex(broadcast_string);
+                        broadcastString = "AA0000" + checkData;
+                        byte[] buf = HexFormat.of().parseHex(broadcastString);
                         byte[] receivedPacket = new byte[200];
                         for (int i = 0; i < 10; i++) {
                             byte[] rcvBuf = new byte[200];
@@ -607,8 +603,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         }
                         flashFirmware(receivedPacket);
                         // eraseEEPROM();
-                        broadcast_string = "AA0003" + checkData;
-                        buf = HexFormat.of().parseHex(broadcast_string);
+                        broadcastString = "AA0003" + checkData;
+                        buf = HexFormat.of().parseHex(broadcastString);
                         DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
                         socket.send(packet);
                         socket.close();
@@ -634,8 +630,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 try {
                     broadcastAddress = InetAddress
                             .getByName(config.hostname.substring(0, config.hostname.lastIndexOf(".") + 1) + "255");
-                    String broadcast_string = "AA0000";
-                    byte[] buf = HexFormat.of().parseHex(broadcast_string);
+                    String broadcastString = "AA0000";
+                    byte[] buf = HexFormat.of().parseHex(broadcastString);
                     byte[] rcvBuf = new byte[200];
                     DatagramSocket socket = this.socket;
                     if (socket != null) {
@@ -666,7 +662,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         int chipType = 0;
         Channel progressChannel = thing.getChannel(MegaDBindingConstants.CHANNEL_PROGRESS);
         byte[] buf;
-        String broadcast_string;
+        String broadcastString;
         final Channel statusChannel = this.statusChannel;
         try {
             if (((receivedPacket[0] & 0xFF) == 0xAA) && ((receivedPacket[1] & 0xFF) == 0x00)) {
@@ -687,33 +683,33 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 } else {
                     logger.warn("(chip type: atmega328)");
                 }
-                String dl_fw_fname;
+                String dlFwFname;
                 URL url;
                 if (chipType == 2561) {
                     if (beta) {
-                        dl_fw_fname = "megad-2561-beta.hex";
+                        dlFwFname = "megad-2561-beta.hex";
                     } else {
-                        dl_fw_fname = "megad-2561.hex";
+                        dlFwFname = "megad-2561.hex";
                     }
-                    String urlString = "https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dl_fw_fname;
+                    String urlString = "https://ab-log.ru/files/File/megad-firmware-2561/latest/" + dlFwFname;
                     url = URI.create(urlString).toURL();
-                    logger.warn("Beta {}, firmware filename is {}", beta, dl_fw_fname);
+                    logger.warn("Beta {}, firmware filename is {}", beta, dlFwFname);
                 } else {
                     if (beta) {
-                        dl_fw_fname = "megad-328-beta.hex";
+                        dlFwFname = "megad-328-beta.hex";
                     } else {
-                        dl_fw_fname = "megad-328.hex";
+                        dlFwFname = "megad-328.hex";
                     }
-                    String urlString = "https://ab-log.ru/files/File/megad-firmware/latest/" + dl_fw_fname;
+                    String urlString = "https://ab-log.ru/files/File/megad-firmware/latest/" + dlFwFname;
                     url = URI.create(urlString).toURL();
                 }
-                logger.warn("Downloading firmware... {}", dl_fw_fname);
+                logger.warn("Downloading firmware... {}", dlFwFname);
                 // updateState(channelUID, OnOffType.OFF);
                 if (statusChannel != null) {
-                    updateState(statusChannel.getUID(), StringType.valueOf("Downloading firmware... " + dl_fw_fname));
+                    updateState(statusChannel.getUID(), StringType.valueOf("Downloading firmware... " + dlFwFname));
                 }
                 File file = new File(
-                        OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + dl_fw_fname);
+                        OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + dlFwFname);
                 if (file.exists()) {
                     boolean isDel = file.delete();
                     logger.debug("file {} deleted {}", file.getName(), isDel);
@@ -776,8 +772,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 updateState(statusChannel.getUID(), StringType.valueOf("Erasing firmware..."));
                             }
                             logger.warn("Erasing firmware... ");
-                            broadcast_string = "AA0002" + checkData;
-                            buf = HexFormat.of().parseHex(broadcast_string);
+                            broadcastString = "AA0002" + checkData;
+                            buf = HexFormat.of().parseHex(broadcastString);
                             byte[] eraseBuf = new byte[5];
                             DatagramPacket erasePacket = new DatagramPacket(buf, buf.length, broadcastAddress, 52000);
                             socket.send(erasePacket);
@@ -855,8 +851,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                             }
                                         }
                                         msgID++;
-                                        if (msgID == 256)
+                                        if (msgID == 256) {
                                             msgID = 0;
+                                        }
                                     }
                                     // logger.warn("next: {}", rcvPacket.getData());
                                 }
@@ -1217,11 +1214,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                         StandardOpenOption.APPEND);
                             }
                         }
-
                     }
                 }
             }
-
         } catch (IOException e) {
             logger.error("Cannot write to file {}", file.getName());
         }

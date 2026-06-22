@@ -273,9 +273,9 @@ public class MegaDRGBHandler extends BaseThingHandler {
             for (Channel channel : getThing().getChannels()) {
                 if (isLinked(channel.getUID().getId())) {
                     if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_RGB)) {
-                        int red_color = 0;
-                        int green_color = 0;
-                        int blue_color = 0;
+                        int redColor = 0;
+                        int greenColor = 0;
+                        int blueColor = 0;
                         String redPortConfig = configuration.red;
                         String greenPortConfig = configuration.green;
                         String bluePortConfig = configuration.blue;
@@ -287,7 +287,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + redPortConfig + "&cmd=get");
                         if (red.getResponseCode() == 200) {
-                            red_color = Integer.parseInt(red.getResponseResult());
+                            redColor = Integer.parseInt(red.getResponseResult());
                         } else {
                             logger.error("Cannot get red channel value");
                         }
@@ -300,7 +300,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + greenPortConfig + "&cmd=get");
                         if (green.getResponseCode() == 200) {
-                            green_color = Integer.parseInt(green.getResponseResult());
+                            greenColor = Integer.parseInt(green.getResponseResult());
                         } else {
                             logger.error("Cannot get green channel value");
                         }
@@ -313,23 +313,23 @@ public class MegaDRGBHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?pt="
                                 + bluePortConfig + "&cmd=get");
                         if (blue.getResponseCode() == 200) {
-                            blue_color = Integer.parseInt(blue.getResponseResult());
+                            blueColor = Integer.parseInt(blue.getResponseResult());
                         } else {
                             logger.error("Cannot get blue channel value");
                         }
                         if (configuration.red.contains("e")) {
-                            double rPercent = red_color / 40.95;
-                            red_color = (int) Math.round(2.55 * rPercent);
+                            double rPercent = redColor / 40.95;
+                            redColor = (int) Math.round(2.55 * rPercent);
                         }
                         if (configuration.green.contains("e")) {
-                            double gPercent = green_color / 40.95;
-                            green_color = (int) Math.round(2.55 * gPercent);
+                            double gPercent = greenColor / 40.95;
+                            greenColor = (int) Math.round(2.55 * gPercent);
                         }
                         if (configuration.blue.contains("e")) {
-                            double bPercent = blue_color / 40.95;
-                            blue_color = (int) Math.round(2.55 * bPercent);
+                            double bPercent = blueColor / 40.95;
+                            blueColor = (int) Math.round(2.55 * bPercent);
                         }
-                        updateState(channel.getUID().getId(), HSBType.fromRGB(red_color, green_color, blue_color));
+                        updateState(channel.getUID().getId(), HSBType.fromRGB(redColor, greenColor, blueColor));
                     }
                 }
             }

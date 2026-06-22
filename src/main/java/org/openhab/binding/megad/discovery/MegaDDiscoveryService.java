@@ -79,7 +79,7 @@ import com.google.gson.stream.JsonReader;
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
     public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
-    private static final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
+    private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
     private @Nullable ScheduledFuture<?> backgroundFuture;
@@ -280,6 +280,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     static void createFile(File file) {
+        Logger logger = LoggerFactory.getLogger("Discovery createFile");
         File parent = file.getParentFile();
         if (parent != null) {
             boolean createOk = parent.mkdirs();
@@ -287,7 +288,9 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 logger.debug("Folders {} created", file.getAbsolutePath());
             }
             try {
-                // TODO Download file from ab-log.ru
+                // CHECKSTYLE:OFF
+                // TODO: Download file from ab-log.ru
+                // CHECKSTYLE:ON
                 URL url = URI.create(urlString).toURL();
                 try (InputStream in = url.openStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
@@ -300,6 +303,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     static boolean isMatchFile(File file) {
+        Logger logger = LoggerFactory.getLogger("Discovery isMatchFile");
         try {
             byte[] data = Files.readAllBytes(file.toPath());
             Checksum crc = new CRC32();
@@ -307,7 +311,9 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             long crcExistingFile = crc.getValue();
             long crcServerFile;
             logger.debug("CRC32 Checksum of existing file: {}", crcExistingFile);
-            // TODO Download file from ab-log.ru
+            // CHECKSTYLE:OFF
+            // TODO: Download file from ab-log.ru
+            // CHECKSTYLE:ON
             URL url = URI.create(urlString).toURL();
             try (InputStream in = url.openStream()) {
                 data = in.readAllBytes();
@@ -334,6 +340,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     public static void readSensorsFile(boolean firstStart) {
+        Logger logger = LoggerFactory.getLogger("Discovery readSensorsFile");
         File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
         File sensorsFolder = new File(
                 OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors" + File.separator);

@@ -332,7 +332,6 @@ public class MegaDHardware {
                 cron.crnt[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crnt" + i);
                 cron.crna[i] = getValueByHTMLName(megaDHTTPResponse.getResponseResult(), "crna" + i);
             }
-
         }
     }
 
