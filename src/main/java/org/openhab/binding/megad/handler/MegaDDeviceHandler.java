@@ -13,10 +13,12 @@
 package org.openhab.binding.megad.handler;
 
 import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.megaDDeviceHandlerList;
+import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.megaDI2CSensorsList;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -37,6 +39,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +52,12 @@ import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDHardware;
+import org.openhab.binding.megad.dto.MegaDI2CSensors;
+import org.openhab.binding.megad.enums.MegaDDsenEnum;
+import org.openhab.binding.megad.enums.MegaDExtendersEnum;
+import org.openhab.binding.megad.enums.MegaDModesEnum;
 import org.openhab.binding.megad.enums.MegaDTypesEnum;
+import org.openhab.binding.megad.internal.MegaDPooler;
 import org.openhab.binding.megad.internal.MegaDService;
 import org.openhab.core.OpenHAB;
 import org.openhab.core.config.core.Configuration;
@@ -96,8 +105,12 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Nullable
     InetAddress broadcastAddress;
 
+    private @Nullable Thread refreshThread;
+    private @Nullable Thread refreshRs485Thread;
     Long lastRefresh = 0L;
     Long lastRefreshTest = 0L;
+    public BlockingQueue<MegaDPooler> sendQueue = new LinkedBlockingQueue<>();
+    public BlockingQueue<MegaDRs485Handler> sendRs485Queue = new LinkedBlockingQueue<>();
 
     public MegaDDeviceHandler(Bridge bridge, HttpClientFactory httpClientFactory) {
         super(bridge);
@@ -217,6 +230,328 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             }
         } else {
             updateStatus(ThingStatus.OFFLINE);
+        }
+
+        Thread refreshThread = new Thread(this::refreshThreadJob,
+                "OH-binding-Megad-refresh" + getThing().getUID() + "-Reader");
+        refreshThread.setDaemon(true);
+        refreshThread.start();
+        this.refreshThread = refreshThread;
+
+        Thread refreshRs485Thread = new Thread(this::refreshRs485ThreadJob,
+                "OH-binding-Megad-rs485-refresh" + getThing().getUID() + "-Reader");
+        refreshRs485Thread.setDaemon(true);
+        refreshRs485Thread.start();
+        this.refreshRs485Thread = refreshRs485Thread;
+    }
+
+    private void refreshRs485ThreadJob() {
+        logger.debug("Starting refresh rs485 thread");
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                logger.debug("{} rs485 queue length {}", config.hostname, sendRs485Queue.size());
+                MegaDRs485Handler pooler = sendRs485Queue.take();
+                pooler.updateData();
+
+            } catch (InterruptedException e) {
+                logger.error("Refresh rs485 thread interrupted");
+            }
+            if (sendRs485Queue.size() > 10) {
+                logger.warn("{} rs485 refresh queue is full, please increase refresh time", config.hostname);
+                sendRs485Queue.clear();
+            }
+        }
+    }
+
+    private void refreshThreadJob() {
+        logger.debug("Starting refresh thread");
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                // logger.warn("queue length {}", sendQueue.size());
+                MegaDPooler pooler = sendQueue.take();
+                if (pooler.megaDPortsHandler != null) {
+                    MegaDPortsHandler megaDPortsHandler = pooler.megaDPortsHandler;
+                    if (megaDPortsHandler != null) {
+                        MegaDTypesEnum portType = megaDPortsHandler.port.getPty();
+                        if (portType.equals(MegaDTypesEnum.DSEN)) {
+                            MegaDDsenEnum dDenType = megaDPortsHandler.port.getSenType();
+                            if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
+                                List<Channel> channels = thing.getChannels();
+                                int responseCode = httpHelper
+                                        .request("http://"
+                                                + this.getThing().getConfiguration().get("hostname").toString() + "/"
+                                                + this.getThing().getConfiguration().get("password").toString()
+                                                + "/?pt=" + megaDPortsHandler.configuration.port + "?cmd=conv")
+                                        .getResponseCode();
+                                if (responseCode == 200) {
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException ignored) {
+                                    }
+                                    String response = httpHelper.request("http://"
+                                            + this.getThing().getConfiguration().get("hostname").toString() + "/"
+                                            + this.getThing().getConfiguration().get("password").toString() + "/?pt="
+                                            + megaDPortsHandler.configuration.port + "?cmd=list").getResponseResult();
+                                    logger.debug("response port {} is {}", megaDPortsHandler.configuration.port,
+                                            response);
+                                    String[] sensorsList = response.split(";");
+                                    if (!"busy".equals(response)) {
+                                        for (Channel channel : channels) {
+                                            for (String oneWireSensor : sensorsList) {
+                                                if (!oneWireSensor.isEmpty()) {
+                                                    String address = oneWireSensor.split(":")[0];
+                                                    String value = oneWireSensor.split(":")[1];
+                                                    if (channel.getConfiguration().get("address").toString()
+                                                            .equals(address)) {
+                                                        megaDPortsHandler.updateChannel(channel.getUID().getId(),
+                                                                value);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    logger.error("Can not send conv to {}",
+                                            this.getThing().getConfiguration().get("hostname").toString());
+                                }
+                            } else if (dDenType.equals(MegaDDsenEnum.ONEWIRE)) {
+                                MegaDHTTPResponse response = httpHelper.request(
+                                        "http://" + this.getThing().getConfiguration().get("hostname").toString() + "/"
+                                                + this.getThing().getConfiguration().get("password").toString()
+                                                + "/?pt=" + megaDPortsHandler.configuration.port + "?cmd=get");
+                                if (response.getResponseCode() == 200) {
+                                    String resp = response.getResponseResult();
+                                    String[] sensorsList = resp.split(":");
+                                    List<Channel> channels = thing.getChannels();
+                                    for (Channel channel : channels) {
+                                        if (isLinked(channel.getUID())) {
+                                            megaDPortsHandler.updateChannel(channel.getUID().getId(), sensorsList[1]);
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (portType.equals(MegaDTypesEnum.IN)) {
+                            String response = httpHelper
+                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
+                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .getResponseResult();
+                            if (response.contains("/")) {
+                                String[] values = response.split("/");
+                                if (values[0].contains("ON") || values[0].contains("OFF")) {
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_IN, values[0]);
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, values[0]);
+                                    if (values.length == 2) {
+                                        megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_INCOUNT,
+                                                values[1]);
+                                    }
+                                }
+                            } else {
+                                if (response.contains("ON") || response.contains("OFF")) {
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_IN, response);
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_CONTACT, response);
+                                }
+                            }
+                        } else if (portType.equals(MegaDTypesEnum.OUT)) {
+                            String response = httpHelper
+                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
+                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .getResponseResult();
+                            if (response.contains("/")) {
+                                String[] values = response.split("/");
+                                if (values[0].contains("ON") || values[0].contains("OFF")) {
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_OUT, values[0]);
+                                }
+                            } else {
+                                if (response.contains("ON") || response.contains("OFF")) {
+                                    megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_OUT, response);
+                                } else {
+                                    MegaDModesEnum mode = megaDPortsHandler.port.getM();
+                                    if (mode.equals(MegaDModesEnum.PWM)) {
+                                        megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_PWM, response);
+                                        megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_DIMMER, response);
+                                    }
+                                }
+                            }
+                        } else if (portType.equals(MegaDTypesEnum.ADC)) {
+                            String response = httpHelper
+                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
+                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .getResponseResult();
+                            megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_ADC, response);
+                        } else if (portType.equals(MegaDTypesEnum.I2C)) {
+                            MegaDExtendersEnum megaDExtendersEnum = megaDPortsHandler.port.getExtenders();
+                            if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
+                                String response = httpHelper
+                                        .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
+                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                        .getResponseResult();
+                                String[] portsStatus = response.split(";");
+                                List<Channel> channels = thing.getChannels();
+                                for (Channel channel : channels) {
+                                    BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
+                                    String acceptType = channel.getAcceptedItemType();
+                                    if (acceptType != null) {
+                                        if ("Switch".equals(acceptType)) {
+                                            try {
+                                                megaDPortsHandler.updateChannel(channel.getUID().getId(),
+                                                        portsStatus[port.intValue()]);
+                                            } catch (Exception e) {
+                                                logger.debug("Channel {} update failed with error {}",
+                                                        channel.getLabel(), e.getLocalizedMessage());
+                                            }
+
+                                        }
+                                    }
+                                }
+                            } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
+                                String response = httpHelper
+                                        .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
+                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                        .getResponseResult();
+                                String[] portsStatus = response.split(";");
+                                List<Channel> channels = thing.getChannels();
+                                for (Channel channel : channels) {
+                                    if (channel.getConfiguration().get("port") != null) {
+                                        BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
+                                        if (portsStatus.length != 1) {
+                                            if (!portsStatus[port.intValue()].isEmpty()) {
+                                                megaDPortsHandler.updateChannel(channel.getUID().getId(),
+                                                        portsStatus[port.intValue()]);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                List<Channel> channels = thing.getChannels();
+                                for (Channel channel : channels) {
+                                    if ((channel.getConfiguration().get("type") != null)
+                                            && (channel.getConfiguration().get("path") != null)) {
+                                        String sensortype = channel.getConfiguration().get("type").toString();
+                                        String sensorPath = channel.getConfiguration().get("path").toString();
+                                        MegaDI2CSensors sensor = Objects.requireNonNull(megaDI2CSensorsList)
+                                                .get(sensortype);
+                                        String response = "";
+                                        if (sensor != null) {
+                                            if (sensor.isSensorInitRequired()) {
+                                                response = httpHelper
+                                                        .request("http://" + this.config.hostname + "/"
+                                                                + this.config.password + "/?pt="
+                                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                                        .getResponseResult();
+                                                String[] splitResponse = response.split("/");
+                                                for (int i = 0; i < splitResponse.length; i++) {
+                                                    String[] value = splitResponse[i].split(":");
+                                                    if (value[0].equals(sensorPath)) {
+                                                        response = value[1];
+                                                        logger.debug("Inited sensor channel {}", response);
+                                                    }
+                                                }
+                                            } else {
+                                                response = httpHelper
+                                                        .request("http://" + this.config.hostname + "/"
+                                                                + this.config.password + "/?pt="
+                                                                + megaDPortsHandler.configuration.port + "&scl="
+                                                                + Objects
+                                                                        .requireNonNull(this.megaDHardware.getPort(
+                                                                                megaDPortsHandler.configuration.port))
+                                                                        .getScl()
+                                                                + "&i2c_dev=" + sensortype + "&" + sensorPath)
+                                                        .getResponseResult();
+                                            }
+                                            try {
+                                                Thread.sleep(200);
+                                            } catch (InterruptedException ignored) {
+                                            }
+                                            megaDPortsHandler.updateChannel(channel.getUID().getId(), response);
+                                        }
+                                    }
+                                    if (channel.getConfiguration().get("port") != null) {
+                                        String response = httpHelper
+                                                .request("http://" + this.config.hostname + "/" + this.config.password
+                                                        + "/?pt=" + megaDPortsHandler.configuration.port + "&ext="
+                                                        + channel.getConfiguration().get("port").toString() + "cmg=get")
+                                                .getResponseResult();
+                                        megaDPortsHandler.updateChannel(channel.getUID().getId(), response);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (pooler.megaDDeviceHandler != null) {
+                    MegaDDeviceHandler megaDDeviceHandler = pooler.megaDDeviceHandler;
+                    if (megaDDeviceHandler != null) {
+                        if (!firmwareUpdate) {
+                            logger.debug("refreshing firmware version, ip {} ...", config.hostname);
+                            if (config.ping) {
+
+                                int response = httpHelper
+                                        .request("http://" + config.hostname + "/" + config.password + "/?tget=1")
+                                        .getResponseCode();
+                                if (response == 200) {
+                                    if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
+                                        updateStatus(ThingStatus.ONLINE);
+                                    }
+                                } else {
+                                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                                            "Device not responding on ping");
+                                }
+                            }
+                            long now = System.currentTimeMillis();
+                            // ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
+                            // if (!megaDRs485HandlerMap.isEmpty()) {
+                            // try {
+                            // for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
+                            // int interval = Integer
+                            // .parseInt(handler.getThing().getConfiguration().get("refresh").toString());
+                            // if (interval != 0) {
+                            // if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
+                            // handler.updateData();
+                            // handler.lastrefreshAdd(now);
+                            // try {
+                            // Thread.sleep(200);
+                            // } catch (InterruptedException e) {
+                            // logger.error("Interrupted while waiting for refresh {}", e.getMessage());
+                            // }
+                            // }
+                            // }
+                            // }
+                            // } catch (Exception ignored) {
+                            // logger.error("MegaDRs485Handler refreshing error");
+                            // }
+                            // }
+                            if ((now - lastRefresh) >= 30) {
+                                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
+                                if (channel != null) {
+                                    if (isLinked(channel.getUID().getId())) {
+                                        MegaDHTTPResponse tempchannel = httpHelper.request(
+                                                "http://" + config.hostname + "/" + config.password + "/?tget=1");
+                                        if (!tempchannel.getResponseResult().equals("0.00")) {
+                                            try {
+                                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
+                                                updateState(channel.getUID().getId(),
+                                                        DecimalType.valueOf(String.valueOf(tempLong)));
+                                            } catch (Exception e) {
+                                                logger.error("Can't parse internal temperature {}",
+                                                        e.getLocalizedMessage());
+                                            }
+                                        }
+                                    }
+                                }
+                                lastRefresh = now;
+                            } else if ((now - lastRefresh) >= 1800) {
+                                fillProperties();
+                            }
+                        }
+                    }
+                }
+                // httpHelper.request(url);
+            } catch (InterruptedException e) {
+                logger.error("Refresh thread interrupted");
+            }
+            if (sendQueue.size() > 100) {
+                sendQueue.clear();
+            }
         }
     }
 
@@ -584,7 +919,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
                                 logger.debug("megaDRs485HandlerMap is {}", handler.getThing().getUID());
                                 // handler.updateData();
-                                // handler.lastrefreshAdd(now);
+                                handler.lastrefreshAdd(now);
                                 try {
                                     Thread.sleep(200);
                                 } catch (InterruptedException e) {
@@ -623,65 +958,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     }
 
     private void refresh() {
-        if (!firmwareUpdate) {
-            logger.debug("refreshing firmware version, ip {} ...", config.hostname);
-            if (config.ping) {
-
-                int response = httpHelper.request("http://" + config.hostname + "/" + config.password + "/?tget=1")
-                        .getResponseCode();
-                if (response == 200) {
-                    if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
-                        updateStatus(ThingStatus.ONLINE);
-                    }
-                } else {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                            "Device not responding on ping");
-                }
-            }
-            long now = System.currentTimeMillis();
-            ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
-            if (!megaDRs485HandlerMap.isEmpty()) {
-                try {
-                    for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
-                        int interval = Integer
-                                .parseInt(handler.getThing().getConfiguration().get("refresh").toString());
-                        if (interval != 0) {
-                            if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
-                                handler.updateData();
-                                handler.lastrefreshAdd(now);
-                                try {
-                                    Thread.sleep(200);
-                                } catch (InterruptedException e) {
-                                    logger.error("Interrupted while waiting for refresh {}", e.getMessage());
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception ignored) {
-                    logger.error("MegaDRs485Handler refreshing error");
-                }
-            }
-            if ((now - lastRefresh) >= 30) {
-                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
-                if (channel != null) {
-                    if (isLinked(channel.getUID().getId())) {
-                        MegaDHTTPResponse tempchannel = httpHelper
-                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
-                        if (!tempchannel.getResponseResult().equals("0.00")) {
-                            try {
-                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
-                                updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(tempLong)));
-                            } catch (Exception e) {
-                                logger.error("Can't parse internal temperature {}", e.getLocalizedMessage());
-                            }
-                        }
-                    }
-                }
-                lastRefresh = now;
-            } else if ((now - lastRefresh) >= 1800) {
-                fillProperties();
-            }
-        }
     }
 
     private void fillProperties() {
@@ -740,6 +1016,14 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         if (megaDDeviceHandlerList != null) {
             megaDDeviceHandlerList.remove(this);
+        }
+        Thread refreshRs485Thread = this.refreshRs485Thread;
+        if (refreshRs485Thread != null && refreshRs485Thread.isAlive()) {
+            refreshRs485Thread.interrupt();
+        }
+        Thread refreshThread = this.refreshThread;
+        if (refreshThread != null && refreshThread.isAlive()) {
+            refreshThread.interrupt();
         }
     }
 

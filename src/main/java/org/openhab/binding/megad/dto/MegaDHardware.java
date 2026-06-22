@@ -575,6 +575,10 @@ public class MegaDHardware {
         return portList.get(i);
     }
 
+    public void setPort(Integer port, Port mega) {
+        this.portList.put(port, mega);
+    }
+
     public static class Screen {
         public String getScrnt() {
             return scrnt;

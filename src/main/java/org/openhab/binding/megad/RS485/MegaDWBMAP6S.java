@@ -391,28 +391,58 @@ public class MegaDWBMAP6S implements MegaDModbusPowermeterInterface {
         String value;
         return switch (line) {
             case 1 -> {
-                value = getValueFromWBMAP6S("122C", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("122C", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             case 2 -> {
-                value = getValueFromWBMAP6S("1228", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("1228", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             case 3 -> {
-                value = getValueFromWBMAP6S("1224", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("1224", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             case 4 -> {
-                value = getValueFromWBMAP6S("222C", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("222C", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             case 5 -> {
-                value = getValueFromWBMAP6S("2228", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("2228", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             case 6 -> {
-                value = getValueFromWBMAP6S("2224", 4);
-                yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                try {
+                    value = getValueFromWBMAP6S("2224", 4);
+                    yield String.format("%.2f", (float) Long.parseLong(value, 16) * 0.00001).replace(",", ".");
+                } catch (Exception e) {
+                    yield "ERR";
+                }
+
             }
             default -> "ERR";
         };

@@ -328,7 +328,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 }
             }
         } catch (Exception e) {
-            logger.error("Connect to json file error {}", e.getLocalizedMessage());
+            logger.debug("Connect to json file error {}", e.getLocalizedMessage());
             return false;
         }
     }
@@ -423,7 +423,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         MegaDHttpHelpers http = new MegaDHttpHelpers();
         http.setHttpClient(httpClient);
         MegaDHTTPResponse megaDHTTPResponse;
-        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware");
+        megaDHTTPResponse = http.request("https://www.ab-log.ru/smart-house/ethernet/megad-2561-firmware", 1000);
         if (megaDHTTPResponse.getResponseCode() == 200) {
             try {
                 actualFirmware = megaDHTTPResponse.getResponseResult().substring(

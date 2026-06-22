@@ -14,6 +14,7 @@ package org.openhab.binding.megad.handler;
 
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -185,7 +186,18 @@ public class MegaDRs485Handler extends BaseThingHandler {
                 }
             }
         }
+        int interval = Integer.parseInt(getThing().getConfiguration().get("refresh").toString());
+        freeRefreshJob();
+        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, interval, TimeUnit.SECONDS);
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    private void refresh() {
+        logger.debug("Trying to refresh rs 485 at {} with UID {}", thing.getLabel(), thing.getUID());
+        MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
+        if ((bridgeDeviceHandler != null) && (bridgeDeviceHandler.getThing().getStatus().equals(ThingStatus.ONLINE))) {
+            bridgeDeviceHandler.sendRs485Queue.add(this);
+        }
     }
 
     protected void updateData() {
@@ -210,8 +222,7 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         }
                     } catch (Exception ignored) {
                     }
-                }
-                if (channel.getUID().getId()
+                } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_VOLTAGE)) {
                     try {
                         final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
@@ -238,10 +249,13 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_APPARENTPOWER)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getApparentPower(
-                                Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
-                        logger.debug("Apparent power is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getApparentPower(Integer
+                                    .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
+                            logger.debug("Apparent power is : {}", value);
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_REACTIVEPOWER)) {
@@ -263,7 +277,10 @@ public class MegaDRs485Handler extends BaseThingHandler {
                             String value = megaDModbusPowermeterInterface.getPowerFactor(Integer
                                     .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
                             logger.debug("Power factor is : {}", value);
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                            } catch (Exception ignored) {
+                            }
                         }
                     } catch (Exception ignored) {
                     }
@@ -271,10 +288,14 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_PHASEANGLE)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getPhaseAngle(
-                                Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
-                        logger.debug("Phase angle is : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getPhaseAngle(Integer
+                                    .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
+                            logger.debug("Phase angle is : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_FREQUENCY)) {
@@ -283,93 +304,144 @@ public class MegaDRs485Handler extends BaseThingHandler {
                         if (megaDModbusPowermeterInterface != null) {
                             String value = megaDModbusPowermeterInterface.getFrequency();
                             logger.debug("Frequency is : {}", value);
-                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                            try {
+                                updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                            } catch (Exception ignored) {
+                            }
                         }
                     } catch (Exception ignored) {
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTACTNRG)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getImportActiveEnergy();
-                        logger.debug("Import active energy: {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getImportActiveEnergy();
+                            logger.debug("Import active energy: {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTACTNRG)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getExportActiveEnergy();
-                        logger.debug("Export active energy : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getExportActiveEnergy();
+                            logger.debug("Export active energy : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTREACTNRG)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getImportReactiveEnergy();
-                        logger.debug("Import reactive energy : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getImportReactiveEnergy();
+                            logger.debug("Import reactive energy : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTREACTNRG)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getExportReactiveEnergy();
-                        logger.debug("Export reactive energy : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getExportReactiveEnergy();
+                            logger.debug("Export reactive energy : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_TOTALSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getTotalSystemPowerDemand();
-                        logger.debug("Total system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getTotalSystemPowerDemand();
+                            logger.debug("Total system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXTOTALSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getMaxTotalSystemPowerDemand();
-                        logger.debug("Max total system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getMaxTotalSystemPowerDemand();
+                            logger.debug("Max total system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_IMPORTSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getImportSystemPowerDemand();
-                        logger.debug("Import system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getImportSystemPowerDemand();
+                            logger.debug("Import system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXIMPORTSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getMaxImportSystemPowerDemand();
-                        logger.debug("Max import system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getMaxImportSystemPowerDemand();
+                            logger.debug("Max import system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_EXPORTSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getExportSystemPowerDemand();
-                        logger.debug("Export system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getExportSystemPowerDemand();
+                            logger.debug("Export system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXEXPORTSYSPWRDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getMaxExportSystemPowerDemand();
-                        logger.debug("Max export system power demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getMaxExportSystemPowerDemand();
+                            logger.debug("Max export system power demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_CURRENTDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getCurrentDemand();
-                        logger.debug("Current demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getCurrentDemand();
+                            logger.debug("Current demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MAXCURRENTDMD)) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getMaxCurrentDemand();
-                        logger.debug("Max current demand : {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getMaxCurrentDemand();
+                            logger.debug("Max current demand : {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else if (channel.getUID().getId()
                         .equals(channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_TOTALACTNRG)) {
@@ -399,88 +471,107 @@ public class MegaDRs485Handler extends BaseThingHandler {
                                 channel.getUID().getGroupId() + "#" + MegaDBindingConstants.CHANNEL_REACTIVEENERGY))) {
                     final MegaDModbusPowermeterInterface megaDModbusPowermeterInterface = modbus;
                     if (megaDModbusPowermeterInterface != null) {
-                        String value = megaDModbusPowermeterInterface.getTotalReactiveActiveEnergy(
-                                Integer.parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
-                        logger.debug("Total reactive energy: {}", value);
-                        updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        try {
+                            String value = megaDModbusPowermeterInterface.getTotalReactiveActiveEnergy(Integer
+                                    .parseInt(Objects.requireNonNull(channel.getUID().getGroupId()).substring(4)));
+                            logger.debug("Total reactive energy: {}", value);
+
+                            updateState(channel.getUID().getId(), DecimalType.valueOf(value));
+                        } catch (Exception ignored) {
+                        }
+
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEAOPERMODE)) {
                     final MegaDRS485Interface megaDRS485Interface = rsi;
                     if (megaDRS485Interface != null) {
-                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
-                        if (bridgeHandler != null) {
-                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 32) {
-                                String mode = switch (answer[8]) {
-                                    case "00" -> "OFF";
-                                    case "98" -> "AUTO";
-                                    case "88" -> "COOL";
-                                    case "82" -> "DRY";
-                                    case "84" -> "HEAT";
-                                    case "81" -> "FAN";
-                                    default -> "";
-                                };
-                                logger.debug("Midea mode is : {}", mode);
-                                updateState(channel.getUID().getId(), StringType.valueOf(mode));
-                            } else {
-                                logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                        try {
+                            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                            if (bridgeHandler != null) {
+                                String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                                if (answer.length == 32) {
+                                    String mode = switch (answer[8]) {
+                                        case "00" -> "OFF";
+                                        case "98" -> "AUTO";
+                                        case "88" -> "COOL";
+                                        case "82" -> "DRY";
+                                        case "84" -> "HEAT";
+                                        case "81" -> "FAN";
+                                        default -> "";
+                                    };
+                                    logger.debug("Midea mode is : {}", mode);
+
+                                    updateState(channel.getUID().getId(), StringType.valueOf(mode));
+
+                                } else {
+                                    logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                                }
                             }
+                        } catch (Exception ignored) {
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEAFANMODE)) {
                     final MegaDRS485Interface megaDRS485Interface = rsi;
                     if (megaDRS485Interface != null) {
-                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
-                        if (bridgeHandler != null) {
-                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 32) {
-                                String mode = switch (answer[9]) {
-                                    case "00" -> "OFF";
-                                    case "84" -> "AUTO";
-                                    case "01" -> "HIGH";
-                                    case "02" -> "MEDIUM";
-                                    case "04" -> "LOW";
-                                    default -> "";
-                                };
-                                logger.debug("Midea fan mode is : {}", mode);
-                                updateState(channel.getUID().getId(), StringType.valueOf(mode));
-                            } else {
-                                logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                        try {
+                            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                            if (bridgeHandler != null) {
+                                String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                                if (answer.length == 32) {
+                                    String mode = switch (answer[9]) {
+                                        case "00" -> "OFF";
+                                        case "84" -> "AUTO";
+                                        case "01" -> "HIGH";
+                                        case "02" -> "MEDIUM";
+                                        case "04" -> "LOW";
+                                        default -> "";
+                                    };
+                                    logger.debug("Midea fan mode is : {}", mode);
+
+                                    updateState(channel.getUID().getId(), StringType.valueOf(mode));
+
+                                } else {
+                                    logger.debug("Answer != 32 bytes <{}>", (Object) answer);
+                                }
                             }
+                        } catch (Exception ignored) {
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_MIDEATEMP)) {
                     final MegaDRS485Interface megaDRS485Interface = rsi;
                     if (megaDRS485Interface != null) {
-                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
-                        if (bridgeHandler != null) {
-                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 32) {
-                                try {
+                        try {
+                            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                            if (bridgeHandler != null) {
+                                String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                                if (answer.length == 32) {
+
                                     int n = (int) Long.parseLong(answer[10], 16);
                                     logger.debug("Midea temperature is : {}, hex {}", n, answer[10]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
-                                } catch (Exception ignored) {
+
+                                } else {
+                                    logger.debug("Answer != 32 bytes <{}>", (Object) answer);
                                 }
-                            } else {
-                                logger.debug("Answer != 32 bytes <{}>", (Object) answer);
                             }
+                        } catch (Exception ignored) {
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDANGLE)) {
                     final MegaDRS485Interface megaDRS485Interface = rsi;
                     if (megaDRS485Interface != null) {
-                        final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
-                        if (bridgeHandler != null) {
-                            String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
-                            if (answer.length == 9) {
-                                try {
+                        try {
+                            final MegaDDeviceHandler bridgeHandler = getBridgeHandler();
+                            if (bridgeHandler != null) {
+                                String[] answer = megaDRS485Interface.getValueFromRS485(bridgeHandler);
+                                if (answer.length == 9) {
+
                                     int n = (int) Long.parseLong(answer[5] + answer[6], 16);
                                     logger.debug("Wind Angle is : {}, hex {}", n, answer[5] + answer[6]);
                                     updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(n)));
-                                } catch (Exception ignored) {
+
                                 }
                             }
+                        } catch (Exception ignored) {
                         }
                     }
                 } else if (channel.getUID().getId().equals(MegaDBindingConstants.CHANNEL_WINDSEGMENT)) {
@@ -604,6 +695,14 @@ public class MegaDRs485Handler extends BaseThingHandler {
             this.bridgeDeviceHandler = bridgeDeviceHandler;
         }
         super.dispose();
+    }
+
+    private void freeRefreshJob() {
+        ScheduledFuture<?> job = this.refreshPollingJob;
+        if (job != null && !job.isCancelled()) {
+            job.cancel(true);
+            refreshPollingJob = null;
+        }
     }
 
     public void lastrefreshAdd(long lastRefresh) {
