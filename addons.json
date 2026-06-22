@@ -13,8 +13,9 @@
   "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB",
   "compatible_versions": "[4.3.0.0;4.3.999)",
   "logger_packages": [ "org.openhab.binding.megad" ]
- }, {
-      "uid":"org-openhab-io-yandexalice",
+ }, 
+  {
+  "uid":"org-openhab-io-yandexalice",
   "id": "yandexalice",
   "type": "binding",
   "version": "4.3.7",
@@ -42,8 +43,9 @@
   "description": "This binding is designed to integrate the multifunctional MegaD-2561/328 controller into the OpenHAB",
   "compatible_versions": "[5.0.0.0;5.0.999)",
   "logger_packages": [ "org.openhab.binding.megad" ]
- }, {
-      "uid":"org-openhab-io-yandexalice",
+ }, 
+ {
+  "uid":"org-openhab-io-yandexalice",
   "id": "yandexalice",
   "type": "binding",
   "version": "5.0.2",
@@ -86,5 +88,20 @@
   "description": "This binding is designed to integrate Yandex Alice into the OpenHAB",
   "compatible_versions": "[5.1.0.0;5.1.999)",
   "logger_packages": [ "org.openhab.io.yandexalice" ]
+}, 
+{
+  "uid":"org-openhab-binding-yandexweather",
+  "id": "yandexweather",
+  "type": "binding",
+  "version": "5.1.5",
+  "author": "Petr Shatsillo",
+  "maturity": "stable",
+  "content_type": "application/vnd.openhab.bundle",
+  "link": "https://github.com/Pshatsillo/openhabYandexWeather",
+  "url": "https://github.com/Pshatsillo/openhabYandexWeather/releases/download/5.1.5/org.openhab.binding.yandexweather-5.1.5-SNAPSHOT.jar",
+  "title": "Yandex Weather binding",
+  "description": "This binding is designed to integrate Yandex Weather into the OpenHAB",
+  "compatible_versions": "[5.1.0.0;5.1.999)",
+  "logger_packages": [ "org.openhab.binding.yandexweather" ]
 }
 ]
