@@ -265,7 +265,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         logger.debug("Starting refresh thread");
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                // logger.warn("queue length {}", sendQueue.size());
+                logger.trace("queue length {}", sendQueue.size());
                 MegaDPooler pooler = sendQueue.take();
                 if (pooler.megaDPortsHandler != null) {
                     MegaDPortsHandler megaDPortsHandler = pooler.megaDPortsHandler;
@@ -274,7 +274,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         if (portType.equals(MegaDTypesEnum.DSEN)) {
                             MegaDDsenEnum dDenType = megaDPortsHandler.port.getSenType();
                             if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
-                                List<Channel> channels = thing.getChannels();
+                                List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                 int responseCode = httpHelper
                                         .request("http://"
                                                 + this.getThing().getConfiguration().get("hostname").toString() + "/"
@@ -320,7 +320,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 if (response.getResponseCode() == 200) {
                                     String resp = response.getResponseResult();
                                     String[] sensorsList = resp.split(":");
-                                    List<Channel> channels = thing.getChannels();
+                                    List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                     for (Channel channel : channels) {
                                         if (isLinked(channel.getUID())) {
                                             megaDPortsHandler.updateChannel(channel.getUID().getId(), sensorsList[1]);
@@ -384,7 +384,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                 + megaDPortsHandler.configuration.port + "&cmd=get")
                                         .getResponseResult();
                                 String[] portsStatus = response.split(";");
-                                List<Channel> channels = thing.getChannels();
+                                List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                 for (Channel channel : channels) {
                                     BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
                                     String acceptType = channel.getAcceptedItemType();
@@ -406,7 +406,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                 + megaDPortsHandler.configuration.port + "&cmd=get")
                                         .getResponseResult();
                                 String[] portsStatus = response.split(";");
-                                List<Channel> channels = thing.getChannels();
+                                List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                 for (Channel channel : channels) {
                                     if (channel.getConfiguration().get("port") != null) {
                                         BigDecimal port = (BigDecimal) channel.getConfiguration().get("port");
@@ -419,7 +419,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                     }
                                 }
                             } else {
-                                List<Channel> channels = thing.getChannels();
+                                List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                 for (Channel channel : channels) {
                                     if ((channel.getConfiguration().get("type") != null)
                                             && (channel.getConfiguration().get("path") != null)) {
@@ -994,6 +994,15 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         logger.error("disposing megadHandler");
+        Thread refreshRs485Thread = this.refreshRs485Thread;
+        if (refreshRs485Thread != null && refreshRs485Thread.isAlive()) {
+            refreshRs485Thread.interrupt();
+        }
+        Thread refreshThread = this.refreshThread;
+        if (refreshThread != null && refreshThread.isAlive()) {
+            refreshThread.interrupt();
+        }
+
         ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
@@ -1009,19 +1018,14 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             socket.close();
             this.socket = socket;
         }
-        super.dispose();
+
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         if (megaDDeviceHandlerList != null) {
             megaDDeviceHandlerList.remove(this);
         }
-        Thread refreshRs485Thread = this.refreshRs485Thread;
-        if (refreshRs485Thread != null && refreshRs485Thread.isAlive()) {
-            refreshRs485Thread.interrupt();
-        }
-        Thread refreshThread = this.refreshThread;
-        if (refreshThread != null && refreshThread.isAlive()) {
-            refreshThread.interrupt();
-        }
+        sendQueue.clear();
+        sendRs485Queue.clear();
+        super.dispose();
     }
 
     public void started() {

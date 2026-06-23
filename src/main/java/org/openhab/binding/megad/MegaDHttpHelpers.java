@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,9 @@ public class MegaDHttpHelpers {
                     ContentResponse response = request.send();
                     if (response.getStatus() == HttpStatus.OK_200) {
                         megaDHTTPResponse.setResponseCode(HttpStatus.OK_200);
-                        megaDHTTPResponse.setResponseResult(response.getContentAsString().trim().replace("\"", ""));
+                        megaDHTTPResponse
+                                .setResponseResult(new String(response.getContent(), Charset.forName("windows-1251"))
+                                        .trim().replace("\"", ""));
                         logger.trace("Http response from url {} is {}", urlString,
                                 megaDHTTPResponse.getResponseResult());
                     } else {

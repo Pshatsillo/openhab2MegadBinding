@@ -504,18 +504,6 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     port = mega;
                     MegaDHTTPCallback.portListener.add(this);
                     // ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-                    if (configuration.refresh != 0) {
-                        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(),
-                                configuration.refresh);
-                        freeRefreshJob();
-                        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, configuration.refresh,
-                                TimeUnit.SECONDS);
-                        // if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                        // refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10,
-                        // configuration.refresh, TimeUnit.SECONDS);
-                        // this.refreshPollingJob = refreshPollingJob;
-                        // }
-                    }
                     String label = port.getEmt();
                     MegaDTypesEnum portType = port.getPty();
                     if (portType.equals(MegaDTypesEnum.IN)) {
@@ -924,6 +912,18 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     properties.put("Type:", port.getPty().toString());
                     updateProperties(properties);
                     updateStatus(ThingStatus.ONLINE);
+                    if (configuration.refresh != 0) {
+                        logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(),
+                                configuration.refresh);
+                        freeRefreshJob();
+                        refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, configuration.refresh,
+                                TimeUnit.SECONDS);
+                        // if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+                        // refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 10,
+                        // configuration.refresh, TimeUnit.SECONDS);
+                        // this.refreshPollingJob = refreshPollingJob;
+                        // }
+                    }
                 } else {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Port not found");
                 }
