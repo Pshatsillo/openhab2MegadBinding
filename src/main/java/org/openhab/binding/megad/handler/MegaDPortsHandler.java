@@ -217,19 +217,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
-    private static <T> T getChannelConfig(MegaDPortsHandler handler, String channelId, String key, Class<T> type,
-            T defaultValue) {
+    private static <T> T getChannelConfig(MegaDPortsHandler handler, String channelId, String key,
+                                          Class<T> type, T defaultValue) {
         Channel channel = handler.getThing().getChannel(channelId);
         if (channel == null) {
             return defaultValue;
         }
-
         Object value = channel.getConfiguration().get(key);
         if (value == null) {
             return defaultValue;
         }
-
-        // Безопасное приведение с проверкой типа
         if (type.isInstance(value)) {
             return type.cast(value);
         }
