@@ -215,11 +215,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.ONLINE);
 
             Objects.requireNonNull(megaDDeviceHandlerList).add(this);
-            final ScheduledFuture<?> refreshPollingJobTest = this.refreshPollingJobTest;
-            if (refreshPollingJobTest == null || refreshPollingJobTest.isCancelled()) {
-                this.refreshPollingJobTest = scheduler.scheduleWithFixedDelay(this::refreshTest, 0, 1000,
-                        TimeUnit.MILLISECONDS);
-            }
             final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
             if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
                 this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000,
@@ -248,7 +243,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         logger.debug("Starting refresh rs485 thread");
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                logger.debug("{} rs485 queue length {}", config.hostname, sendRs485Queue.size());
+                // logger.debug("{} rs485 queue length {}", config.hostname, sendRs485Queue.size());
                 MegaDRs485Handler pooler = sendRs485Queue.take();
                 pooler.updateData();
             } catch (InterruptedException e) {
@@ -265,7 +260,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         logger.debug("Starting refresh thread");
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                logger.trace("queue length {}", sendQueue.size());
+                // logger.trace("queue length {}", sendQueue.size());
                 MegaDPooler pooler = sendQueue.take();
                 if (pooler.megaDPortsHandler != null) {
                     MegaDPortsHandler megaDPortsHandler = pooler.megaDPortsHandler;
@@ -900,59 +895,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     // logger.error("EEPROM deleting error {}", e.getMessage());
     // }
     // }
-
-    private void refreshTest() {
-        long now = System.currentTimeMillis();
-        if (!firmwareUpdate) {
-            logger.debug("refresh handlerTest IP {}", config.hostname);
-            ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
-            if (!megaDRs485HandlerMap.isEmpty()) {
-                logger.debug("megaDRs485HandlerMap not isEmpty ");
-                try {
-                    for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
-                        int interval = Integer
-                                .parseInt(handler.getThing().getConfiguration().get("refresh").toString());
-                        if (interval != 0) {
-                            if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
-                                logger.debug("megaDRs485HandlerMap is {}", handler.getThing().getUID());
-                                // handler.updateData();
-                                handler.lastrefreshAdd(now);
-                                try {
-                                    Thread.sleep(200);
-                                } catch (InterruptedException e) {
-                                    logger.error("Interrupted while waiting for refresh {}", e.getMessage());
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception ignored) {
-                    logger.error("MegaDRs485Handler refreshing error");
-                }
-            } else {
-                logger.debug("megaDRs485HandlerMap isEmpty ");
-            }
-            if ((now - lastRefresh) >= 30) {
-                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
-                if (channel != null) {
-                    if (isLinked(channel.getUID().getId())) {
-                        MegaDHTTPResponse tempchannel = httpHelper
-                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
-                        if (!tempchannel.getResponseResult().equals("0.00")) {
-                            try {
-                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
-                                updateState(channel.getUID().getId(), DecimalType.valueOf(String.valueOf(tempLong)));
-                            } catch (Exception e) {
-                                logger.error("Can't parse internal temperature {}", e.getLocalizedMessage());
-                            }
-                        }
-                    }
-                }
-                lastRefresh = now;
-            } else if ((now - lastRefresh) >= 1800) {
-                fillProperties();
-            }
-        }
-    }
 
     private void refresh() {
     }
