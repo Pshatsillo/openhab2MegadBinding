@@ -320,13 +320,11 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 logger.debug("Folders {} created", file.getAbsolutePath());
             }
             try {
-                // CHECKSTYLE:OFF
                 // TODO: Download file from ab-log.ru
-                // CHECKSTYLE:ON
                 URL url = URI.create(urlString).toURL();
                 URLConnection connection = url.openConnection();
-                connection.setConnectTimeout(5000); // Таймаут соединения - 5 секунд
-                connection.setReadTimeout(10000); // Таймаут чтения - 10 секунд
+                connection.setConnectTimeout(2000);
+                connection.setReadTimeout(1000);
 
                 try (InputStream in = connection.getInputStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
