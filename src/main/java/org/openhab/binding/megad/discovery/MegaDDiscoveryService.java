@@ -33,10 +33,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
@@ -80,8 +81,8 @@ import com.google.gson.stream.JsonReader;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.megad")
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
-    public static @Nullable List<MegaDDeviceHandler> megaDDeviceHandlerList = new ArrayList<>();
-    public static @Nullable Map<String, MegaDI2CSensors> megaDI2CSensorsList = new HashMap<>();
+    public static final List<MegaDDeviceHandler> megaDDeviceHandlerList = new CopyOnWriteArrayList<>();
+    public static final Map<String, MegaDI2CSensors> megaDI2CSensorsList = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
@@ -101,13 +102,11 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     public synchronized void abortScan() {
-        logger.info("abortScan");
         super.abortScan();
     }
 
     @Override
     protected synchronized void stopScan() {
-        logger.info("stopScan");
         final DatagramSocket socket = this.socket;
         if (socket != null) {
             if (!socket.isClosed()) {
@@ -119,7 +118,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startScan() {
-        logger.info("StartScan");
         removeOlderResults(getTimestampOfLastScan());
         discoverPortsOfKnownDevices();
         try {
@@ -136,7 +134,9 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            // e.printStackTrace();
+            Thread.currentThread().interrupt();
+            logger.debug("Scan interrupted");
+            return;
         }
         @Nullable
         Runnable scanner1 = createScanner();
@@ -144,7 +144,10 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         logger.debug("StartScan");
         try {
             Thread.sleep(10000);
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.debug("Scan interrupted");
+            return;
         }
         server.interrupt();
     }
@@ -190,7 +193,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 logger.warn("Error during initial MegaD sensors metadata load", e);
             }
         });
-        // logger.error("startBackgroundDiscovery");
         backgroundDiscoveryFuture = scheduler.scheduleWithFixedDelay(this::discoverPortsOfKnownDevices, 10, 30,
                 TimeUnit.SECONDS);
         backgroundCheckFirmwareFuture = scheduler.scheduleWithFixedDelay(this::checkFirmware, 1, 3, TimeUnit.HOURS);
@@ -200,7 +202,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void stopBackgroundDiscovery() {
-        // logger.error("stopBackgroundDiscovery");
         ScheduledFuture<?> discovery = backgroundDiscoveryFuture;
         ScheduledFuture<?> firmware = backgroundCheckFirmwareFuture;
         ScheduledFuture<?> sensors = backgroundSensorsFuture;
@@ -225,7 +226,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private Runnable createScanner() {
         return () -> {
-            // long timestampOfLastScan = getTimestampOfLastScan();
             try {
                 DatagramSocket socket = new DatagramSocket();
                 byte[] buf = { (byte) 170, 0, 12, (byte) 218, (byte) 202 };
@@ -238,7 +238,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             } catch (IOException e) {
                 logger.warn("{}", e.getMessage());
             }
-            // removeOlderResults(timestampOfLastScan);
         };
     }
 
@@ -268,39 +267,51 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private synchronized void discoverPortsOfKnownDevices() {
-        // logger.info("Scanning...");
-        List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         try {
-            if (megaDDeviceHandlerList != null) {
-                if (!megaDDeviceHandlerList.isEmpty()) {
-                    for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
-                        for (int i = 0; i <= mega.megaDHardware.getPortsCount(); i++) {
-                            MegaDHardware.Port port = mega.megaDHardware.getPort(i);
-                            if (port != null) {
-                                if (!port.isExclude()) {
-                                    // logger.debug("Discovering port {}", i);
-                                    // port = mega.megaDHardware.getPortStatus(i);
-                                    // if (port != null) {
-                                    MegaDTypesEnum portType = port.getPty();
-                                    if (portType != MegaDTypesEnum.NC) {
-                                        if (port.getM() != MegaDModesEnum.SCL) {
-                                            String label = "";
-                                            if (!mega.megaDHardware.getMdid().isEmpty()) {
-                                                label = mega.megaDHardware.getMdid();
-                                            }
-                                            addToDiscoverThing(mega, label, i);
-                                        }
-                                    }
-                                    // }
-                                }
-                            }
-                        }
+            for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
+                MegaDHardware hardware = mega.megaDHardware;
+                for (int i = 0; i <= hardware.getPortsCount(); i++) {
+                    MegaDHardware.Port port = hardware.getPort(i);
+                    if (!isDiscoverablePort(port)) {
+                        continue;
                     }
+                    addToDiscoverThing(mega, buildPortLabel(hardware, mega, i), i);
                 }
             }
         } catch (Exception e) {
             logger.error("Discovery service error {}", e.getLocalizedMessage());
         }
+    }
+
+    private String buildPortLabel(MegaDHardware hardware, MegaDDeviceHandler mega, int portIndex) {
+        String mdid = hardware.getMdid();
+        if (!mdid.isEmpty()) {
+            return "id_" + mdid + "_P" + portIndex;
+        }
+        return "MD"
+                + mega.getThing().getConfiguration().get("hostname").toString()
+                        .substring(mega.getThing().getConfiguration().get("hostname").toString().lastIndexOf(".") + 1)
+                + "P" + portIndex;
+    }
+
+    private void addToDiscoverThing(MegaDDeviceHandler mega, String label, int i) {
+        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT, mega.getThing().getUID(), label);
+        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i).withLabel(label)
+                .withBridge(mega.getThing().getUID()).build();
+        thingDiscovered(resultS);
+    }
+
+    private boolean isDiscoverablePort(MegaDHardware.@Nullable Port port) {
+        if (port == null) {
+            return false;
+        }
+        if (port.isExclude()) {
+            return false;
+        }
+        if (port.getPty() == MegaDTypesEnum.NC) {
+            return false;
+        }
+        return port.getM() != MegaDModesEnum.SCL;
     }
 
     private void refreshSensorsDefinitions() {
@@ -468,7 +479,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
             sensorMap.forEach((k, v) -> {
                 MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
-                Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+                megaDI2CSensorsList.put(k, megaSensors);
                 logger.debug("Json sensor read {} with label {} with address {} from \"sensors\" folder added",
                         megaSensors.getSensorType(), megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
             });
@@ -478,7 +489,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private static boolean checkMainSensorsFile(File sensorsFile, boolean firstStart) {
-        return !isMatchFile(sensorsFile) || Objects.requireNonNull(megaDI2CSensorsList).isEmpty() || firstStart;
+        return !isMatchFile(sensorsFile) || megaDI2CSensorsList.isEmpty() || firstStart;
     }
 
     private static void loadMainSensorsFile(File file, Logger logger) {
@@ -491,26 +502,11 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
                 logger.debug("Json sensor read {} with label {} with address {}", megaSensors.getSensorType(),
                         megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
-                Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+                megaDI2CSensorsList.put(k, megaSensors);
             });
         } catch (Exception e) {
             logger.error("json parsing error {}", e.getLocalizedMessage());
         }
-    }
-
-    private void addToDiscoverThing(MegaDDeviceHandler mega, String label, int i) {
-        if (label.isEmpty()) {
-            label = "MD"
-                    + mega.getThing().getConfiguration().get("hostname").toString().substring(
-                            mega.getThing().getConfiguration().get("hostname").toString().lastIndexOf(".") + 1)
-                    + "P" + i;
-        } else {
-            label = "id_" + label + "_P" + i;
-        }
-        ThingUID thingUID = new ThingUID(MegaDBindingConstants.THING_TYPE_PORT, mega.getThing().getUID(), label);
-        DiscoveryResult resultS = DiscoveryResultBuilder.create(thingUID).withProperty("port", i).withLabel(label)
-                .withBridge(mega.getThing().getUID()).build();
-        thingDiscovered(resultS);
     }
 
     private void checkFirmware() {

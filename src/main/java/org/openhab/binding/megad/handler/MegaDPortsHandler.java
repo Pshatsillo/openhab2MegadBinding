@@ -198,18 +198,24 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
 
         static ChannelType fromId(String id) {
-            if (id.equals(MegaDBindingConstants.CHANNEL_OUT))
+            if (id.equals(MegaDBindingConstants.CHANNEL_OUT)) {
                 return OUT;
-            if (id.startsWith(MegaDBindingConstants.CHANNEL_DS2413))
+            }
+            if (id.startsWith(MegaDBindingConstants.CHANNEL_DS2413)) {
                 return DS2413;
-            if (id.equals(MegaDBindingConstants.CHANNEL_DIMMER))
+            }
+            if (id.equals(MegaDBindingConstants.CHANNEL_DIMMER)) {
                 return DIMMER;
-            if (id.equals(MegaDBindingConstants.CHANNEL_PWM))
+            }
+            if (id.equals(MegaDBindingConstants.CHANNEL_PWM)) {
                 return PWM;
-            if (id.startsWith(MegaDBindingConstants.CHANNEL_EXTENDER_OUT))
+            }
+            if (id.startsWith(MegaDBindingConstants.CHANNEL_EXTENDER_OUT)) {
                 return EXTENDER_OUT;
-            if (id.startsWith(MegaDBindingConstants.CHANNEL_EXTENDER_PWM))
+            }
+            if (id.startsWith(MegaDBindingConstants.CHANNEL_EXTENDER_PWM)) {
                 return EXTENDER_PWM;
+            }
             if (id.equals(MegaDBindingConstants.CHANNEL_LINE1) || id.equals(MegaDBindingConstants.CHANNEL_LINE2)) {
                 return id.equals(MegaDBindingConstants.CHANNEL_LINE1) ? LINE1 : LINE2;
             }
@@ -217,8 +223,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
-    private static <T> T getChannelConfig(MegaDPortsHandler handler, String channelId, String key,
-                                          Class<T> type, T defaultValue) {
+    private static <T> T getChannelConfig(MegaDPortsHandler handler, String channelId, String key, Class<T> type,
+            T defaultValue) {
         Channel channel = handler.getThing().getChannel(channelId);
         if (channel == null) {
             return defaultValue;
@@ -1039,9 +1045,9 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             + bridgeDeviceHandler.config.hostname + "/"
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port)
                                             .getResponseResult();
-                                    MegaDI2CSensors initedSensor = Objects.requireNonNull(megaDI2CSensorsList)
+                                    MegaDI2CSensors initedSensor = megaDI2CSensorsList
                                             .get(port.getSelectedDevName(getDevName).toLowerCase());
-                                    Objects.requireNonNull(megaDI2CSensorsList).forEach((k, v) -> {
+                                    megaDI2CSensorsList.forEach((k, v) -> {
                                         if (v.getSensorAddress().equals(finalSensor)) {
                                             if (initedSensor != null) {
                                                 if (initedSensor.equals(v)) {
@@ -1572,6 +1578,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
     @Override
     public void dispose() {
         logger.debug("disposing {}", getThing().getLabel());
+        final MegaDDeviceHandler bridgeDeviceHandler = this.bridgeDeviceHandler;
+        if (bridgeDeviceHandler != null) {
+            MegaDHardware.Port mega = bridgeDeviceHandler.megaDHardware.getPortStatus(configuration.port, httpHelper);
+            if (mega != null) {
+                mega.setScanExclude(false);
+            }
+        }
         freeRefreshJob();
         cancelBridgeWatchdog();
         MegaDHTTPCallback.unregisterPortHandler(this);

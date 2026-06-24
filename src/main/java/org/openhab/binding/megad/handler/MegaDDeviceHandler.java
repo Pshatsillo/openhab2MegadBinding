@@ -12,8 +12,7 @@
  */
 package org.openhab.binding.megad.handler;
 
-import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.megaDDeviceHandlerList;
-import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.megaDI2CSensorsList;
+import static org.openhab.binding.megad.discovery.MegaDDiscoveryService.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -420,8 +419,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                             && (channel.getConfiguration().get("path") != null)) {
                                         String sensortype = channel.getConfiguration().get("type").toString();
                                         String sensorPath = channel.getConfiguration().get("path").toString();
-                                        MegaDI2CSensors sensor = Objects.requireNonNull(megaDI2CSensorsList)
-                                                .get(sensortype);
+                                        MegaDI2CSensors sensor = megaDI2CSensorsList.get(sensortype);
                                         String response = "";
                                         if (sensor != null) {
                                             if (sensor.isSensorInitRequired()) {
@@ -960,11 +958,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             socket.close();
             this.socket = socket;
         }
-
-        List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
-        if (megaDDeviceHandlerList != null) {
-            megaDDeviceHandlerList.remove(this);
-        }
+        megaDDeviceHandlerList.remove(this);
         sendQueue.clear();
         sendRs485Queue.clear();
         super.dispose();
