@@ -12,17 +12,20 @@
  */
 package org.openhab.binding.megad.discovery;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -82,8 +85,10 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
-    private @Nullable ScheduledFuture<?> backgroundFuture;
+    private @Nullable ScheduledFuture<?> backgroundDiscoveryFuture;
     private @Nullable ScheduledFuture<?> backgroundCheckFirmwareFuture;
+    private @Nullable ScheduledFuture<?> backgroundSensorsFuture;
+
     static String urlString = "https://raw.githubusercontent.com/Pshatsillo/openhab2MegadBinding/refs/heads/jsons/sensors.json";
     public static String actualFirmware = "";
     private final HttpClient httpClient;
@@ -116,7 +121,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     protected void startScan() {
         logger.info("StartScan");
         removeOlderResults(getTimestampOfLastScan());
-        scan();
+        discoverPortsOfKnownDevices();
         try {
             socket = new DatagramSocket(42000);
             final DatagramSocket socket = this.socket;
@@ -149,6 +154,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             final byte[] buffer = new byte[5];
             final DatagramSocket loSock = Objects.requireNonNull(socket);
 
+            @Override
             public void run() {
                 while (true) {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -177,24 +183,43 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startBackgroundDiscovery() {
+        scheduler.submit(() -> {
+            try {
+                readSensorsFile(true);
+            } catch (Exception e) {
+                logger.warn("Error during initial MegaD sensors metadata load", e);
+            }
+        });
         // logger.error("startBackgroundDiscovery");
-        backgroundFuture = scheduler.scheduleWithFixedDelay(this::scan, 0, 30, TimeUnit.SECONDS);
-        backgroundCheckFirmwareFuture = scheduler.scheduleWithFixedDelay(this::checkFirmware, 0, 30, TimeUnit.MINUTES);
+        backgroundDiscoveryFuture = scheduler.scheduleWithFixedDelay(this::discoverPortsOfKnownDevices, 10, 30,
+                TimeUnit.SECONDS);
+        backgroundCheckFirmwareFuture = scheduler.scheduleWithFixedDelay(this::checkFirmware, 1, 3, TimeUnit.HOURS);
+        backgroundSensorsFuture = scheduler.scheduleWithFixedDelay(this::refreshSensorsDefinitions, 5, 12,
+                TimeUnit.HOURS);
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
         // logger.error("stopBackgroundDiscovery");
-        ScheduledFuture<?> scan = backgroundFuture;
+        ScheduledFuture<?> discovery = backgroundDiscoveryFuture;
         ScheduledFuture<?> firmware = backgroundCheckFirmwareFuture;
-        if (scan != null) {
-            scan.cancel(true);
-            backgroundFuture = null;
+        ScheduledFuture<?> sensors = backgroundSensorsFuture;
+
+        if (discovery != null) {
+            discovery.cancel(true);
+            backgroundDiscoveryFuture = null;
         }
+
         if (firmware != null) {
             firmware.cancel(true);
             backgroundCheckFirmwareFuture = null;
         }
+
+        if (sensors != null) {
+            sensors.cancel(true);
+            backgroundSensorsFuture = null;
+        }
+
         super.stopBackgroundDiscovery();
     }
 
@@ -242,7 +267,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         return addresses;
     }
 
-    private synchronized void scan() {
+    private synchronized void discoverPortsOfKnownDevices() {
         // logger.info("Scanning...");
         List<MegaDDeviceHandler> megaDDeviceHandlerList = MegaDDiscoveryService.megaDDeviceHandlerList;
         try {
@@ -253,7 +278,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                             MegaDHardware.Port port = mega.megaDHardware.getPort(i);
                             if (port != null) {
                                 if (!port.isExclude()) {
-                                    logger.debug("Discovering port {}", i);
+                                    // logger.debug("Discovering port {}", i);
                                     // port = mega.megaDHardware.getPortStatus(i);
                                     // if (port != null) {
                                     MegaDTypesEnum portType = port.getPty();
@@ -273,9 +298,16 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                     }
                 }
             }
-            readSensorsFile(false);
         } catch (Exception e) {
             logger.error("Discovery service error {}", e.getLocalizedMessage());
+        }
+    }
+
+    private void refreshSensorsDefinitions() {
+        try {
+            readSensorsFile(false);
+        } catch (Exception e) {
+            logger.warn("Error refreshing MegaD sensor definitions", e);
         }
     }
 
@@ -292,10 +324,15 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 // TODO: Download file from ab-log.ru
                 // CHECKSTYLE:ON
                 URL url = URI.create(urlString).toURL();
-                try (InputStream in = url.openStream()) {
+                URLConnection connection = url.openConnection();
+                connection.setConnectTimeout(5000); // Таймаут соединения - 5 секунд
+                connection.setReadTimeout(10000); // Таймаут чтения - 10 секунд
+
+                try (InputStream in = connection.getInputStream()) {
                     Files.copy(in, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                    logger.debug("File downloaded successfully: {}", file.getName());
                 } catch (Exception e) {
-                    logger.error("Connect to json file error");
+                    logger.error("Failed to download file: {}", e.getMessage());
                 }
             } catch (IOException ignored) {
             }
@@ -303,111 +340,163 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     static boolean isMatchFile(File file) {
-        Logger logger = LoggerFactory.getLogger("Discovery isMatchFile");
+        Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
+
+        if (!file.exists() || !file.canRead()) {
+            logger.warn("File does not exist or cannot be read: {}", file.getAbsolutePath());
+            return false;
+        }
+
         try {
-            byte[] data = Files.readAllBytes(file.toPath());
-            Checksum crc = new CRC32();
-            crc.update(data);
-            long crcExistingFile = crc.getValue();
-            long crcServerFile;
-            logger.debug("CRC32 Checksum of existing file: {}", crcExistingFile);
-            // CHECKSTYLE:OFF
-            // TODO: Download file from ab-log.ru
-            // CHECKSTYLE:ON
+            byte[] localData = Files.readAllBytes(file.toPath());
+            Checksum localCrc = new CRC32();
+            localCrc.update(localData);
+            long localChecksum = localCrc.getValue();
+
+            logger.debug("CRC32 Checksum of existing file: {}", localChecksum);
+
             URL url = URI.create(urlString).toURL();
-            try (InputStream in = url.openStream()) {
-                data = in.readAllBytes();
-                crc.reset();
-                crc.update(data);
-                crcServerFile = crc.getValue();
-                logger.debug("CRC32 Checksum of server file: {}", crcServerFile);
-                if (crcExistingFile != crcServerFile) {
-                    boolean isDel = file.delete();
-                    if (isDel) {
-                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                            outputStream.write(data);
-                        }
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(2000);
+            connection.setReadTimeout(1000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("User-Agent", "OpenHAB-MegaD-Binding");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                logger.debug("Server responded with code: {}", responseCode);
+                connection.disconnect();
+                return false;
+            }
+
+            byte[] serverData;
+            try (InputStream in = connection.getInputStream()) {
+                serverData = in.readAllBytes();
+            } finally {
+                connection.disconnect();
+            }
+
+            Checksum serverCrc = new CRC32();
+            serverCrc.update(serverData);
+            long serverChecksum = serverCrc.getValue();
+
+            logger.debug("CRC32 Checksum of server file: {}", serverChecksum);
+
+            if (localChecksum != serverChecksum) {
+                logger.debug("Checksums differ, updating local file");
+
+                if (file.delete()) {
+                    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                        outputStream.write(serverData);
+                        outputStream.flush();
                     }
+                    logger.debug("File updated successfully");
                     return false;
                 } else {
-                    return true;
+                    logger.warn("Cannot delete old file: {}", file.getAbsolutePath());
+                    return false;
                 }
             }
+
+            return true;
+
+        } catch (SocketTimeoutException e) {
+            logger.error("Timeout while connecting to server: {}", e.getMessage());
+            return true;
+        } catch (IOException e) {
+            logger.error("IO error while checking file: {}", e.getMessage());
+            return true;
         } catch (Exception e) {
-            logger.debug("Connect to json file error {}", e.getLocalizedMessage());
-            return false;
+            logger.error("Unexpected error while checking file: {}", e.getMessage());
+            return true;
         }
     }
 
     public static void readSensorsFile(boolean firstStart) {
         Logger logger = LoggerFactory.getLogger("Discovery readSensorsFile");
-        File file = new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
-        File sensorsFolder = new File(
+
+        File sensorsFile = getMainSensorsFile();
+        File sensorsFolder = getCustomSensorsFolder();
+
+        ensureCustomSensorsFolderExists(sensorsFolder, logger);
+        loadCustomSensorsFromFolder(sensorsFolder, logger);
+
+        if (!sensorsFile.exists()) {
+            createFile(sensorsFile);
+        }
+
+        if (checkMainSensorsFile(sensorsFile, firstStart)) {
+            loadMainSensorsFile(sensorsFile, logger);
+        }
+    }
+
+    private static File getMainSensorsFile() {
+        return new File(OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors.json");
+    }
+
+    private static File getCustomSensorsFolder() {
+        return new File(
                 OpenHAB.getUserDataFolder() + File.separator + "MegaD" + File.separator + "sensors" + File.separator);
-        File[] listFiles = sensorsFolder.listFiles();
-        if (listFiles != null) {
-            if (listFiles.length > 0) {
-                try {
-                    for (File fileList : listFiles) {
-                        logger.debug("Reading sensor file {}", fileList.getName());
-                        List<String> lines = Files.readAllLines(fileList.toPath(), StandardCharsets.UTF_8);
-                        if (lines != null) {
-                            JsonReader reader;
-                            try {
-                                reader = new JsonReader(new FileReader(fileList));
-                                Map<String, JsonElement> sensor = JsonParser.parseReader(reader).getAsJsonObject()
-                                        .asMap();
-                                reader.close();
-                                sensor.forEach((k, v) -> {
-                                    MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
-                                    Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
-                                    logger.debug(
-                                            "Json sensor read {} with label {} with address {} from \"sensors\" folder added",
-                                            megaSensors.getSensorType(), megaSensors.getSensorLabel(),
-                                            megaSensors.getSensorAddress());
-                                });
-                            } catch (Exception ignored) {
-                            }
-                        }
-                    }
-                } catch (IOException ignored) {
-                }
-            }
-        } else {
-            boolean createOk = sensorsFolder.mkdirs();
-            if (!createOk) {
-                logger.warn("Cannot create folder {}", file.getAbsolutePath());
+    }
+
+    private static void ensureCustomSensorsFolderExists(File sensorsFolder, Logger logger) {
+        if (!sensorsFolder.exists()) {
+            boolean created = sensorsFolder.mkdirs();
+            if (!created) {
+                logger.warn("Cannot create folder {}", sensorsFolder.getAbsolutePath());
             }
         }
-        if (!file.exists()) {
-            createFile(file);
-        } else {
-            if (!isMatchFile(file) || Objects.requireNonNull(megaDI2CSensorsList).isEmpty() || firstStart) {
-                List<String> lines = null;
-                try {
-                    lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-                } catch (IOException ignored) {
-                }
-                if (lines != null) {
-                    JsonReader reader;
-                    try {
-                        reader = new JsonReader(new FileReader(file));
-                        Map<String, JsonElement> sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
-                                .getAsJsonObject("sensors").asMap();
-                        reader.close();
+    }
 
-                        sensorsList.forEach((k, v) -> {
-                            MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
-                            logger.debug("Json sensor read {} with label {} with address {}",
-                                    megaSensors.getSensorType(), megaSensors.getSensorLabel(),
-                                    megaSensors.getSensorAddress());
-                            Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
-                        });
-                    } catch (Exception e) {
-                        logger.error("json parsing error {}", e.getLocalizedMessage());
-                    }
-                }
+    private static void loadCustomSensorsFromFolder(File sensorsFolder, Logger logger) {
+        File[] listFiles = sensorsFolder.listFiles();
+        if (listFiles == null || listFiles.length == 0) {
+            return;
+        }
+
+        for (File file : listFiles) {
+            if (!file.isFile()) {
+                continue;
             }
+            loadCustomSensorFile(file, logger);
+        }
+    }
+
+    private static void loadCustomSensorFile(File file, Logger logger) {
+        try (BufferedReader fileReader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
+                JsonReader reader = new JsonReader(fileReader)) {
+
+            Map<String, JsonElement> sensorMap = JsonParser.parseReader(reader).getAsJsonObject().asMap();
+
+            sensorMap.forEach((k, v) -> {
+                MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
+                Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+                logger.debug("Json sensor read {} with label {} with address {} from \"sensors\" folder added",
+                        megaSensors.getSensorType(), megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
+            });
+        } catch (Exception e) {
+            logger.warn("Error reading custom sensor file {}: {}", file.getAbsolutePath(), e.getMessage());
+        }
+    }
+
+    private static boolean checkMainSensorsFile(File sensorsFile, boolean firstStart) {
+        return !isMatchFile(sensorsFile) || Objects.requireNonNull(megaDI2CSensorsList).isEmpty() || firstStart;
+    }
+
+    private static void loadMainSensorsFile(File file, Logger logger) {
+        try (BufferedReader fileReader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
+                JsonReader reader = new JsonReader(fileReader)) {
+            Map<String, JsonElement> sensorsList = JsonParser.parseReader(reader).getAsJsonObject()
+                    .getAsJsonObject("sensors").asMap();
+
+            sensorsList.forEach((k, v) -> {
+                MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
+                logger.debug("Json sensor read {} with label {} with address {}", megaSensors.getSensorType(),
+                        megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
+                Objects.requireNonNull(megaDI2CSensorsList).put(k, megaSensors);
+            });
+        } catch (Exception e) {
+            logger.error("json parsing error {}", e.getLocalizedMessage());
         }
     }
 
