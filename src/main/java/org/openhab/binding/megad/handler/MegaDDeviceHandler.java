@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -120,12 +119,25 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
     }
 
+    private String megaUrl(String query) {
+        return "http://" + config.hostname + "/" + config.password + "/?" + query;
+    }
+
+    private Channel reuseOrCreate(List<Channel> existing, Channel candidate) {
+        for (Channel ch : existing) {
+            if (ch.getUID().equals(candidate.getUID())) {
+                existing.remove(ch);
+                return ch;
+            }
+        }
+        return candidate;
+    }
+
     @Override
     public void initialize() {
         config = getConfigAs(MegaDConfiguration.class);
         megaDHardware = new MegaDHardware(Objects.requireNonNull(config).hostname, config.password, httpHelper);
-        MegaDHTTPResponse response = httpHelper
-                .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+        MegaDHTTPResponse response = httpHelper.request(megaUrl("tget=1"));
         if (response.getResponseCode() >= 400) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Wrong password");
         } else if (response.getResponseCode() == 200) {
@@ -137,8 +149,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     if (address.getHostAddress().startsWith(ip)) {
                         if ((!megaDHardware.getSip().equals(address.getHostAddress() + ":" + MegaDService.port))
                                 || (!megaDHardware.getSct().equals("megad"))) {
-                            httpHelper.request("http://" + config.hostname + "/" + config.password + "/?cf=1&sip="
-                                    + address.getHostAddress() + "%3A" + MegaDService.port + "&sct=megad&srvt=0");
+                            httpHelper.request(megaUrl("cf=1&sip=" + address.getHostAddress() + "%3A"
+                                    + MegaDService.port + "&sct=megad&srvt=0"));
                         }
                         break;
                     }
@@ -157,28 +169,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             Channel flash = ChannelBuilder.create(flashUID)
                     .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_FLASH))
                     .withAcceptedItemType("Switch").withConfiguration(channelConfiguration).build();
-            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(flash.getUID()))) {
-                var findChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(flash.getUID()))
-                        .findFirst();
-                if (findChannel.isPresent()) {
-                    Channel foundedChannel = findChannel.get();
-                    channelList.add(foundedChannel);
-                    existingChannelList.remove(foundedChannel);
-                }
-            } else {
-                channelList.add(flash);
-            }
-            if (existingChannelList.stream().anyMatch(cn -> cn.getUID().equals(start.getUID()))) {
-                var findChannel = existingChannelList.stream().filter(cn -> cn.getUID().equals(start.getUID()))
-                        .findFirst();
-                if (findChannel.isPresent()) {
-                    Channel foundedChannel = findChannel.get();
-                    channelList.add(foundedChannel);
-                    existingChannelList.remove(foundedChannel);
-                }
-            } else {
-                channelList.add(start);
-            }
+            channelList.add(reuseOrCreate(existingChannelList, flash));
+            channelList.add(reuseOrCreate(existingChannelList, start));
             ChannelUID progressUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_PROGRESS);
             Channel progress = ChannelBuilder.create(progressUID).withType(
                     new ChannelTypeUID(MegaDBindingConstants.BINDING_ID, MegaDBindingConstants.CHANNEL_PROGRESS))
@@ -274,20 +266,17 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             if (dDenType.equals(MegaDDsenEnum.ONEWIREBUS)) {
                                 List<Channel> channels = megaDPortsHandler.getThing().getChannels();
                                 int responseCode = httpHelper
-                                        .request("http://"
-                                                + this.getThing().getConfiguration().get("hostname").toString() + "/"
-                                                + this.getThing().getConfiguration().get("password").toString()
-                                                + "/?pt=" + megaDPortsHandler.configuration.port + "?cmd=conv")
+                                        .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=conv"))
                                         .getResponseCode();
                                 if (responseCode == 200) {
                                     try {
                                         Thread.sleep(1000);
                                     } catch (InterruptedException ignored) {
                                     }
-                                    String response = httpHelper.request("http://"
-                                            + this.getThing().getConfiguration().get("hostname").toString() + "/"
-                                            + this.getThing().getConfiguration().get("password").toString() + "/?pt="
-                                            + megaDPortsHandler.configuration.port + "?cmd=list").getResponseResult();
+                                    String response = httpHelper
+                                            .request(
+                                                    megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=list"))
+                                            .getResponseResult();
                                     logger.debug("response port {} is {}", megaDPortsHandler.configuration.port,
                                             response);
                                     String[] sensorsList = response.split(";");
@@ -311,10 +300,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                             this.getThing().getConfiguration().get("hostname").toString());
                                 }
                             } else if (dDenType.equals(MegaDDsenEnum.ONEWIRE)) {
-                                MegaDHTTPResponse response = httpHelper.request(
-                                        "http://" + this.getThing().getConfiguration().get("hostname").toString() + "/"
-                                                + this.getThing().getConfiguration().get("password").toString()
-                                                + "/?pt=" + megaDPortsHandler.configuration.port + "?cmd=get");
+                                MegaDHTTPResponse response = httpHelper
+                                        .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"));
                                 if (response.getResponseCode() == 200) {
                                     String resp = response.getResponseResult();
                                     String[] sensorsList = resp.split(":");
@@ -328,8 +315,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             }
                         } else if (portType.equals(MegaDTypesEnum.IN)) {
                             String response = httpHelper
-                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
-                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                     .getResponseResult();
                             if (response.contains("/")) {
                                 String[] values = response.split("/");
@@ -349,8 +335,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             }
                         } else if (portType.equals(MegaDTypesEnum.OUT)) {
                             String response = httpHelper
-                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
-                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                     .getResponseResult();
                             if (response.contains("/")) {
                                 String[] values = response.split("/");
@@ -370,16 +355,14 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                             }
                         } else if (portType.equals(MegaDTypesEnum.ADC)) {
                             String response = httpHelper
-                                    .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
-                                            + megaDPortsHandler.configuration.port + "&cmd=get")
+                                    .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                     .getResponseResult();
                             megaDPortsHandler.updateChannel(MegaDBindingConstants.CHANNEL_ADC, response);
                         } else if (portType.equals(MegaDTypesEnum.I2C)) {
                             MegaDExtendersEnum megaDExtendersEnum = megaDPortsHandler.port.getExtenders();
                             if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                                 String response = httpHelper
-                                        .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
-                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                        .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                         .getResponseResult();
                                 String[] portsStatus = response.split(";");
                                 List<Channel> channels = megaDPortsHandler.getThing().getChannels();
@@ -400,8 +383,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 }
                             } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                                 String response = httpHelper
-                                        .request("http://" + this.config.hostname + "/" + this.config.password + "/?pt="
-                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                        .request(megaUrl("pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                         .getResponseResult();
                                 String[] portsStatus = response.split(";");
                                 List<Channel> channels = megaDPortsHandler.getThing().getChannels();
@@ -427,10 +409,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                         String response = "";
                                         if (sensor != null) {
                                             if (sensor.isSensorInitRequired()) {
-                                                response = httpHelper
-                                                        .request("http://" + this.config.hostname + "/"
-                                                                + this.config.password + "/?pt="
-                                                                + megaDPortsHandler.configuration.port + "&cmd=get")
+                                                response = httpHelper.request(megaUrl(
+                                                        "pt=" + megaDPortsHandler.configuration.port + "&cmd=get"))
                                                         .getResponseResult();
                                                 String[] splitResponse = response.split("/");
                                                 for (int i = 0; i < splitResponse.length; i++) {
@@ -441,15 +421,11 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                     }
                                                 }
                                             } else {
-                                                response = httpHelper
-                                                        .request("http://" + this.config.hostname + "/"
-                                                                + this.config.password + "/?pt="
-                                                                + megaDPortsHandler.configuration.port + "&scl="
-                                                                + Objects
-                                                                        .requireNonNull(this.megaDHardware.getPort(
-                                                                                megaDPortsHandler.configuration.port))
-                                                                        .getScl()
-                                                                + "&i2c_dev=" + sensortype + "&" + sensorPath)
+                                                response = httpHelper.request(megaUrl("pt="
+                                                        + megaDPortsHandler.configuration.port + "&scl="
+                                                        + this.megaDHardware
+                                                                .getPort(megaDPortsHandler.configuration.port).getScl()
+                                                        + "&i2c_dev=" + sensortype + "&" + sensorPath))
                                                         .getResponseResult();
                                             }
                                             try {
@@ -460,10 +436,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                         }
                                     }
                                     if (channel.getConfiguration().get("port") != null) {
-                                        String response = httpHelper
-                                                .request("http://" + this.config.hostname + "/" + this.config.password
-                                                        + "/?pt=" + megaDPortsHandler.configuration.port + "&ext="
-                                                        + channel.getConfiguration().get("port").toString() + "cmg=get")
+                                        String response = httpHelper.request(megaUrl("pt="
+                                                + megaDPortsHandler.configuration.port + "&ext="
+                                                + channel.getConfiguration().get("port").toString() + "&cmg=get"))
                                                 .getResponseResult();
                                         megaDPortsHandler.updateChannel(channel.getUID().getId(), response);
                                     }
@@ -474,9 +449,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 }
                 if (pooler.megaDDeviceHandler != null) {
                     if (config.ping) {
-                        int response = httpHelper
-                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1")
-                                .getResponseCode();
+                        int response = httpHelper.request(megaUrl("tget=1")).getResponseCode();
                         if (response == 200) {
                             if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
                                 updateStatus(ThingStatus.ONLINE);
@@ -491,8 +464,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
                         if (channel != null) {
                             if (isLinked(channel.getUID().getId())) {
-                                MegaDHTTPResponse tempchannel = httpHelper
-                                        .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+                                MegaDHTTPResponse tempchannel = httpHelper.request(megaUrl("tget=1"));
                                 if (!tempchannel.getResponseResult().equals("0.00")) {
                                     try {
                                         Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
@@ -513,7 +485,9 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 }
                 // httpHelper.request(url);
             } catch (InterruptedException e) {
-                logger.error("Refresh thread interrupted");
+                logger.debug("Refresh thread interrupted, stopping");
+                Thread.currentThread().interrupt(); // восстановить флаг
+                break;
             }
             if (sendQueue.size() > 100) {
                 sendQueue.clear();
@@ -546,8 +520,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     socket.setSoTimeout(50000);
                     this.socket = socket;
 
-                    MegaDHTTPResponse response = httpHelper
-                            .request("http://" + config.hostname + "/" + config.password + "/?bl=1");
+                    MegaDHTTPResponse response = httpHelper.request(megaUrl("bl=1"));
                     String broadcastString;
                     if (response.getResponseResult().equals("1")) {
                         // bl = 1;
@@ -556,7 +529,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                         Socket sck = new Socket(config.hostname, 80);
                         sck.close();
                         Thread.sleep(100);
-                        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?fwup=1");
+                        httpHelper.request(megaUrl("fwup=1"));
                         Thread.sleep(100);
                         broadcastString = "AA0000" + checkData;
                         byte[] buf = HexFormat.of().parseHex(broadcastString);
@@ -974,15 +947,16 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             }
         }
         try {
+            StringBuilder cfg = new StringBuilder();
             StringBuilder cfgLine = new StringBuilder("cf=1&" + "eip=" + config.hostname + "&emsk="
                     + megaDHardware.getEmsk() + "&pwd=" + config.password + "&gw=" + megaDHardware.getGw() + "&sip="
                     + megaDHardware.getSip() + "&sct=" + megaDHardware.getSct() + "&pr=" + megaDHardware.getPr()
                     + "&lp=" + megaDHardware.getLp() + "&gsmf=" + megaDHardware.isGsmf() + "&srvt="
                     + megaDHardware.getSrvt() + "&gsm=" + megaDHardware.getGsm() + "&nr=1\n");
-            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8);
+            cfg.append(cfgLine);
             cfgLine = new StringBuilder(
                     "cf=2" + "&mdid=" + megaDHardware.getMdid() + "&sl=" + megaDHardware.isSl() + "&nr=1\n");
-            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            cfg.append(cfgLine);
             for (int i = 0; i < 5; i++) {
                 MegaDHardware.Screen screen = megaDHardware.getScreenList().get(i);
                 cfgLine = new StringBuilder("cf=6" + "&sc=" + i + "&scrnt="
@@ -995,7 +969,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     }
                 }
                 cfgLine.append("&nr=1\n");
-                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                cfg.append(cfgLine);
             }
             for (int i = 0; i < megaDHardware.getElementsList().size(); i++) {
                 MegaDHardware.Elements elts = megaDHardware.getElementsList().get(i);
@@ -1013,7 +987,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 cfgLine.append("&elemy=").append(URLEncoder.encode(elts.getElemy(), "windows-1251"));
                 cfgLine.append("&elema=").append(URLEncoder.encode(elts.getElema(), "windows-1251"));
                 cfgLine.append("&nr=1\n");
-                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                cfg.append(cfgLine);
             }
             cfgLine = new StringBuilder("cf=7");
             MegaDHardware.Cron cron = megaDHardware.getCron();
@@ -1025,14 +999,13 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 cfgLine.append("&crna").append(i).append("=").append(cron.getCrna()[i]);
             }
             cfgLine.append("&nr=1\n");
-            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            cfg.append(cfgLine);
             cfgLine = new StringBuilder("cf=8");
             for (int i = 0; i < 5; i++) {
                 cfgLine.append("&key").append(i).append("=").append(megaDHardware.getKeys().getKey()[i]);
             }
             cfgLine.append("&nr=1\n");
-            Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-
+            cfg.append(cfgLine);
             for (int i = 0; i < 10; i++) {
                 cfgLine = new StringBuilder("cf=10");
                 cfgLine.append("&prn").append("=").append(i);
@@ -1042,7 +1015,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 cfgLine.append("&prs").append("=").append(megaDHardware.getProgramList().get(i).isPrs());
                 cfgLine.append("&prc").append("=").append(megaDHardware.getProgramList().get(i).getPrc());
                 cfgLine.append("&nr=1\n");
-                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                cfg.append(cfgLine);
             }
 
             for (int i = 0; i < 5; i++) {
@@ -1059,7 +1032,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 cfgLine.append("&pidc").append("=").append(megaDHardware.getPidList().get(i).getPidc());
                 cfgLine.append("&pidm").append("=").append(megaDHardware.getPidList().get(i).getPidm());
                 cfgLine.append("&nr=1\n");
-                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                cfg.append(cfgLine);
             }
 
             for (int i = 0; i <= megaDHardware.getPortsCount(); i++) {
@@ -1102,8 +1075,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     }
                     cfgLine.append("&emt").append("=").append(URLEncoder.encode(port.getEmt(), "windows-1251"));
                     cfgLine.append("&nr=1\n");
-                    Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
-                            StandardOpenOption.APPEND);
+                    cfg.append(cfgLine);
                     if (!port.getExtPorts().isEmpty()) {
                         for (int j = 0; j < port.getExtPorts().size(); j++) {
                             MegaDHardware.ExtPort extPort = port.getExtPorts().get(j);
@@ -1122,13 +1094,13 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 cfgLine.append("&espd").append("=").append(extPort.getEspd());
                                 cfgLine.append("&epwm").append("=").append(extPort.getEpwm());
                                 cfgLine.append("&nr=1\n");
-                                Files.writeString(file.toPath(), cfgLine.toString(), StandardCharsets.UTF_8,
-                                        StandardOpenOption.APPEND);
+                                cfg.append(cfgLine);
                             }
                         }
                     }
                 }
             }
+            Files.writeString(file.toPath(), cfg.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             logger.error("Cannot write to file {}", file.getName());
         }
@@ -1157,9 +1129,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                 for (String line : lines) {
 
                                     // logger.warn("line is {}", line);
-                                    int response = httpHelper.request(
-                                            "http://" + config.hostname + "/" + config.password + "/?" + line.trim())
-                                            .getResponseCode();
+                                    int response = httpHelper.request(megaUrl(line.trim())).getResponseCode();
                                     if (response == 200) {
                                         logger.warn("line written {}", line);
                                         Thread.sleep(100);
@@ -1179,6 +1149,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             logger.warn("error write config...{}", err.getLocalizedMessage());
         } catch (InterruptedException ignored) {
         }
-        httpHelper.request("http://" + config.hostname + "/" + config.password + "/?restart=1");
+        httpHelper.request(megaUrl("restart=1"));
     }
 }
