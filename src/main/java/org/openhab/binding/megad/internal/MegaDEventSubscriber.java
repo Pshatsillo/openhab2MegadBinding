@@ -33,15 +33,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MegaDEventSubscriber}
+ * The {@link MegaDEventSubscriber} used for fired item in channel detection
  *
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
 @Component(service = { MegaDEventSubscriber.class, EventSubscriber.class })
 public class MegaDEventSubscriber implements EventSubscriber {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MegaDEventSubscriber.class);
-    // Store handlers by Thing UID
+    private final Logger logger = LoggerFactory.getLogger(MegaDEventSubscriber.class);
     private final Map<String, MegaDPortsHandler> handlers = new ConcurrentHashMap<>();
     private final ItemChannelLinkRegistry linkRegistry;
 
@@ -57,17 +56,14 @@ public class MegaDEventSubscriber implements EventSubscriber {
 
     @Override
     public void receive(Event event) {
-
-        LOGGER.debug("MegaDEventSubscriber received event: {}", event.getTopic());
+        logger.debug("MegaDEventSubscriber received event: {}", event.getTopic());
         ItemCommandEvent ise = (ItemCommandEvent) event;
         String itemName = ise.getItemName();
         Command command = ise.getItemCommand();
-
-        // Find which handler handles this item
         for (MegaDPortsHandler handler : handlers.values()) {
             ChannelUID channelUID = findLinkedChannel(handler, itemName);
             if (channelUID != null) {
-                LOGGER.debug("Routing command to handler: {}", handler.getThing().getUID());
+                logger.debug("Routing command to handler: {}", handler.getThing().getUID());
                 handler.processCommand(channelUID, command, itemName);
                 return;
             }
@@ -83,16 +79,15 @@ public class MegaDEventSubscriber implements EventSubscriber {
         return null;
     }
 
-    // Methods for handler registration
     public void registerHandler(MegaDPortsHandler handler) {
         String uid = handler.getThing().getUID().toString();
-        LOGGER.debug("Registering handler: {}", uid);
+        logger.debug("Registering handler: {}", uid);
         handlers.put(uid, handler);
     }
 
     public void unregisterHandler(MegaDPortsHandler handler) {
         String uid = handler.getThing().getUID().toString();
-        LOGGER.debug("Unregistering handler: {}", uid);
+        logger.debug("Unregistering handler: {}", uid);
         handlers.remove(uid);
     }
 }

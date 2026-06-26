@@ -81,8 +81,8 @@ import com.google.gson.stream.JsonReader;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.megad")
 @NonNullByDefault
 public class MegaDDiscoveryService extends AbstractDiscoveryService {
-    public static final List<MegaDDeviceHandler> megaDDeviceHandlerList = new CopyOnWriteArrayList<>();
-    public static final Map<String, MegaDI2CSensors> megaDI2CSensorsList = new ConcurrentHashMap<>();
+    public static final List<MegaDDeviceHandler> MEGAD_DEVICE_HANDLERS = new CopyOnWriteArrayList<>();
+    public static final Map<String, MegaDI2CSensors> MEGAD_I2C_SENSORS_LIST = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(MegaDDiscoveryService.class);
     @Nullable
     DatagramSocket socket;
@@ -98,11 +98,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     public MegaDDiscoveryService(@Reference HttpClientFactory httpClientFactory) {
         super(Collections.singleton(MegaDBindingConstants.THING_TYPE_DEVICE), 30, true);
         httpClient = httpClientFactory.getCommonHttpClient();
-    }
-
-    @Override
-    public synchronized void abortScan() {
-        super.abortScan();
     }
 
     @Override
@@ -268,7 +263,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
 
     private synchronized void discoverPortsOfKnownDevices() {
         try {
-            for (MegaDDeviceHandler mega : megaDDeviceHandlerList) {
+            for (MegaDDeviceHandler mega : MEGAD_DEVICE_HANDLERS) {
                 MegaDHardware hardware = mega.megaDHardware;
                 for (int i = 0; i <= hardware.getPortsCount(); i++) {
                     MegaDHardware.Port port = hardware.getPort(i);
@@ -302,16 +297,8 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private boolean isDiscoverablePort(MegaDHardware.@Nullable Port port) {
-        if (port == null) {
-            return false;
-        }
-        if (port.isExclude()) {
-            return false;
-        }
-        if (port.getPty() == MegaDTypesEnum.NC) {
-            return false;
-        }
-        return port.getM() != MegaDModesEnum.SCL;
+        return port != null && !port.isExclude() && port.getPty() != MegaDTypesEnum.NC
+                && port.getM() != MegaDModesEnum.SCL;
     }
 
     private void refreshSensorsDefinitions() {
@@ -408,7 +395,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
             }
 
             return true;
-
         } catch (SocketTimeoutException e) {
             logger.error("Timeout while connecting to server: {}", e.getMessage());
             return true;
@@ -462,7 +448,6 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
         if (listFiles == null || listFiles.length == 0) {
             return;
         }
-
         for (File file : listFiles) {
             if (!file.isFile()) {
                 continue;
@@ -474,12 +459,11 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     private static void loadCustomSensorFile(File file, Logger logger) {
         try (BufferedReader fileReader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
                 JsonReader reader = new JsonReader(fileReader)) {
-
             Map<String, JsonElement> sensorMap = JsonParser.parseReader(reader).getAsJsonObject().asMap();
 
             sensorMap.forEach((k, v) -> {
                 MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
-                megaDI2CSensorsList.put(k, megaSensors);
+                MEGAD_I2C_SENSORS_LIST.put(k, megaSensors);
                 logger.debug("Json sensor read {} with label {} with address {} from \"sensors\" folder added",
                         megaSensors.getSensorType(), megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
             });
@@ -489,7 +473,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
     }
 
     private static boolean checkMainSensorsFile(File sensorsFile, boolean firstStart) {
-        return !isMatchFile(sensorsFile) || megaDI2CSensorsList.isEmpty() || firstStart;
+        return !isMatchFile(sensorsFile) || MEGAD_I2C_SENSORS_LIST.isEmpty() || firstStart;
     }
 
     private static void loadMainSensorsFile(File file, Logger logger) {
@@ -502,7 +486,7 @@ public class MegaDDiscoveryService extends AbstractDiscoveryService {
                 MegaDI2CSensors megaSensors = new MegaDI2CSensors(k, v);
                 logger.debug("Json sensor read {} with label {} with address {}", megaSensors.getSensorType(),
                         megaSensors.getSensorLabel(), megaSensors.getSensorAddress());
-                megaDI2CSensorsList.put(k, megaSensors);
+                MEGAD_I2C_SENSORS_LIST.put(k, megaSensors);
             });
         } catch (Exception e) {
             logger.error("json parsing error {}", e.getLocalizedMessage());

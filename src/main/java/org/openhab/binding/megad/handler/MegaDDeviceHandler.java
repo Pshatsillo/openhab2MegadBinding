@@ -213,7 +213,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateThing(thingBuilder.build());
             updateStatus(ThingStatus.ONLINE);
 
-            Objects.requireNonNull(megaDDeviceHandlerList).add(this);
+            Objects.requireNonNull(MEGAD_DEVICE_HANDLERS).add(this);
             final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
             if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
                 this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000,
@@ -419,7 +419,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                             && (channel.getConfiguration().get("path") != null)) {
                                         String sensortype = channel.getConfiguration().get("type").toString();
                                         String sensorPath = channel.getConfiguration().get("path").toString();
-                                        MegaDI2CSensors sensor = megaDI2CSensorsList.get(sensortype);
+                                        MegaDI2CSensors sensor = MEGAD_I2C_SENSORS_LIST.get(sensortype);
                                         String response = "";
                                         if (sensor != null) {
                                             if (sensor.isSensorInitRequired()) {
@@ -958,7 +958,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             socket.close();
             this.socket = socket;
         }
-        megaDDeviceHandlerList.remove(this);
+        MEGAD_DEVICE_HANDLERS.remove(this);
         sendQueue.clear();
         sendRs485Queue.clear();
         super.dispose();

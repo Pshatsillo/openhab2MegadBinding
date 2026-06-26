@@ -21,7 +21,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.internal.MegaDEventSubscriber;
 import org.openhab.core.io.net.http.HttpClientFactory;
-import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -47,7 +46,6 @@ import org.slf4j.LoggerFactory;
 public class MegaDHandlerFactory extends BaseThingHandlerFactory {
 
     private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
-    private final ItemRegistry itemRegistry;
     private final ItemChannelLinkRegistry link;
     private final HttpClientFactory httpClientFactory;
 
@@ -60,10 +58,8 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Activate
-    public MegaDHandlerFactory(final @Reference ItemRegistry itemRegistry,
-            final @Reference ItemChannelLinkRegistry link, @Reference HttpClientFactory httpClientFactory,
-            @Reference MegaDEventSubscriber eventSubscriber) {
-        this.itemRegistry = itemRegistry;
+    public MegaDHandlerFactory(final @Reference ItemChannelLinkRegistry link,
+            @Reference HttpClientFactory httpClientFactory, @Reference MegaDEventSubscriber eventSubscriber) {
         this.link = link;
         this.httpClientFactory = httpClientFactory;
         this.eventSubscriber = eventSubscriber;
