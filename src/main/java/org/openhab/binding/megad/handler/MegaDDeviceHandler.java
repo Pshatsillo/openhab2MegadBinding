@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -89,8 +90,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(MegaDDeviceHandler.class);
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
     private final ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = new ArrayList<>();
-    private @Nullable ScheduledFuture<?> refreshPollingJob;
-    private @Nullable ScheduledFuture<?> refreshPollingJobTest;
     // protected long lastRefresh = 0;
     public MegaDHardware megaDHardware = new MegaDHardware();
     public MegaDConfiguration config = getConfigAs(MegaDConfiguration.class);
@@ -104,10 +103,15 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Nullable
     InetAddress broadcastAddress;
 
-    private @Nullable Thread refreshThread;
-    private @Nullable Thread refreshRs485Thread;
+    private @Nullable Future<?> refreshFuture;
+    private @Nullable Future<?> refreshRs485Future;
+    private @Nullable ScheduledFuture<?> refreshPollingJob;
+    private static final long TEMP_REFRESH_INTERVAL_MS = TimeUnit.SECONDS.toMillis(30);
+    private static final long PROPERTIES_REFRESH_INTERVAL_MS = TimeUnit.MINUTES.toMillis(30);
+
     Long lastRefresh = 0L;
-    Long lastRefreshTest = 0L;
+    Long lastPropertiesRefresh = 0L;
+
     public BlockingQueue<MegaDPooler> sendQueue = new LinkedBlockingQueue<>();
     public BlockingQueue<MegaDRs485Handler> sendRs485Queue = new LinkedBlockingQueue<>();
 
@@ -213,29 +217,29 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
             updateThing(thingBuilder.build());
             updateStatus(ThingStatus.ONLINE);
 
-            Objects.requireNonNull(MEGAD_DEVICE_HANDLERS).add(this);
-            final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
-            if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
-                this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000,
-                        TimeUnit.MILLISECONDS);
-            } else {
-                updateStatus(ThingStatus.OFFLINE);
-            }
+            MEGAD_DEVICE_HANDLERS.add(this);
         } else {
             updateStatus(ThingStatus.OFFLINE);
         }
 
-        Thread refreshThread = new Thread(this::refreshThreadJob,
-                "OH-binding-Megad-refresh" + getThing().getUID() + "-Reader");
-        refreshThread.setDaemon(true);
-        refreshThread.start();
-        this.refreshThread = refreshThread;
+        final ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
+        if (refreshPollingJob == null || refreshPollingJob.isCancelled()) {
+            this.refreshPollingJob = scheduler.scheduleWithFixedDelay(this::refresh, 0, 1000, TimeUnit.MILLISECONDS);
+        } else {
+            updateStatus(ThingStatus.OFFLINE);
+        }
+        refreshFuture = scheduler.submit(this::refreshThreadJob);
+        refreshRs485Future = scheduler.submit(this::refreshRs485ThreadJob);
+    }
 
-        Thread refreshRs485Thread = new Thread(this::refreshRs485ThreadJob,
-                "OH-binding-Megad-rs485-refresh" + getThing().getUID() + "-Reader");
-        refreshRs485Thread.setDaemon(true);
-        refreshRs485Thread.start();
-        this.refreshRs485Thread = refreshRs485Thread;
+    private void refresh() {
+        if (!firmwareUpdate) {
+            if (config.ping) {
+                MegaDPooler pooler = new MegaDPooler();
+                pooler.megaDDeviceHandler = this;
+                sendQueue.add(pooler);
+            }
+        }
     }
 
     private void refreshRs485ThreadJob() {
@@ -469,69 +473,42 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                     }
                 }
                 if (pooler.megaDDeviceHandler != null) {
-                    MegaDDeviceHandler megaDDeviceHandler = pooler.megaDDeviceHandler;
-                    if (megaDDeviceHandler != null) {
-                        if (!firmwareUpdate) {
-                            logger.debug("refreshing firmware version, ip {} ...", config.hostname);
-                            if (config.ping) {
-                                int response = httpHelper
-                                        .request("http://" + config.hostname + "/" + config.password + "/?tget=1")
-                                        .getResponseCode();
-                                if (response == 200) {
-                                    if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
-                                        updateStatus(ThingStatus.ONLINE);
-                                    }
-                                } else {
-                                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                            "Device not responding on ping");
-                                }
+                    if (config.ping) {
+                        int response = httpHelper
+                                .request("http://" + config.hostname + "/" + config.password + "/?tget=1")
+                                .getResponseCode();
+                        if (response == 200) {
+                            if (!thing.getStatus().equals(ThingStatus.ONLINE)) {
+                                updateStatus(ThingStatus.ONLINE);
                             }
-                            long now = System.currentTimeMillis();
-                            // ArrayList<MegaDRs485Handler> megaDRs485HandlerMap = this.megaDRs485HandlerMap;
-                            // if (!megaDRs485HandlerMap.isEmpty()) {
-                            // try {
-                            // for (MegaDRs485Handler handler : megaDRs485HandlerMap) {
-                            // int interval = Integer
-                            // .parseInt(handler.getThing().getConfiguration().get("refresh").toString());
-                            // if (interval != 0) {
-                            // if (now >= (handler.getLastRefresh() + (interval * 1000L))) {
-                            // handler.updateData();
-                            // handler.lastrefreshAdd(now);
-                            // try {
-                            // Thread.sleep(200);
-                            // } catch (InterruptedException e) {
-                            // logger.error("Interrupted while waiting for refresh {}", e.getMessage());
-                            // }
-                            // }
-                            // }
-                            // }
-                            // } catch (Exception ignored) {
-                            // logger.error("MegaDRs485Handler refreshing error");
-                            // }
-                            // }
-                            if ((now - lastRefresh) >= 30) {
-                                Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
-                                if (channel != null) {
-                                    if (isLinked(channel.getUID().getId())) {
-                                        MegaDHTTPResponse tempchannel = httpHelper.request(
-                                                "http://" + config.hostname + "/" + config.password + "/?tget=1");
-                                        if (!tempchannel.getResponseResult().equals("0.00")) {
-                                            try {
-                                                Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
-                                                updateState(channel.getUID().getId(),
-                                                        DecimalType.valueOf(String.valueOf(tempLong)));
-                                            } catch (Exception e) {
-                                                logger.error("Can't parse internal temperature {}",
-                                                        e.getLocalizedMessage());
-                                            }
-                                        }
+                        } else {
+                            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                                    "Device not responding on ping");
+                        }
+                    }
+                    long now = System.currentTimeMillis();
+                    if ((now - lastRefresh) >= TEMP_REFRESH_INTERVAL_MS) {
+                        Channel channel = getThing().getChannel(MegaDBindingConstants.CHANNEL_TGET);
+                        if (channel != null) {
+                            if (isLinked(channel.getUID().getId())) {
+                                MegaDHTTPResponse tempchannel = httpHelper
+                                        .request("http://" + config.hostname + "/" + config.password + "/?tget=1");
+                                if (!tempchannel.getResponseResult().equals("0.00")) {
+                                    try {
+                                        Double tempLong = Double.parseDouble(tempchannel.getResponseResult());
+                                        updateState(channel.getUID().getId(),
+                                                DecimalType.valueOf(String.valueOf(tempLong)));
+                                    } catch (Exception e) {
+                                        logger.error("Can't parse internal temperature {}", e.getLocalizedMessage());
                                     }
                                 }
-                                lastRefresh = now;
-                            } else if ((now - lastRefresh) >= 1800) {
-                                fillProperties();
                             }
                         }
+                        lastRefresh = now;
+                    }
+                    if ((now - lastPropertiesRefresh) >= PROPERTIES_REFRESH_INTERVAL_MS) {
+                        fillProperties();
+                        lastPropertiesRefresh = now;
                     }
                 }
                 // httpHelper.request(url);
@@ -894,9 +871,6 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     // }
     // }
 
-    private void refresh() {
-    }
-
     private void fillProperties() {
         Map<String, String> properties = new HashMap<>();
         properties.put("Type:", megaDHardware.getType());
@@ -934,29 +908,27 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         logger.error("disposing megadHandler");
-        Thread refreshRs485Thread = this.refreshRs485Thread;
-        if (refreshRs485Thread != null && refreshRs485Thread.isAlive()) {
-            refreshRs485Thread.interrupt();
-        }
-        Thread refreshThread = this.refreshThread;
-        if (refreshThread != null && refreshThread.isAlive()) {
-            refreshThread.interrupt();
-        }
-
         ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
             this.refreshPollingJob = null;
         }
-        ScheduledFuture<?> refreshPollingJobTest = this.refreshPollingJobTest;
-        if (refreshPollingJobTest != null && !refreshPollingJobTest.isCancelled()) {
-            refreshPollingJobTest.cancel(true);
-            this.refreshPollingJobTest = null;
+
+        Future<?> refreshRs485Future = this.refreshRs485Future;
+        if (refreshRs485Future != null) {
+            refreshRs485Future.cancel(true);
+            this.refreshRs485Future = null;
         }
+        Future<?> refreshFuture = this.refreshFuture;
+        if (refreshFuture != null) {
+            refreshFuture.cancel(true);
+            this.refreshFuture = null;
+        }
+
         DatagramSocket socket = this.socket;
         if (socket != null) {
             socket.close();
-            this.socket = socket;
+            this.socket = null;
         }
         MEGAD_DEVICE_HANDLERS.remove(this);
         sendQueue.clear();

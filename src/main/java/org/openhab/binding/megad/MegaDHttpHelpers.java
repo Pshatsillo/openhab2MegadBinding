@@ -27,8 +27,6 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
@@ -47,7 +45,6 @@ public class MegaDHttpHelpers {
 
     public MegaDHTTPResponse request(String urlString, int timeout) {
         MegaDHTTPResponse megaDHTTPResponse = new MegaDHTTPResponse();
-        // String result = "";
         if (!urlString.isEmpty()) {
             HttpClient httpClient = this.httpClient;
             if (httpClient != null) {
@@ -71,24 +68,6 @@ public class MegaDHttpHelpers {
                     logger.error("Request to {} failed: {}", urlString, e.getLocalizedMessage());
                 }
             }
-            // try (HttpClient client = HttpClient.newHttpClient()) {
-            // // HttpClient client = newHttpClient();
-            // HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlString)).GET().build();
-            // // try {
-            // HttpResponse<String> response = client.send(request,
-            // HttpResponse.BodyHandlers.ofString(Charset.forName("windows-1251")));
-            // logger.trace("Response code {}", response.statusCode());
-            // megaDHTTPResponse.setResponseCode(response.statusCode());
-            // @Nullable
-            // String responseBody = response.body();
-            // result = responseBody.trim();
-            // megaDHTTPResponse.setResponseResult(result.replace("\"", ""));
-            // logger.trace("Http response from url {} is {}", urlString, megaDHTTPResponse.getResponseResult());
-            // // boolean terminated = client.awaitTermination(Duration.ofSeconds(5));
-            // // logger.debug("client terminated: {}", terminated);
-            // } catch (Exception e) {
-            // logger.error("Error sending request: {}", e.getLocalizedMessage());
-            // }
         }
         return megaDHTTPResponse;
     }
@@ -120,31 +99,5 @@ public class MegaDHttpHelpers {
 
     public void setHttpClient(HttpClient httpClient) {
         this.httpClient = httpClient;
-    }
-
-    public MegaDHTTPResponse asyncRequest(String urlString) {
-        MegaDHTTPResponse megaDHTTPResponse = new MegaDHTTPResponse();
-        // String result = "";
-        if (!urlString.isEmpty()) {
-            HttpClient httpClient = this.httpClient;
-            if (httpClient != null) {
-                Request request = httpClient.newRequest(urlString).method(HttpMethod.GET).timeout(2, TimeUnit.SECONDS)
-                        .header("User-Agent",
-                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36");
-                try {
-                    request.send(new Response.CompleteListener() {
-                        @Override
-                        public void onComplete(Result result) {
-                            megaDHTTPResponse.setResponseCode(result.getResponse().getStatus());
-                            megaDHTTPResponse
-                                    .setResponseResult(result.getResponse().toString().trim().replace("\"", ""));
-                        }
-                    });
-                } catch (Exception e) {
-                    logger.debug("Request to megad failed: {}", e.getMessage(), e);
-                }
-            }
-        }
-        return megaDHTTPResponse;
     }
 }
