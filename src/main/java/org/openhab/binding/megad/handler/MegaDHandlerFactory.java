@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Contributors to the openHAB project
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -48,6 +48,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
     private final ItemChannelLinkRegistry link;
     private final HttpClientFactory httpClientFactory;
+    private final MegaDEventSubscriber eventSubscriber;
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
@@ -69,9 +70,6 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
-
-    @Reference
-    private MegaDEventSubscriber eventSubscriber;
 
     @Override
     protected @Nullable ThingHandler createHandler(Thing thing) {

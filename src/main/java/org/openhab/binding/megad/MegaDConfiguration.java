@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Contributors to the openHAB project
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -22,10 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class MegaDConfiguration {
 
-    /**
-     * Sample configuration parameter. Replace with your own.
-     */
-    public Integer port = 0;
+    public int port = 0;
     public boolean discovery = true;
     public String hostname = "";
     public String password = "";

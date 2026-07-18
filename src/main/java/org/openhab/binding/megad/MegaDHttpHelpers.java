@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Contributors to the openHAB project
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -42,6 +42,7 @@ public class MegaDHttpHelpers {
     Logger logger = LoggerFactory.getLogger(MegaDHttpHelpers.class);
     @Nullable
     HttpClient httpClient = null;
+    private static final Charset CP1251 = Charset.forName("windows-1251");
 
     public MegaDHTTPResponse request(String urlString, int timeout) {
         MegaDHTTPResponse megaDHTTPResponse = new MegaDHTTPResponse();
@@ -56,8 +57,7 @@ public class MegaDHttpHelpers {
                     if (response.getStatus() == HttpStatus.OK_200) {
                         megaDHTTPResponse.setResponseCode(HttpStatus.OK_200);
                         megaDHTTPResponse
-                                .setResponseResult(new String(response.getContent(), Charset.forName("windows-1251"))
-                                        .trim().replace("\"", ""));
+                                .setResponseResult(new String(response.getContent(), CP1251).trim().replace("\"", ""));
                         logger.trace("Http response from url {} is {}", urlString,
                                 megaDHTTPResponse.getResponseResult());
                     } else {

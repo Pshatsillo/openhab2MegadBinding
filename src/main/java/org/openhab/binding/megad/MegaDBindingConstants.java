@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Contributors to the openHAB project
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -23,7 +23,10 @@ import org.openhab.core.thing.type.ChannelTypeUID;
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDBindingConstants {
+public final class MegaDBindingConstants {
+
+    private MegaDBindingConstants() {
+    }
 
     public static final String BINDING_ID = "megad";
 
