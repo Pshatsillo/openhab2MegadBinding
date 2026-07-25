@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a4838fe-21b1-4ab0-b46c-3aaaea526c85" name="Changes" comment="URI fix" />
+    <list default="true" id="6a4838fe-21b1-4ab0-b46c-3aaaea526c85" name="Changes" comment="Last fixes">
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/openhab/binding/megad/handler/MegaDDeviceHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/openhab/binding/megad/handler/MegaDDeviceHandler.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,26 +22,26 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="V5" />
+        <entry key="$PROJECT_DIR$" value="5.2.x" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Pshatsillo"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Pshatsillo&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Pshatsillo/openhab2MegadBinding.git",
-    "accountId": "1fa1b2ce-183d-4fa6-b9a9-e2515a54e485"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Pshatsillo/openhab2MegadBinding.git&quot;,
+    &quot;accountId&quot;: &quot;1fa1b2ce-183d-4fa6-b9a9-e2515a54e485&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 3
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="32MmmrcMlKeLPDRFLBBMm2IJNMD" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -40,18 +49,29 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Maven. megad [clean,spotless:apply,install].executor": "Run",
     "Maven.org.openhab.binding.megad [clean,install].executor": "Run",
     "Maven.org.openhab.binding.megad [clean...].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Remote JVM Debug.Unnamed.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "V4__n",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.runner",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Remote JVM Debug.Unnamed">
-    <configuration name="org.openhab.binding.megad [clean...]" type="MavenRunConfiguration" factoryName="Maven" nameIsGenerated="true">
+  <component name="RunManager" selected="Maven. megad [clean,spotless:apply,install]">
+    <configuration name=" megad [clean,spotless:apply,install]" type="MavenRunConfiguration" factoryName="Maven">
       <MavenSettings>
         <option name="myGeneralSettings" />
         <option name="myRunnerSettings">
@@ -113,7 +133,7 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Maven.org.openhab.binding.megad [clean...]" />
+      <item itemvalue="Maven. megad [clean,spotless:apply,install]" />
       <item itemvalue="Remote JVM Debug.Unnamed" />
     </list>
   </component>
@@ -141,6 +161,7 @@
       <option name="presentableId" value="Default" />
       <updated>1757238978453</updated>
       <workItem from="1757238980055" duration="215000" />
+      <workItem from="1784971401146" duration="917000" />
     </task>
     <option name="localTasksCounter" value="2" />
     <servers />
@@ -149,11 +170,38 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="origin/V4_n" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/V4_n" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -162,7 +210,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="addons.json update" />
     <MESSAGE value="URI fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="URI fix" />
+    <MESSAGE value="Last fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Last fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
