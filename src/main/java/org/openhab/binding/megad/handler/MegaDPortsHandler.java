@@ -870,6 +870,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port);
             properties.put("Type:", port.getPty().toString());
             updateProperties(properties);
+            eventSubscriber.registerHandler(this);
             updateStatus(ThingStatus.ONLINE);
             if (configuration.refresh != 0) {
                 logger.debug("Thing {}, refresh interval is {} sec", getThing().getUID(), configuration.refresh);
