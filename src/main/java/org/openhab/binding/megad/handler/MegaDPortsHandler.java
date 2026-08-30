@@ -769,12 +769,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     channelList.addAll(existingChannelList);
                     properties.put("Mode:", "Extender PCA9685");
                 } else if (port.getExtenders().equals(MegaDExtendersEnum.MCP230XX)) {
+                    List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                     for (int i = 0; i < 16; i++) {
                         MegaDHardware.ExtPort extPort = port.getExtPorts().get(i);
                         if (extPort != null) {
                             if (extPort.getEty().equals(MegaDExtendedTypeEnum.IN)) {
                                 Configuration channelConfiguration = new Configuration();
                                 channelConfiguration.put("port", i);
+                                channelConfiguration.put("invert", false);
                                 ChannelUID extInUID = new ChannelUID(thing.getUID(),
                                         MegaDBindingConstants.CHANNEL_EXTENDER_IN + "_" + i);
                                 Channel extIn = ChannelBuilder.create(extInUID)
@@ -782,10 +784,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                 MegaDBindingConstants.CHANNEL_EXTENDER_IN))
                                         .withLabel(label + "extender port " + i + " in").withAcceptedItemType("Switch")
                                         .withConfiguration(channelConfiguration).build();
-                                channelList.add(extIn);
+                                mergeOrAddChannel(existingChannelList, channelList, extIn);
+                                // channelList.add(extIn);
                             } else if (extPort.getEty().equals(MegaDExtendedTypeEnum.OUT)) {
                                 Configuration channelConfiguration = new Configuration();
                                 channelConfiguration.put("port", i);
+                                channelConfiguration.put("invert", false);
                                 ChannelUID extInUID = new ChannelUID(thing.getUID(),
                                         MegaDBindingConstants.CHANNEL_EXTENDER_OUT + "_" + i);
                                 Channel extIn = ChannelBuilder.create(extInUID)
@@ -793,7 +797,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                 MegaDBindingConstants.CHANNEL_EXTENDER_OUT))
                                         .withLabel(label + "extender port " + i + " out").withAcceptedItemType("Switch")
                                         .withConfiguration(channelConfiguration).build();
-                                channelList.add(extIn);
+                                // channelList.add(extIn);
+                                mergeOrAddChannel(existingChannelList, channelList, extIn);
                             }
                             properties.put("Mode:", "Extender MCP230XX");
                         }
@@ -1187,9 +1192,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             if (megaDExtendersEnum != MegaDExtendersEnum.NC) {
                                 if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                                     if (value.contains("ON")) {
-                                        updateState(channel.getUID().getId(), OnOffType.ON);
+                                        if ((Boolean) channel.getConfiguration().get("invert")) {
+                                            updateState(channel.getUID().getId(), OnOffType.OFF);
+                                        } else {
+                                            updateState(channel.getUID().getId(), OnOffType.ON);
+                                        }
                                     } else if (value.contains("OFF")) {
-                                        updateState(channel.getUID().getId(), OnOffType.OFF);
+                                        if ((Boolean) channel.getConfiguration().get("invert")) {
+                                            updateState(channel.getUID().getId(), OnOffType.ON);
+                                        } else {
+                                            updateState(channel.getUID().getId(), OnOffType.OFF);
+                                        }
                                     }
                                 } else if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                                     if (value.contains("ON")) {
