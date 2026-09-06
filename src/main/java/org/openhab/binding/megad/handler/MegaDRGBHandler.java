@@ -14,6 +14,7 @@ package org.openhab.binding.megad.handler;
 
 import static org.openhab.binding.megad.enums.MegaDModesEnum.PWM;
 
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -26,8 +27,12 @@ import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.dto.MegaDHardware;
 import org.openhab.binding.megad.enums.MegaDExtendedTypeEnum;
 import org.openhab.core.io.net.http.HttpClientFactory;
+import org.openhab.core.items.Item;
+import org.openhab.core.library.items.ColorItem;
+import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -36,6 +41,7 @@ import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.link.ItemChannelLinkRegistry;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,11 +63,13 @@ public class MegaDRGBHandler extends BaseThingHandler {
     int colorGreen = 0;
     int colorBlue = 0;
     private final MegaDHttpHelpers httpHelper = new MegaDHttpHelpers();
+    protected ItemChannelLinkRegistry itemRegistry;
 
     // MegaDHardware.Port port = new MegaDHardware.Port();
-    public MegaDRGBHandler(Thing thing, HttpClientFactory httpClientFactory) {
+    public MegaDRGBHandler(Thing thing, HttpClientFactory httpClientFactory, ItemChannelLinkRegistry itemRegistry) {
         super(thing);
         httpHelper.setHttpClient(httpClientFactory.getCommonHttpClient());
+        this.itemRegistry = itemRegistry;
     }
 
     @Override
@@ -194,6 +202,7 @@ public class MegaDRGBHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        Set<Item> li = itemRegistry.getLinkedItems(channelUID);
         if (command instanceof HSBType color) {
             String colorRed = color.format("%rgb%").split(",")[0];
             String colorGreen = color.format("%rgb%").split(",")[1];
@@ -262,6 +271,19 @@ public class MegaDRGBHandler extends BaseThingHandler {
                 }
 
             }
+        } else if (command instanceof PercentType) {
+            if (li.stream().anyMatch(i -> i.getState().toString().equals(command.toString()))) {
+                Item triggeredItem = li.stream().filter(i -> i.getState().toString().equals(command.toString()))
+                        .findFirst().get();
+                if (triggeredItem instanceof DimmerItem) {
+                    HSBType color = (HSBType) li.stream().filter(i -> i instanceof ColorItem).findFirst().get()
+                            .getState();
+                    HSBType newColor = new HSBType(color.getHue(), color.getSaturation(), (PercentType) command);
+                    handleCommand(channelUID, newColor);
+                    logger.debug("Dimmer fired");
+
+                }
+            }
         }
         logger.debug("get Command");
     }
@@ -329,7 +351,9 @@ public class MegaDRGBHandler extends BaseThingHandler {
                             double bPercent = blueColor / 40.95;
                             blueColor = (int) Math.round(2.55 * bPercent);
                         }
-                        updateState(channel.getUID().getId(), HSBType.fromRGB(redColor, greenColor, blueColor));
+                        if (redColor != 0 && greenColor != 0 && blueColor != 0) {
+                            updateState(channel.getUID().getId(), HSBType.fromRGB(redColor, greenColor, blueColor));
+                        }
                     }
                 }
             }

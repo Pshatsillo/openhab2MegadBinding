@@ -81,7 +81,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_PORT)) {
             return new MegaDPortsHandler(thing, link, httpClientFactory, eventSubscriber);
         } else if (thingTypeUID.equals(THING_TYPE_RGB)) {
-            return new MegaDRGBHandler(thing, httpClientFactory);
+            return new MegaDRGBHandler(thing, httpClientFactory, link);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
