@@ -22,10 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class MegaDConfiguration {
 
-    /**
-     * Sample configuration parameter. Replace with your own.
-     */
-    public Integer port = 0;
+    public int port = 0;
     public boolean discovery = true;
     public String hostname = "";
     public String password = "";

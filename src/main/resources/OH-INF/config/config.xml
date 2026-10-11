@@ -31,6 +31,10 @@
 			<default>0</default>
 			<label>Extender port</label>
 		</parameter>
+		<parameter name="invert" type="boolean" required="false">
+			<default>false</default>
+			<label>Invert channel</label>
+		</parameter>
 	</config-description>
 	<config-description uri="channel-type:megad:extpwm">
 		<parameter name="port" type="integer" required="true">

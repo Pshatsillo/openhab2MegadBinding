@@ -23,7 +23,10 @@ import org.openhab.core.thing.type.ChannelTypeUID;
  * @author Petr Shatsillo - Initial contribution
  */
 @NonNullByDefault
-public class MegaDBindingConstants {
+public final class MegaDBindingConstants {
+
+    private MegaDBindingConstants() {
+    }
 
     public static final String BINDING_ID = "megad";
 

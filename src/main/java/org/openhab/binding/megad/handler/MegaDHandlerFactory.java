@@ -48,6 +48,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(MegaDHandlerFactory.class);
     private final ItemChannelLinkRegistry link;
     private final HttpClientFactory httpClientFactory;
+    private final MegaDEventSubscriber eventSubscriber;
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<>();
     static {
@@ -70,9 +71,6 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
-    @Reference
-    private MegaDEventSubscriber eventSubscriber;
-
     @Override
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
@@ -83,7 +81,7 @@ public class MegaDHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_PORT)) {
             return new MegaDPortsHandler(thing, link, httpClientFactory, eventSubscriber);
         } else if (thingTypeUID.equals(THING_TYPE_RGB)) {
-            return new MegaDRGBHandler(thing, httpClientFactory);
+            return new MegaDRGBHandler(thing, httpClientFactory, link);
         }
         logger.error("createHandler for unknown thing type uid {}. Thing label was: {}", thing.getThingTypeUID(),
                 thing.getLabel());
