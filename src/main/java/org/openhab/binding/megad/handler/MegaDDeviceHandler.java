@@ -421,12 +421,16 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                                                     }
                                                 }
                                             } else {
-                                                response = httpHelper.request(megaUrl("pt="
-                                                        + megaDPortsHandler.configuration.port + "&scl="
-                                                        + this.megaDHardware
-                                                                .getPort(megaDPortsHandler.configuration.port).getScl()
-                                                        + "&i2c_dev=" + sensortype + "&" + sensorPath))
-                                                        .getResponseResult();
+                                                MegaDHardware.Port port = this.megaDHardware
+                                                        .getPort(megaDPortsHandler.configuration.port);
+                                                if (port != null) {
+                                                    response = httpHelper
+                                                            .request(
+                                                                    megaUrl("pt=" + megaDPortsHandler.configuration.port
+                                                                            + "&scl=" + port.getScl() + "&i2c_dev="
+                                                                            + sensortype + "&" + sensorPath))
+                                                            .getResponseResult();
+                                                }
                                             }
                                             try {
                                                 Thread.sleep(200);
