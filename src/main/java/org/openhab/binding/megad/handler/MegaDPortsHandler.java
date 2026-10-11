@@ -338,7 +338,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
                         String cmd = "";
                         if (command.equals(OnOffType.ON)) {
-                            cmd = String.valueOf(dimmervalue);
+                            cmd = "1";
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
                         }
