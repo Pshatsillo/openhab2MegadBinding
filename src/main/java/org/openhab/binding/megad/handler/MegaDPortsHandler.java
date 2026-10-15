@@ -33,6 +33,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.megad.MegaDBindingConstants;
 import org.openhab.binding.megad.MegaDConfiguration;
+import org.openhab.binding.megad.MegaDHTTPResponse;
 import org.openhab.binding.megad.MegaDHttpHelpers;
 import org.openhab.binding.megad.discovery.MegaDDiscoveryService;
 import org.openhab.binding.megad.dto.MegaDHardware;
@@ -805,14 +806,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
                 try {
-                    String response = httpHelper
-                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
-                            .getResponseResult();
-                    int statusCode = httpHelper
-                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
-                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
-                            .getResponseCode();
+                    MegaDHTTPResponse megaResponse = httpHelper.request("http://" + bridgeDeviceHandler.config.hostname
+                            + "/" + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan",
+                            1000);
+                    String response = megaResponse.getResponseResult();
+                    int statusCode = megaResponse.getResponseCode();
                     if (statusCode != 200 || response.isEmpty()) {
                         logger.warn("I2C scan failed for port {}: status={}, empty response", configuration.port,
                                 statusCode);
