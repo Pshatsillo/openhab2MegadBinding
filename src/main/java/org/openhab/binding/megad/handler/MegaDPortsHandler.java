@@ -809,8 +809,23 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             .request("http://" + bridgeDeviceHandler.config.hostname + "/"
                                     + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
                             .getResponseResult();
-                    int dStartIndex = response.indexOf("<br>") + "<br>".length();
-                    String[] splittedSensors = response.substring(dStartIndex).split("<br>");
+                    int statusCode = httpHelper
+                            .request("http://" + bridgeDeviceHandler.config.hostname + "/"
+                                    + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port + "&cmd=scan")
+                            .getResponseCode();
+                    if (statusCode != 200 || response.isEmpty()) {
+                        logger.warn("I2C scan failed for port {}: status={}, empty response", configuration.port,
+                                statusCode);
+                        return;
+                    }
+                    int dStartIndex = response.indexOf("<br>");
+                    if (dStartIndex < 0) {
+                        logger.debug("I2C scan response has no <br> tag, assuming full response");
+                        dStartIndex = 0;
+                    } else {
+                        dStartIndex = response.indexOf("<br>") + "<br>".length();
+                    }
+                    String[] splittedSensors = response.substring(dStartIndex).split("<br>", -1);
                     for (String sensor : splittedSensors) {
                         if (!sensor.isEmpty()) {
                             sensor = sensor.substring(0, sensor.indexOf("-")).strip();
@@ -865,6 +880,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     properties.put("Mode:", "Sensor");
                 } catch (Exception e) {
                     logger.error("I2C init exception {}", e.getLocalizedMessage());
+                    return;
                 }
             }
             ThingBuilder thingBuilder = editThing();

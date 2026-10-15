@@ -1,2 +1,4 @@
 /target/
 src/main/history/dependencies.xml
+/.vscode/
+/.idea/
