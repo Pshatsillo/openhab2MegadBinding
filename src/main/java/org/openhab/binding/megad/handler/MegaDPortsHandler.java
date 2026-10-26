@@ -375,25 +375,27 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         MegaDHardware.ExtPort extPort = port.getExtPorts()
                                                 .get(Integer.parseInt(extPortNum));
                                         int resultInt = 0;
-                                        if (extPort != null) {
-                                            String minValString = extPort.getEmin();
-                                            int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                                            if (uivalue != 0) {
-                                                int minval = ((minValString.isEmpty()) ? 0
-                                                        : Integer.parseInt(minValString));
-                                                double getDiff = (PCA9685_MAX - minval) / 100.0;
-                                                int corrVal = (int) Math.round(uivalue * getDiff);
-                                                resultInt = corrVal + minval;
+                                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                                        if (uivalue != 0) {
+                                            // extPort is only needed for the "Min" scaling value; when it is
+                                            // missing (e.g. extPorts list lost after controller restart) the
+                                            // scaling must still be calculated with minval=0 instead of
+                                            // silently sending "0" to the controller (issue #32, point 5)
+                                            String minValString = (extPort != null) ? extPort.getEmin() : "";
+                                            int minval = ((minValString == null || minValString.isEmpty()) ? 0
+                                                    : Integer.parseInt(minValString));
+                                            double getDiff = (PCA9685_MAX - minval) / 100.0;
+                                            int corrVal = (int) Math.round(uivalue * getDiff);
+                                            resultInt = corrVal + minval;
 
-                                                if (uivalue == 1) {
-                                                    if (minval != 0) {
-                                                        resultInt = minval;
-                                                    } else {
-                                                        resultInt = uivalue;
-                                                    }
-                                                } else if (resultInt != 0) {
-                                                    dimmervalue = resultInt;
+                                            if (uivalue == 1) {
+                                                if (minval != 0) {
+                                                    resultInt = minval;
+                                                } else {
+                                                    resultInt = uivalue;
                                                 }
+                                            } else if (resultInt != 0) {
+                                                dimmervalue = resultInt;
                                             }
                                         }
                                         cmd = String.valueOf(resultInt);
