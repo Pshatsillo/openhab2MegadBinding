@@ -388,13 +388,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             int corrVal = (int) Math.round(uivalue * getDiff);
                                             resultInt = corrVal + minval;
 
-                                            if (uivalue == 1) {
-                                                if (minval != 0) {
-                                                    resultInt = minval;
-                                                } else {
-                                                    resultInt = uivalue;
-                                                }
-                                            } else if (resultInt != 0) {
+                                            if (resultInt != 0) {
                                                 dimmervalue = resultInt;
                                             }
                                         }
