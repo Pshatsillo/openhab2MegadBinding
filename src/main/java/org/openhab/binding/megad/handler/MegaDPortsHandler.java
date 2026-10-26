@@ -194,7 +194,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString() + "/?cmd="
                         + getThing().getConfiguration().get("port").toString()
                         + getThing().getConfiguration().get("ds2413_ch") + ":" + state;
-                logger.info("Switch: {}", result);
+                logger.info("Switch: {}", maskPassword(result));
                 int responseCode = httpHelper.request(result).getResponseCode();
                 if (responseCode != 200) {
                     logger.error("Send command at port {} error, check your mega {}", configuration.port,
@@ -233,7 +233,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     .append(":").append(resultInt);
                         }
                         result = resBuild.toString();
-                        logger.info("Dimmer: {}", result);
+                        logger.info("Dimmer: {}", maskPassword(result));
                         int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
@@ -308,7 +308,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
                                 + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + uivalue;
-                        logger.info("PWM: {}", result);
+                        logger.info("PWM: {}", maskPassword(result));
                         int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
@@ -350,7 +350,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
                         }
-                        logger.debug("MCP230XX request to mega: {}", request);
+                        logger.debug("MCP230XX request to mega: {}", maskPassword(request));
                     }
                     if (megaDExtendersEnum.equals(MegaDExtendersEnum.PCA9685)) {
                         BigDecimal portNum = (BigDecimal) Objects.requireNonNull(thing.getChannel(channelUID))
@@ -361,7 +361,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             cmd = String.valueOf(dimmervalue);
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
-                        } else if ((!command.toString().equals("REFRESH")) || (!command.toString().equals("ADDED"))) {
+                        } else if ((!command.toString().equals("REFRESH")) && (!command.toString().equals("ADDED"))) {
                             if (Objects.requireNonNull(thing.getChannel(channelUID)).getConfiguration()
                                     .get("type") != null) {
                                 String channelType = Objects.requireNonNull(thing.getChannel(channelUID))
@@ -415,7 +415,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
                         }
-                        logger.debug("PCA9685 request to mega: {}", request);
+                        logger.debug("PCA9685 request to mega: {}", maskPassword(request));
                     }
                     if (megaDI2CDevicesEnum.equals(MegaDI2CDevicesEnum.LCD1602)) {
                         if (channelUID.getId().equals(MegaDBindingConstants.CHANNEL_LINE1)) {
@@ -1297,11 +1297,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                             percent = 1;
                                                         } else {
                                                             int realval = (dimmervalue - minval);// * 0.01;
-                                                            double divVal = (4096 - minval) * 0.01;
+                                                            double divVal = (4095 - minval) * 0.01;
                                                             percent = (int) Math.round(realval / divVal);
                                                         }
                                                     } else {
-                                                        percent = (int) Math.round(dimmervalue / 40.96);
+                                                        percent = (int) Math.round(dimmervalue / 40.95);
                                                     }
                                                 } catch (Exception ex) {
                                                     logger.debug("Cannot convert to dimmer values. Error: '{}'",

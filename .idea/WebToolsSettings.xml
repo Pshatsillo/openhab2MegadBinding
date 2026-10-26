@@ -2,6 +2,7 @@
 <project version="4">
   <component name="WebToolsSettings">
     <option name="autoDetectRun" value="true" />
+    <option name="importOffered" value="true" />
     <option name="packageManagerPath" value="C:\Users\pvsha\AppData\Roaming\OpenIDE\OpenIDE2025.3\node\versions\24.18.0\npm.cmd" />
     <option name="runtimePath" value="C:\Users\pvsha\AppData\Roaming\OpenIDE\OpenIDE2025.3\node\versions\24.18.0\node.exe" />
   </component>
