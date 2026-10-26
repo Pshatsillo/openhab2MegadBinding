@@ -90,6 +90,10 @@ public class MegaDPortsHandler extends BaseThingHandler {
     private static final double PCA9685_TO_PERCENT = 40.95;
 
     private int dimmervalue = 255;
+    // issue #32 (1,2,3): last commanded PWM value per channel (12-bit). Used for ON
+    // so it restores the channel's own value and defaults to full scale instead of
+    // the 8-bit default of 255 used by the native dimmer channel.
+    private final Map<String, Integer> pca9685LastValues = new HashMap<>();
 
     private final ItemChannelLinkRegistry link;
     private final Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
@@ -359,7 +363,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
                         String cmd = "";
                         if (command.equals(OnOffType.ON)) {
-                            cmd = String.valueOf(dimmervalue);
+                            cmd = String.valueOf(pca9685LastValues.getOrDefault(channelUID.getId(), PCA9685_MAX));
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
                         } else if ((!command.toString().equals("REFRESH")) && (!command.toString().equals("ADDED"))) {
@@ -369,6 +373,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         .getConfiguration().get("type").toString();
                                 if ("PWM".equals(channelType)) {
                                     cmd = command.toString();
+                                    try {
+                                        int rawValue = Integer.parseInt(command.toString().split("[.]")[0]);
+                                        if (rawValue > 0) {
+                                            pca9685LastValues.put(channelUID.getId(), rawValue);
+                                        }
+                                    } catch (NumberFormatException e) {
+                                    }
                                 } else if ("DIMMER".equals(channelType)) {
                                     try {
                                         String extPortNum = channelUID.getId().split("_")[1];
@@ -389,7 +400,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             resultInt = corrVal + minval;
 
                                             if (resultInt != 0) {
-                                                dimmervalue = resultInt;
+                                                pca9685LastValues.put(channelUID.getId(), resultInt);
                                             }
                                         }
                                         cmd = String.valueOf(resultInt);
