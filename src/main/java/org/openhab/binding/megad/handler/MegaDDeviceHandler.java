@@ -104,6 +104,10 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     private @Nullable Future<?> refreshFuture;
     private @Nullable Future<?> refreshRs485Future;
+
+    private @Nullable Thread refreshThread;
+    private @Nullable Thread refreshRs485Thread;
+
     private @Nullable ScheduledFuture<?> refreshPollingJob;
     private static final long TEMP_REFRESH_INTERVAL_MS = TimeUnit.SECONDS.toMillis(30);
     private static final long PROPERTIES_REFRESH_INTERVAL_MS = TimeUnit.MINUTES.toMillis(30);
@@ -220,8 +224,24 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         } else {
             updateStatus(ThingStatus.OFFLINE);
         }
-        refreshFuture = scheduler.submit(this::refreshThreadJob);
-        refreshRs485Future = scheduler.submit(this::refreshRs485ThreadJob);
+        // refreshFuture = scheduler.submit(this::refreshThreadJob);
+        // refreshRs485Future = scheduler.submit(this::refreshRs485ThreadJob);
+        String thingId = getThing().getUID().getId();
+
+        refreshThread = new Thread(this::refreshThreadJob, "OH-MegaD-refresh-" + thingId);
+        Thread refreshThread = this.refreshThread;
+        if (refreshThread != null) {
+            refreshThread.setDaemon(true);
+            refreshThread.start();
+        }
+        refreshRs485Thread = new Thread(this::refreshRs485ThreadJob, "OH-MegaD-rs485-" + thingId);
+        Thread refreshRs485Thread = this.refreshRs485Thread;
+        if (refreshRs485Thread != null) {
+            refreshRs485Thread.setDaemon(true);
+            refreshRs485Thread.start();
+        }
+
+        logger.debug("Started dedicated refresh threads for bridge {}", thingId);
     }
 
     private void refresh() {
@@ -243,6 +263,8 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
                 pooler.updateData();
             } catch (InterruptedException e) {
                 logger.error("Refresh rs485 thread interrupted");
+                Thread.currentThread().interrupt();
+                break;
             }
             if (sendRs485Queue.size() > 10) {
                 logger.warn("{} rs485 refresh queue is full, please increase refresh time", config.hostname);
@@ -884,7 +906,7 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
 
     @Override
     public void dispose() {
-        logger.error("disposing megadHandler");
+        logger.debug("Disposing megadHandler for {}", getThing().getUID().getId());
         ScheduledFuture<?> refreshPollingJob = this.refreshPollingJob;
         if (refreshPollingJob != null && !refreshPollingJob.isCancelled()) {
             refreshPollingJob.cancel(true);
@@ -900,6 +922,28 @@ public class MegaDDeviceHandler extends BaseBridgeHandler {
         if (refreshFuture != null) {
             refreshFuture.cancel(true);
             this.refreshFuture = null;
+        }
+
+        Thread refreshThread = this.refreshThread;
+        if (refreshThread != null) {
+            refreshThread.interrupt();
+            try {
+                refreshThread.join(1000); // Ждем завершения до 1 сек
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            this.refreshThread = null;
+        }
+
+        Thread refreshRs485Thread = this.refreshRs485Thread;
+        if (refreshRs485Thread != null) {
+            refreshRs485Thread.interrupt();
+            try {
+                refreshRs485Thread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            this.refreshRs485Thread = null;
         }
 
         DatagramSocket socket = this.socket;

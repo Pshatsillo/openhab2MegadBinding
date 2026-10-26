@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -854,7 +855,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                             + bridgeDeviceHandler.config.password + "/?pt=" + configuration.port)
                                             .getResponseResult();
                                     MegaDI2CSensors initedSensor = MEGAD_I2C_SENSORS_LIST
-                                            .get(port.getSelectedDevName(getDevName).toLowerCase());
+                                            .get(port.getSelectedDevName(getDevName).toLowerCase(Locale.ROOT));
                                     MEGAD_I2C_SENSORS_LIST.forEach((k, v) -> {
                                         if (v.getSensorAddress().equals(finalSensor)) {
                                             if (initedSensor != null) {

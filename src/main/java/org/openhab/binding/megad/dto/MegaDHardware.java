@@ -15,6 +15,7 @@ package org.openhab.binding.megad.dto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -897,7 +898,7 @@ public class MegaDHardware {
                 String[] optionList = selectTag.split("<option");
                 for (String selectOption : optionList) {
                     if (selectOption.contains("selected")) {
-                        result = selectOption.split(">")[1].toLowerCase();
+                        result = selectOption.split(">")[1].toLowerCase(Locale.ROOT);
                     }
                 }
             }
