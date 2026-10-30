@@ -590,7 +590,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else if (portType.equals(MegaDTypesEnum.OUT)) {
-                if (port.getM().equals(MegaDModesEnum.SW)) {
+                if (port.getM().equals(MegaDModesEnum.SW) || port.getM().equals(MegaDModesEnum.SWLINK)) {
+                    // SWLINK (3) is the same relay output as SW, only the controller
+                    // adds a hardware interlock between two outputs (e.g. 3-way valve
+                    // coils). Commands go through the same ?cmd=<port>:1/0 path, so the
+                    // channel must be created for SWLINK too. Previously the OUT branch
+                    // handled only SW/PWM/DS2413 and SWLINK ports got zero channels.
                     List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                     Configuration configuration = new Configuration();
                     configuration.put("invert", "false");
@@ -677,6 +682,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         for (String onewireSensor : sensorsList) {
                             if (!onewireSensor.isEmpty()) {
                                 String address = onewireSensor.split(":")[0];
+                                // The controller answers "CRC-error:CRC-error" when the bus is
+                                // flaky; split(":")[0] then yields the literal "CRC-error", which
+                                // used to be created as a bogus channel "1wtemp_CRC-error" that
+                                // stole readings from the real sensors. A valid 1-wire ROM is
+                                // hex only, so skip anything else.
+                                if (!address.matches("(?i)\\p{XDigit}+")) {
+                                    logger.debug("Skipping non-address sensor entry '{}' at port {}",
+                                            onewireSensor, configuration.port);
+                                    continue;
+                                }
                                 ChannelUID onewireTempUID = new ChannelUID(thing.getUID(),
                                         MegaDBindingConstants.CHANNEL_1WTEMP + "_" + address);
                                 Configuration configuration = new Configuration();
@@ -882,8 +897,28 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     return;
                 }
             }
+            // Keep channels that already exist on the thing but were not recreated
+            // by this run. initialize() rebuilds channelList from scratch, and
+            // withChannels() REPLACES all channels — so a transient failure (1-wire
+            // bus answering "busy" or "CRC-error" on ONEWIREBUS) used to wipe every
+            // channel and orphan all links on them (openHAB GitLab #31). Keeping
+            // existing channels makes the set stable; a channel only really disappears
+            // when the port type/mode/senType changes to something that does not
+            // define it, and then it is recreated with the new definition.
+            Set<String> newChannelIds = new HashSet<>();
+            for (Channel newChannel : channelList) {
+                newChannelIds.add(newChannel.getUID().getId());
+            }
+            List<Channel> mergedChannelList = new ArrayList<>(channelList);
+            for (Channel existingChannel : thing.getChannels()) {
+                if (!newChannelIds.contains(existingChannel.getUID().getId())) {
+                    logger.debug("Keeping existing channel {} of {}", existingChannel.getUID().getId(),
+                            thing.getUID());
+                    mergedChannelList.add(existingChannel);
+                }
+            }
             ThingBuilder thingBuilder = editThing();
-            thingBuilder.withChannels(channelList);
+            thingBuilder.withChannels(mergedChannelList);
             updateThing(thingBuilder.build());
 
             properties.put("Mega URL:", "http://" + Objects.requireNonNull(bridgeDeviceHandler).config.hostname + "/"
