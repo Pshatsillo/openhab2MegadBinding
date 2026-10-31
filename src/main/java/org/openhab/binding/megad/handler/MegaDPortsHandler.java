@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,7 +90,24 @@ public class MegaDPortsHandler extends BaseThingHandler {
     private static final double PWM_TO_PERCENT = 2.55;
     private static final double PCA9685_TO_PERCENT = 40.95;
 
-    private int dimmervalue = 255;
+    // issue #49: last value per native dimmer/PWM channel. A single field per
+    // thing made ON on one channel restore another channel's value.
+    private static final int DIMMER_DEFAULT = 255;
+
+    private final Map<String, Integer> dimmerValues = new ConcurrentHashMap<>();
+
+    private int getDimmerValue(String channelId) {
+        Integer value = dimmerValues.get(channelId);
+        return value == null ? DIMMER_DEFAULT : value;
+    }
+
+    // issue #32 (1,2,3): last commanded PWM value per channel (12-bit). Used for ON
+    // so it restores the channel's own value and defaults to full scale instead of
+    // the 8-bit default of 255 used by the native dimmer channel.
+    // In-memory only: after an openHAB restart the first ON restores full scale
+    // (PCA9685_MAX) instead of the last brightness. Persisting it in thing
+    // properties is possible but deliberately out of scope for this change.
+    private final Map<String, Integer> pca9685LastValues = new ConcurrentHashMap<>();
 
     private final ItemChannelLinkRegistry link;
     private final Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
@@ -219,7 +237,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     resultInt = uivalue;
                                 }
                             } else if (resultInt != 0) {
-                                dimmervalue = resultInt;
+                                dimmerValues.put(channelUID.getId(), resultInt);
                             }
                         }
                         StringBuilder resBuild = new StringBuilder().append("http://")
@@ -269,11 +287,11 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         } else if (command.toString().equals("ON")) {
                             if (!smooth.isBlank()) {
                                 resBuild.append("/?pt=").append(getThing().getConfiguration().get("port").toString())
-                                        .append("&pwm=").append(dimmervalue);
+                                        .append("&pwm=").append(getDimmerValue(channelUID.getId()));
                                 resBuild.append("&cnt=").append(smooth);
                             } else {
                                 resBuild.append("/&cmd=").append(getThing().getConfiguration().get("port").toString())
-                                        .append(":").append(dimmervalue);
+                                        .append(":").append(getDimmerValue(channelUID.getId()));
                                 result = resBuild.toString();
                             }
                             // result = "http://"
@@ -289,7 +307,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             }
                             int percent = 0;
                             try {
-                                percent = (int) Math.round(dimmervalue / PWM_TO_PERCENT);
+                                percent = (int) Math.round(getDimmerValue(channelUID.getId()) / PWM_TO_PERCENT);
                             } catch (Exception ignored) {
                             }
                             updateState(channelUID.getId(), PercentType.valueOf(Integer.toString(percent)));
@@ -303,7 +321,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     try {
                         int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
                         if (uivalue != 0) {
-                            dimmervalue = uivalue;
+                            dimmerValues.put(channelUID.getId(), uivalue);
                         }
                         result = "http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
@@ -319,14 +337,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         result = "http://"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("hostname").toString() + "/"
                                 + bridgeDeviceHandler.getThing().getConfiguration().get("password").toString()
-                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":" + dimmervalue;
+                                + "/?cmd=" + getThing().getConfiguration().get("port").toString() + ":"
+                                + getDimmerValue(channelUID.getId());
                         logger.info("PWM restored to previous value: {}", result);
                         int responseCode = httpHelper.request(result).getResponseCode();
                         if (responseCode != 200) {
                             logger.error("Send command at port {} error, check your mega {}", configuration.port,
                                     bridgeDeviceHandler.config.hostname);
                         }
-                        updateState(channelUID.getId(), DecimalType.valueOf(Integer.toString(dimmervalue)));
+                        updateState(channelUID.getId(),
+                                DecimalType.valueOf(Integer.toString(getDimmerValue(channelUID.getId()))));
                     }
                 }
             } else {
@@ -359,7 +379,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         BigDecimal thingPort = (BigDecimal) thing.getConfiguration().get("port");
                         String cmd = "";
                         if (command.equals(OnOffType.ON)) {
-                            cmd = String.valueOf(dimmervalue);
+                            cmd = String.valueOf(pca9685LastValues.getOrDefault(channelUID.getId(), PCA9685_MAX));
                         } else if (command.equals(OnOffType.OFF)) {
                             cmd = "0";
                         } else if ((!command.toString().equals("REFRESH")) && (!command.toString().equals("ADDED"))) {
@@ -369,35 +389,40 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                         .getConfiguration().get("type").toString();
                                 if ("PWM".equals(channelType)) {
                                     cmd = command.toString();
+                                    try {
+                                        int rawValue = Integer.parseInt(command.toString().split("[.]")[0]);
+                                        if (rawValue > 0) {
+                                            pca9685LastValues.put(channelUID.getId(), rawValue);
+                                        }
+                                    } catch (NumberFormatException e) {
+                                    }
                                 } else if ("DIMMER".equals(channelType)) {
                                     try {
                                         String extPortNum = channelUID.getId().split("_")[1];
                                         MegaDHardware.ExtPort extPort = port.getExtPorts()
                                                 .get(Integer.parseInt(extPortNum));
                                         int resultInt = 0;
-                                        if (extPort != null) {
-                                            String minValString = extPort.getEmin();
-                                            int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
-                                            if (uivalue != 0) {
-                                                int minval = ((minValString.isEmpty()) ? 0
-                                                        : Integer.parseInt(minValString));
-                                                double getDiff = (PCA9685_MAX - minval) / 100.0;
-                                                int corrVal = (int) Math.round(uivalue * getDiff);
-                                                resultInt = corrVal + minval;
+                                        int uivalue = Integer.parseInt(command.toString().split("[.]")[0]);
+                                        if (uivalue != 0) {
+                                            // extPort is only needed for the "Min" scaling value; when it is
+                                            // missing (e.g. extPorts list lost after controller restart) the
+                                            // scaling must still be calculated with minval=0 instead of
+                                            // silently sending "0" to the controller (issue #32, point 5)
+                                            String minValString = (extPort != null) ? extPort.getEmin() : "";
+                                            int minval = ((minValString == null || minValString.isEmpty()) ? 0
+                                                    : Integer.parseInt(minValString));
+                                            double getDiff = (PCA9685_MAX - minval) / 100.0;
+                                            int corrVal = (int) Math.round(uivalue * getDiff);
+                                            resultInt = corrVal + minval;
 
-                                                if (uivalue == 1) {
-                                                    if (minval != 0) {
-                                                        resultInt = minval;
-                                                    } else {
-                                                        resultInt = uivalue;
-                                                    }
-                                                } else if (resultInt != 0) {
-                                                    dimmervalue = resultInt;
-                                                }
+                                            if (resultInt != 0) {
+                                                pca9685LastValues.put(channelUID.getId(), resultInt);
                                             }
                                         }
                                         cmd = String.valueOf(resultInt);
                                     } catch (Exception e) {
+                                        logger.debug("PCA9685: cannot convert dimmer command '{}': {}", command,
+                                                e.toString());
                                     }
                                 }
                             } else {
@@ -405,8 +430,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     int value = Integer.parseInt(command.toString());
                                     cmd = String.valueOf(Math.round(value * PCA9685_TO_PERCENT));
                                 } catch (Exception e) {
+                                    logger.debug("PCA9685: cannot convert raw command '{}': {}", command,
+                                            e.toString());
                                 }
                             }
+                        }
+                        if (cmd.isEmpty()) {
+                            logger.debug("PCA9685: no command for channel {} (command {}), request skipped",
+                                    channelUID.getId(), command);
+                            return;
                         }
                         String request = "http://" + bridgeDeviceHandler.config.hostname + "/"
                                 + bridgeDeviceHandler.config.password + "/?cmd=" + thingPort + "e" + portNum + ":"
@@ -1162,7 +1194,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                     updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(0)));
                                     return;
                                 } else {
-                                    dimmervalue = Integer.parseInt(value);
+                                    dimmerValues.put(channel.getUID().getId(), Integer.parseInt(value));
                                 }
                             } catch (Exception ignored) {
                             }
@@ -1171,15 +1203,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             try {
                                 int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
                                 if (minval != 0) {
-                                    if (minval == dimmervalue) {
+                                    if (minval == getDimmerValue(channel.getUID().getId())) {
                                         percent = 1;
                                     } else {
-                                        int realval = (dimmervalue - minval);// * 0.01;
+                                        int realval = (getDimmerValue(channel.getUID().getId()) - minval);// * 0.01;
                                         double divVal = (255 - minval) * 0.01;
                                         percent = (int) Math.round(realval / divVal);
                                     }
                                 } else {
-                                    percent = (int) Math.round(dimmervalue / 2.55);
+                                    percent = (int) Math.round(getDimmerValue(channel.getUID().getId()) / 2.55);
                                 }
                                 updateState(channel.getUID().getId(), PercentType.valueOf(Integer.toString(percent)));
                             } catch (Exception ex) {
@@ -1238,7 +1270,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                     PercentType.valueOf(Integer.toString(0)));
                                                             return;
                                                         } else {
-                                                            dimmervalue = Integer.parseInt(value);
+                                                            dimmerValues.put(channel.getUID().getId(),
+                                                                    Integer.parseInt(value));
                                                             MegaDHardware.ExtPort extPort = port.getExtPorts()
                                                                     .get(Integer.parseInt(channelName.split("_")[1]));
                                                             if (extPort != null) {
@@ -1247,11 +1280,12 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                     int percent = 0;
                                                                     int minval = Integer.parseInt(minValString);
                                                                     if (minval != 0) {
-                                                                        if (minval == dimmervalue) {
+                                                                        if (minval == getDimmerValue(channel.getUID().getId())) {
                                                                             updateState(channel.getUID().getId(),
                                                                                     PercentType.valueOf("1"));
                                                                         } else {
-                                                                            int realval = (dimmervalue - minval);
+                                                                            int realval = (getDimmerValue(
+                                                                                    channel.getUID().getId()) - minval);
                                                                             double divVal = (4095 - minval) * 0.01;
                                                                             percent = (int) Math
                                                                                     .round(realval / divVal);
@@ -1260,14 +1294,16 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                                             Integer.toString(percent)));
                                                                         }
                                                                     } else {
-                                                                        percent = (int) Math.round(dimmervalue / 40.95);
+                                                                        percent = (int) Math.round(getDimmerValue(
+                                                                                channel.getUID().getId()) / 40.95);
                                                                         updateState(channel.getUID().getId(),
                                                                                 PercentType.valueOf(
                                                                                         Integer.toString(percent)));
                                                                     }
                                                                 } else {
                                                                     int percent = 0;
-                                                                    percent = (int) Math.round(dimmervalue / 40.95);
+                                                                    percent = (int) Math.round(getDimmerValue(
+                                                                            channel.getUID().getId()) / 40.95);
                                                                     updateState(channel.getUID().getId(), PercentType
                                                                             .valueOf(Integer.toString(percent)));
                                                                 }
@@ -1285,7 +1321,8 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                                 PercentType.valueOf(Integer.toString(0)));
                                                         return;
                                                     } else {
-                                                        dimmervalue = Integer.parseInt(value);
+                                                        dimmerValues.put(channel.getUID().getId(),
+                                                                Integer.parseInt(value));
                                                     }
                                                 } catch (Exception ignored) {
                                                 }
@@ -1294,15 +1331,17 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                                 try {
                                                     int minval = port.getPwmm();// Integer.parseInt(getThing().getConfiguration().get("min_pwm").toString());
                                                     if (minval != 0) {
-                                                        if (minval == dimmervalue) {
+                                                        if (minval == getDimmerValue(channel.getUID().getId())) {
                                                             percent = 1;
                                                         } else {
-                                                            int realval = (dimmervalue - minval);// * 0.01;
+                                                            int realval = (getDimmerValue(channel.getUID().getId())
+                                                                    - minval);// * 0.01;
                                                             double divVal = (4095 - minval) * 0.01;
                                                             percent = (int) Math.round(realval / divVal);
                                                         }
                                                     } else {
-                                                        percent = (int) Math.round(dimmervalue / 40.95);
+                                                        percent = (int) Math.round(getDimmerValue(
+                                                                channel.getUID().getId()) / 40.95);
                                                     }
                                                 } catch (Exception ex) {
                                                     logger.debug("Cannot convert to dimmer values. Error: '{}'",
