@@ -57,15 +57,25 @@ public class MegaDEventSubscriber implements EventSubscriber {
     @Override
     public void receive(Event event) {
         logger.debug("MegaDEventSubscriber received event: {}", event.getTopic());
+        if (!(event instanceof ItemCommandEvent)) {
+            return;
+        }
         ItemCommandEvent ise = (ItemCommandEvent) event;
         String itemName = ise.getItemName();
         Command command = ise.getItemCommand();
         for (MegaDPortsHandler handler : handlers.values()) {
-            ChannelUID channelUID = findLinkedChannel(handler, itemName);
-            if (channelUID != null) {
-                logger.debug("Routing command to handler: {}", handler.getThing().getUID());
-                handler.processCommand(channelUID, command, itemName);
-                return;
+            try {
+                ChannelUID channelUID = findLinkedChannel(handler, itemName);
+                if (channelUID != null) {
+                    logger.debug("Routing command to handler: {}", handler.getThing().getUID());
+                    handler.processCommand(channelUID, command, itemName);
+                    return;
+                }
+            } catch (Exception e) {
+                // A single handler failure must not drop the command for the whole
+                // binding, and it must not be silent.
+                logger.error("Failed to process command '{}' for item '{}' on handler {}: {}", command, itemName,
+                        handler.getThing().getUID(), e.toString(), e);
             }
         }
     }
