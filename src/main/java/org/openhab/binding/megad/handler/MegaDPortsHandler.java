@@ -167,21 +167,19 @@ public class MegaDPortsHandler extends BaseThingHandler {
                 logger.trace("CHANNEL_OUT");
                 Channel channel = thing.getChannel(MegaDBindingConstants.CHANNEL_OUT);
                 if (channel != null) {
-                    if (channel.getConfiguration().get("invert") != null) {
-                        if ((Boolean) channel.getConfiguration().get("invert")) {
-                            if (!command.toString().equals("REFRESH")) {
-                                if (command.toString().equals("OFF")) {
-                                    state = 1;
-                                }
-                                sendComandOnOffToMega(state, bridgeDeviceHandler);
+                    if (isInverted(channel)) {
+                        if (!command.toString().equals("REFRESH")) {
+                            if (command.toString().equals("OFF")) {
+                                state = 1;
                             }
-                        } else {
-                            if (!command.toString().equals("REFRESH")) {
-                                if (command.toString().equals("ON")) {
-                                    state = 1;
-                                }
-                                sendComandOnOffToMega(state, bridgeDeviceHandler);
+                            sendComandOnOffToMega(state, bridgeDeviceHandler);
+                        }
+                    } else {
+                        if (!command.toString().equals("REFRESH")) {
+                            if (command.toString().equals("ON")) {
+                                state = 1;
                             }
+                            sendComandOnOffToMega(state, bridgeDeviceHandler);
                         }
                     }
                 } else {
@@ -590,10 +588,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     }
                 }
             } else if (portType.equals(MegaDTypesEnum.OUT)) {
-                if (port.getM().equals(MegaDModesEnum.SW)) {
+                if (port.getM().equals(MegaDModesEnum.SW) || port.getM().equals(MegaDModesEnum.SWLINK)) {
+                    // SWLINK (3) is the same relay output as SW, only the controller
+                    // adds a hardware interlock between two outputs (e.g. 3-way valve
+                    // coils). Commands go through the same ?cmd=<port>:1/0 path, so the
+                    // channel must be created for SWLINK too. Previously the OUT branch
+                    // handled only SW/PWM/DS2413 and SWLINK ports got zero channels.
                     List<Channel> existingChannelList = new LinkedList<>(thing.getChannels());
                     Configuration configuration = new Configuration();
-                    configuration.put("invert", "false");
+                    configuration.put("invert", Boolean.FALSE);
                     ChannelUID outUID = new ChannelUID(thing.getUID(), MegaDBindingConstants.CHANNEL_OUT);
                     Channel out = ChannelBuilder.create(outUID)
                             .withType(new ChannelTypeUID(MegaDBindingConstants.BINDING_ID,
@@ -677,6 +680,18 @@ public class MegaDPortsHandler extends BaseThingHandler {
                         for (String onewireSensor : sensorsList) {
                             if (!onewireSensor.isEmpty()) {
                                 String address = onewireSensor.split(":")[0];
+                                // The controller answers "CRC-error:CRC-error" when the bus is
+                                // flaky; split(":")[0] then yields the literal "CRC-error", which
+                                // used to be created as a bogus channel "1wtemp_CRC-error" that
+                                // stole readings from the real sensors. A real address is hex and
+                                // long enough: MegaD reports 12 hex characters (6-byte ROM with
+                                // trailing zeros, e.g. "c67f0c000000"), DS18B20 parts use 16.
+                                // Short hex fragments like "28" or "ff" are not addresses.
+                                if (!address.matches("(?i)[0-9a-f]{8,16}")) {
+                                    logger.warn("Skipping non-address sensor entry '{}' at port {}", onewireSensor,
+                                            configuration.port);
+                                    continue;
+                                }
                                 ChannelUID onewireTempUID = new ChannelUID(thing.getUID(),
                                         MegaDBindingConstants.CHANNEL_1WTEMP + "_" + address);
                                 Configuration configuration = new Configuration();
@@ -882,8 +897,31 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     return;
                 }
             }
+            // Keep channels that already exist on the thing but were not recreated
+            // by this run. initialize() rebuilds channelList from scratch, and
+            // withChannels() REPLACES all channels — so a transient failure (1-wire
+            // bus answering "busy" or "CRC-error" on ONEWIREBUS) used to wipe every
+            // channel and orphan all links on them (openHAB GitLab #31). Keeping
+            // existing channels makes the set stable across re-inits.
+            //
+            // NOTE: this merge only prevents accidental loss. Channels that are no
+            // longer defined by the current port type/mode/senType (e.g. the OUT
+            // channel after a switch from SW/SWLINK to PWM) are NOT removed here and
+            // remain stale until cleaned up explicitly — tracked separately.
+            Set<String> newChannelIds = new HashSet<>();
+            for (Channel newChannel : channelList) {
+                newChannelIds.add(newChannel.getUID().getId());
+            }
+            List<Channel> mergedChannelList = new ArrayList<>(channelList);
+            for (Channel existingChannel : thing.getChannels()) {
+                if (!newChannelIds.contains(existingChannel.getUID().getId())) {
+                    logger.debug("Keeping existing channel {} of {}", existingChannel.getUID().getId(),
+                            thing.getUID());
+                    mergedChannelList.add(existingChannel);
+                }
+            }
             ThingBuilder thingBuilder = editThing();
-            thingBuilder.withChannels(channelList);
+            thingBuilder.withChannels(mergedChannelList);
             updateThing(thingBuilder.build());
 
             properties.put("Mega URL:", "http://" + Objects.requireNonNull(bridgeDeviceHandler).config.hostname + "/"
@@ -1076,6 +1114,15 @@ public class MegaDPortsHandler extends BaseThingHandler {
         }
     }
 
+    private static boolean isInverted(Channel channel) {
+        Object value = channel.getConfiguration().get("invert");
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        // Older persisted things may still carry the value as a String.
+        return value != null && Boolean.parseBoolean(value.toString());
+    }
+
     public void updateChannel(String channelName, String value) {
         for (Channel channel : getThing().getChannels()) {
             if (isLinked(channel.getUID().getId())) {
@@ -1083,17 +1130,14 @@ public class MegaDPortsHandler extends BaseThingHandler {
                     switch (channelName) {
                         case MegaDBindingConstants.CHANNEL_IN:
                         case MegaDBindingConstants.CHANNEL_OUT:
-                            if (channel.getConfiguration().get("invert") == null) {
-                                channel.getConfiguration().put("invert", false);
-                            }
                             if (value.contains("ON")) {
-                                if ((Boolean) channel.getConfiguration().get("invert")) {
+                                if (isInverted(channel)) {
                                     updateState(channel.getUID().getId(), OnOffType.OFF);
                                 } else {
                                     updateState(channel.getUID().getId(), OnOffType.ON);
                                 }
                             } else if (value.contains("OFF")) {
-                                if ((Boolean) channel.getConfiguration().get("invert")) {
+                                if (isInverted(channel)) {
                                     updateState(channel.getUID().getId(), OnOffType.ON);
                                 } else {
                                     updateState(channel.getUID().getId(), OnOffType.OFF);
@@ -1112,13 +1156,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 channel.getConfiguration().put("invert", false);
                             }
                             if (value.contains("ON")) {
-                                if ((Boolean) channel.getConfiguration().get("invert")) {
+                                if (isInverted(channel)) {
                                     updateState(channel.getUID().getId(), OpenClosedType.OPEN);
                                 } else {
                                     updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
                                 }
                             } else if (value.contains("OFF")) {
-                                if ((Boolean) channel.getConfiguration().get("invert")) {
+                                if (isInverted(channel)) {
                                     updateState(channel.getUID().getId(), OpenClosedType.CLOSED);
                                 } else {
                                     updateState(channel.getUID().getId(), OpenClosedType.OPEN);
@@ -1206,13 +1250,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                             if (megaDExtendersEnum != MegaDExtendersEnum.NC) {
                                 if (megaDExtendersEnum.equals(MegaDExtendersEnum.MCP230XX)) {
                                     if (value.contains("ON")) {
-                                        if ((Boolean) channel.getConfiguration().get("invert")) {
+                                        if (isInverted(channel)) {
                                             updateState(channel.getUID().getId(), OnOffType.OFF);
                                         } else {
                                             updateState(channel.getUID().getId(), OnOffType.ON);
                                         }
                                     } else if (value.contains("OFF")) {
-                                        if ((Boolean) channel.getConfiguration().get("invert")) {
+                                        if (isInverted(channel)) {
                                             updateState(channel.getUID().getId(), OnOffType.ON);
                                         } else {
                                             updateState(channel.getUID().getId(), OnOffType.OFF);
