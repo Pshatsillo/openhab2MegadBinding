@@ -683,11 +683,13 @@ public class MegaDPortsHandler extends BaseThingHandler {
                                 // The controller answers "CRC-error:CRC-error" when the bus is
                                 // flaky; split(":")[0] then yields the literal "CRC-error", which
                                 // used to be created as a bogus channel "1wtemp_CRC-error" that
-                                // stole readings from the real sensors. A valid 1-wire ROM is
-                                // hex only, so skip anything else.
-                                if (!address.matches("(?i)\\p{XDigit}+")) {
-                                    logger.debug("Skipping non-address sensor entry '{}' at port {}",
-                                            onewireSensor, configuration.port);
+                                // stole readings from the real sensors. A real address is hex and
+                                // long enough: MegaD reports 12 hex characters (6-byte ROM with
+                                // trailing zeros, e.g. "c67f0c000000"), DS18B20 parts use 16.
+                                // Short hex fragments like "28" or "ff" are not addresses.
+                                if (!address.matches("(?i)[0-9a-f]{8,16}")) {
+                                    logger.warn("Skipping non-address sensor entry '{}' at port {}", onewireSensor,
+                                            configuration.port);
                                     continue;
                                 }
                                 ChannelUID onewireTempUID = new ChannelUID(thing.getUID(),
