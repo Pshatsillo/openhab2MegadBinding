@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -93,7 +94,7 @@ public class MegaDPortsHandler extends BaseThingHandler {
     // issue #32 (1,2,3): last commanded PWM value per channel (12-bit). Used for ON
     // so it restores the channel's own value and defaults to full scale instead of
     // the 8-bit default of 255 used by the native dimmer channel.
-    private final Map<String, Integer> pca9685LastValues = new HashMap<>();
+    private final Map<String, Integer> pca9685LastValues = new ConcurrentHashMap<>();
 
     private final ItemChannelLinkRegistry link;
     private final Logger logger = LoggerFactory.getLogger(MegaDPortsHandler.class);
